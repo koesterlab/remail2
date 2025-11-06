@@ -4,15 +4,7 @@ import random
 import mimetypes  # Für die korrekte Erkennung von MIME-Types
 import sys
 import os
-
-# Add the Remail directory (parent folder) to sys.path
-remail_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-sys.path.append(remail_path)
-
-# Import the RAG_Backend module using the full package path
 from llm import RAG_Backend as rag
-
-llm = rag.LLM()
 
 # Beispiel-Daten
 emails_data = {
@@ -60,26 +52,39 @@ emails_data = {
     ],
 }
 
+def __init__():
 
-# Initialisiere Session-States
-if "selected_sender" not in st.session_state:
-    st.session_state.selected_sender = None
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = {}
-if "new_message" not in st.session_state:
-    st.session_state.new_message = ""
-if "ai_chat_history" not in st.session_state:
-    st.session_state.ai_chat_history = []
-if "ai_user_message" not in st.session_state:
-    st.session_state.ai_user_message = ""
-if "contacts" not in st.session_state:
-    st.session_state.contacts = {}
-if "filter_option" not in st.session_state:
-    st.session_state.filter_option = "None"
-if "search_query" not in st.session_state:
-    st.session_state.search_query = ""
+    # Add the Remail directory (parent folder) to sys.path
+    remail_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    sys.path.append(remail_path)
 
-st.set_page_config(page_title="Remail", layout="wide")
+    # Import the RAG_Backend module using the full package path
+
+
+    llm = rag.LLM()
+
+
+
+
+    # Initialisiere Session-States
+    if "selected_sender" not in st.session_state:
+        st.session_state.selected_sender = None
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = {}
+    if "new_message" not in st.session_state:
+        st.session_state.new_message = ""
+    if "ai_chat_history" not in st.session_state:
+        st.session_state.ai_chat_history = []
+    if "ai_user_message" not in st.session_state:
+        st.session_state.ai_user_message = ""
+    if "contacts" not in st.session_state:
+        st.session_state.contacts = {}
+    if "filter_option" not in st.session_state:
+        st.session_state.filter_option = "None"
+    if "search_query" not in st.session_state:
+        st.session_state.search_query = ""
+
+    st.set_page_config(page_title="Remail", layout="wide")
 
 
 # New Mail

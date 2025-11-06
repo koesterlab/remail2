@@ -52,7 +52,7 @@ class LLM(object):
             model_path=self.MODEL_PATH,
             n_ctx=Settings.context_window,
             chat_format="llama-3",
-            verbose=False,
+            #verbose=False,
         )  # disabling verbosity to reduce console logging
 
         # Hugging Face Embedding Model
