@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from typing import List, Optional
-import sqlalchemy
+import ysqlalchemy
 from sqlmodel import Field, SQLModel, Relationship
 from datetime import datetime
 from sqlalchemy import Column, Integer, String
