@@ -2,32 +2,31 @@ from typing import Callable, List
 
 import flet as ft
 
-import remail.frontend.components.mail_selection.conversationPreview
 from remail.frontend.components.mail_selection.contactPreview import ContactPreview
 from remail.frontend.components.mail_selection.groupPreview import GroupPreview
-from remail.frontend.dummyDataclasses.Conversation import Conversation
-from remail.frontend.components.mail_selection.Action import Action
-from remail.frontend.components.mail_selection.ActionPreview import ActionPreview
-from remail.frontend.dummyDataclasses.Contact import Contact
+from remail.frontend.components.mail_selection.action import Action
+from remail.frontend.components.mail_selection.actionPreview import ActionPreview
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
+
 
 """
 Subwidget of selectionBar to choose between different contacts (+groups) and actions
 """
 class ConversationSelection(ft.Column):
-    def __init__(self, callback : Callable[[Action|Conversation], None]):
+    def __init__(self, callback : Callable[[Action|ConversationDTO], None]):
         self.callback = callback
         super().__init__()
 
-    def set_content(self, content : List[Conversation|Action]):
+    def set_content(self, content : List[ConversationDTO|Action]):
         #todo: make more efficient on reload
         #todo: sort algorithm
         print("Setting content to conversation selection")
 
-        def create_list_item(elem : Action |Conversation):
+        def create_list_item(elem : Action |ConversationDTO):
             callback = lambda: self.callback(elem)
 
             if isinstance(elem, Action): item = ActionPreview(elem,callback)
-            elif len(elem.members) == 1: item = ContactPreview(elem.members[0], callback)
+            elif len(elem.contacts) == 1: item = ContactPreview(elem, callback)
             else: item = GroupPreview(elem, callback)
 
             return item

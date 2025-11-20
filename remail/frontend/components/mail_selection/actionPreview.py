@@ -2,7 +2,7 @@ from typing import Callable
 
 import flet as ft
 
-from remail.frontend.components.mail_selection.Action import Action
+from remail.frontend.components.mail_selection.action import Action
 
 
 class ActionPreview(ft.Container):

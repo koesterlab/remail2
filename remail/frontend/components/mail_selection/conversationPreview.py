@@ -1,6 +1,7 @@
 from typing import Callable
 
 import flet as ft
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 
 
 class ConversationPreview(ft.Container):
@@ -13,7 +14,7 @@ class ConversationPreview(ft.Container):
         fav_btn = ft.IconButton(
             icon=ft.Icons.STAR if fav else ft.Icons.STAR_OUTLINE,
             tooltip="favorite",
-            on_click=on_toggle_fav
+            on_click=lambda e: on_toggle_fav()
         )
 
         # registered badge

@@ -1,13 +1,12 @@
 from dataclasses import dataclass
 from typing import List
 
-from remail.controllers.dtos.conversations import ContactDTO
-from remail.controllers.dtos.threads.thread import ThreadDTO
+from remail.controllers.dtos.conversations import ContactDTO, ThreadPreviewDTO
 
 
 @dataclass
 class ConversationDTO:
     contacts: List[ContactDTO]
-    threads: List[ThreadDTO]
+    threads: List[ThreadPreviewDTO]
     is_favorite: bool
     customName: str|None

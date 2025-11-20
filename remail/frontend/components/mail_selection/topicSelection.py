@@ -2,20 +2,19 @@ from typing import Callable, List
 
 import flet
 
-from remail.frontend.components.mail_selection.Action import Action
-from remail.frontend.components.mail_selection.topicPreview import TopicPreview
-from remail.frontend.dummyDataclasses.Conversation import Conversation
-from remail.frontend.dummyDataclasses.Contact import Contact
+from remail.controllers.dtos.conversations import ConversationDTO
+from remail.frontend.components.mail_selection.action import Action
+from remail.frontend.components.mail_selection.threadPreview import ThreadPreview
 
 """
 Subwidget of selectionBar to choose between different conversations of a contact
 """
 class TopicSelection(flet.Column):
-    def __init__(self, callback : Callable[[Conversation], None]):
+    def __init__(self, callback : Callable[[ConversationDTO], None]):
         self.callback = callback
         super().__init__()
 
-    def set_content(self, content : Conversation):
+    def set_content(self, content : ConversationDTO):
         #todo: make more efficient on reload
         #todo: sort algorithm
-        self.controls = [TopicPreview(elem) for elem in content.topics]
+        self.controls = [ThreadPreview(elem) for elem in content.threads]
