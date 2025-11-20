@@ -1,47 +1,26 @@
 [project]
 name = "remail"
 version = "0.1.0"
-description = ""
-license = "GPL-3.0-or-later"
+description = "ReMail - Email management with AI-powered features"
 authors = [{ name = "Your Name", email = "you@example.com" }]
 readme = "README.md"
-requires-python = ">=3.12,<3.14"
+license = { text = "GPL-3.0-or-later" }
+requires-python = ">=3.12"
 
-dependencies = [
-    "duckdb",
-    "sqlmodel",
-    "duckdb-engine",
-    "exchangelib",
-    "llama-index",
-    "streamlit",
-    "imapclient",
-    "llama-cpp-python",
-    "llama-index-vector-stores-chroma",
-    "llama-index-embeddings-huggingface",
-    "transformers",
-    "sentence-transformers",
-    "chromadb",
-    "sqlalchemy",
-    "llama-index-readers-database",
-    "werkzeug",
-    "keyring",
-    "torchvision",
-]
+[tool.ruff]
+line-length = 100
+target-version = "py312"
 
-[project.optional-dependencies]
-dev = [
-    "ruff>=0.8.4"
-]
+[tool.ruff.lint]
+select = ["E","W","F","I","B","C4","UP"]
+ignore = ["E501","B008","W191"]
 
-[project.scripts]
-my-script = "remail.frontend:home"
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
 
-[tool.pixi.workspace]
-channels = ["conda-forge"]
-platforms = ["win-64"]
-
-[tool.pixi.pypi-dependencies]
-remail = { path = ".", editable = true }
-
-[tool.pixi.tasks]
-start = "streamlit run remail/frontend.py"
+[tool.pytest.ini_options]
+testpaths = ["tests", "remail"]
+python_files = ["test_*.py", "*_test.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = ["--strict-markers","--strict-config","-ra"]
