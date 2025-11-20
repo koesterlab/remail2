@@ -12,3 +12,7 @@ MemStorage.txt
 # pixi environments
 .pixi/*
 !.pixi/config.toml
+/.gitattributes
+/.idea/.gitignore
+/remail.egg-info
+/.idea
