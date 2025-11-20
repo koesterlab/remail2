@@ -3,7 +3,7 @@ import threading
 
 import flet
 
-from remail.frontend.components.mail_selection.selectionBar import SelectionBar
+from remail.frontend.components.mail_selection.selection_bar import SelectionBar
 from remail.frontend.dummyDataclasses.Contact import Contact
 from remail.frontend.dummyDataclasses.Conversation import Topic, Conversation, get_dummy_inbox_data
 

@@ -1,10 +1,10 @@
 import flet as ft
 
-import remail.frontend.components.mail_selection.conversationPreview
+import remail.frontend.components.mail_selection.conversation_preview
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 
 
-class ContactPreview(remail.frontend.components.mail_selection.conversationPreview.ConversationPreview):
+class ContactPreview(remail.frontend.components.mail_selection.conversation_preview.ConversationPreview):
     # component representing a single contact entry
     def __init__(self, conversation: ConversationDTO, on_click=lambda: None):
         contact = conversation.contacts[0]

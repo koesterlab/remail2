@@ -1,4 +1,4 @@
-from remail.frontend.components.mail_selection.conversationPreview import ConversationPreview
+from remail.frontend.components.mail_selection.conversation_preview import ConversationPreview
 import flet as ft
 
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO

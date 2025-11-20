@@ -3,7 +3,7 @@ from typing import Callable, List
 import flet
 
 from remail.controllers.dtos.conversations import ConversationDTO
-from remail.frontend.components.mail_selection.threadPreview import ThreadPreview
+from remail.frontend.components.mail_selection.thread_preview import ThreadPreview
 
 """
 Subwidget of selectionBar to choose between different conversations of a contact

@@ -2,10 +2,10 @@ from typing import Callable, List
 
 import flet as ft
 
-from remail.frontend.components.mail_selection.contactPreview import ContactPreview
-from remail.frontend.components.mail_selection.groupPreview import GroupPreview
+from remail.frontend.components.mail_selection.contact_preview import ContactPreview
+from remail.frontend.components.mail_selection.group_preview import GroupPreview
 from remail.frontend.components.mail_selection.action import Action
-from remail.frontend.components.mail_selection.actionPreview import ActionPreview
+from remail.frontend.components.mail_selection.action_preview import ActionPreview
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 
 

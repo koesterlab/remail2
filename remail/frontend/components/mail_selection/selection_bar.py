@@ -4,9 +4,9 @@ import flet as ft
 
 from remail.controllers.dtos.conversations import ConversationDTO
 from remail.frontend.components.mail_selection.action import Action
-from remail.frontend.components.mail_selection.conversationSelection import ConversationSelection
-from remail.frontend.components.mail_selection.searchHeader import SearchHeader
-from remail.frontend.components.mail_selection.threadSelection import ThreadSelection
+from remail.frontend.components.mail_selection.conversation_selection import ConversationSelection
+from remail.frontend.components.mail_selection.search_header import SearchHeader
+from remail.frontend.components.mail_selection.thread_selection import ThreadSelection
 
 """
 Overall Widget to combine searchbar and selection widgets
