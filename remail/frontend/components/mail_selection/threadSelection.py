@@ -3,13 +3,12 @@ from typing import Callable, List
 import flet
 
 from remail.controllers.dtos.conversations import ConversationDTO
-from remail.frontend.components.mail_selection.action import Action
 from remail.frontend.components.mail_selection.threadPreview import ThreadPreview
 
 """
 Subwidget of selectionBar to choose between different conversations of a contact
 """
-class TopicSelection(flet.Column):
+class ThreadSelection(flet.Column):
     def __init__(self, callback : Callable[[ConversationDTO], None]):
         self.callback = callback
         super().__init__()

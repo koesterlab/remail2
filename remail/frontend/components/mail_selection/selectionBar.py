@@ -6,7 +6,7 @@ from remail.controllers.dtos.conversations import ConversationDTO
 from remail.frontend.components.mail_selection.action import Action
 from remail.frontend.components.mail_selection.conversationSelection import ConversationSelection
 from remail.frontend.components.mail_selection.searchHeader import SearchHeader
-from remail.frontend.components.mail_selection.topicSelection import TopicSelection
+from remail.frontend.components.mail_selection.threadSelection import ThreadSelection
 
 """
 Overall Widget to combine searchbar and selection widgets
@@ -23,7 +23,7 @@ class SelectionBar(ft.Container):
         )
 
         self.conversation_selection = ConversationSelection(self.__on_conversation_or_action_selected)
-        self.topic_selection = TopicSelection(self.__on_topic_selected)
+        self.topic_selection = ThreadSelection(self.__on_topic_selected)
 
         super().__init__(
             content=ft.Column(controls = [
