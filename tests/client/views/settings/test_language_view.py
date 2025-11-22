@@ -332,4 +332,4 @@ class TestCreateLanguageView:
         result = create_language_view(page, app_state)
         tz_dropdown = result.content.controls[6]
 
-        assert tz_dropdown.value == Timezone.EUROPE_BERLIN.value
+        assert tz_dropdown.value == Timezone.EUROPE_LONDON.value
