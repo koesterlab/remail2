@@ -1,7 +1,8 @@
 from dataclasses import dataclass
 from typing import List
 
-from remail.controllers.dtos.conversations import ContactDTO, ThreadPreviewDTO
+from .contact import ContactDTO
+from .thread_preview import ThreadPreviewDTO
 
 
 @dataclass

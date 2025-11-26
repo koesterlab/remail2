@@ -9,5 +9,5 @@ class Action:
     title: str
     secondary: str
     on_executed: Callable[[], None]
-    color: flet.Colors
-    icon: flet.Icons
+    color: flet.colors
+    icon: flet.icons
