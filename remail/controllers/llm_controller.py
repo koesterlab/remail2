@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
+from remail.controllers.dto import LLMResponseDTO
 from remail.interfaces.llm.llm_service import LLMService
 
 
@@ -32,7 +33,7 @@ class LLMController:
             **kwargs: Additional provider-specific parameters
 
         Returns:
-            Dict with status, message, generated text, and structured payload
+            Dict with status, message, and structured LLMResponseDTO
         """
         try:
             completion_response = self.service.generate_completion(
@@ -42,11 +43,28 @@ class LLMController:
                 **kwargs,
             )
 
+            # Extract the completion text
+            completion_text = completion_response.completion_text
+
+            # Parse the JSON response into structured DTO
+            response_dto = LLMResponseDTO.from_completion_text(completion_text)
+
             return {
                 "status": "success",
                 "message": "Completion generated successfully",
-                "completion": completion_response.completion_text,
-                "response": completion_response,
+                "completion": response_dto.content,
+                "thinking": response_dto.thinking,
+                "metadata": response_dto.metadata,
+                "response_dto": response_dto,
+            }
+
+        except ValueError as e:
+            return {
+                "status": "error",
+                "message": f"Failed to parse LLM response: {str(e)}",
+                "completion": "",
+                "thinking": None,
+                "metadata": {},
             }
 
         except RuntimeError as e:
@@ -54,6 +72,8 @@ class LLMController:
                 "status": "error",
                 "message": str(e),
                 "completion": "",
+                "thinking": None,
+                "metadata": {},
             }
 
         except Exception as e:
@@ -61,4 +81,6 @@ class LLMController:
                 "status": "error",
                 "message": f"Completion generation failed: {str(e)}",
                 "completion": "",
+                "thinking": None,
+                "metadata": {},
             }

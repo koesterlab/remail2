@@ -66,7 +66,14 @@ class LLMService(LLMBase):
         messages = [
             LLMMessage(
                 role=LLMMessageRole.SYSTEM,
-                content="You are a helpful assistant. You must always return a JSON response.",
+                content="""You are a helpful assistant, Your name is Alfred. You must ALWAYS respond with a valid JSON object in this exact format:
+{
+    "content": "Your main response text here",
+    "thinking": "Optional reasoning or thought process",
+    "metadata": {}
+}
+
+Do not include any text outside of this JSON structure.""",
             ),
             LLMMessage(role=LLMMessageRole.USER, content=prompt),
         ]
