@@ -19,15 +19,10 @@ class SelectionBar(ft.Container):
         self.main_content = ft.AnimatedSwitcher(
             ft.Container(),
             expand=True,
-            transition=ft.Transition(
-                duration=60,
-                animation=ft.Animation(
-                    # Slide von rechts nach links
-                    curve=ft.AnimationCurve.EASE_IN_OUT,
-                    begin_offset=ft.Offset(1, 0),  # Start rechts außerhalb
-                    end_offset=ft.Offset(0, 0)     # Ende an Originalposition
-                )
-            )
+            transition=ft.AnimatedSwitcherTransition.FADE,
+            duration=60,
+            switch_in_curve=ft.AnimationCurve.LINEAR,
+            switch_out_curve = ft.AnimationCurve.LINEAR
         )
 
         self.conversation_selection = ConversationSelection(self.__on_conversation_or_action_selected)
