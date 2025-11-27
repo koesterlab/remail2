@@ -15,7 +15,7 @@ Subwidget of selectionBar to choose between different contacts (+groups) and act
 class ConversationSelection(ft.Column):
     def __init__(self, callback : Callable[[Action|ConversationDTO], None]):
         self.callback = callback
-        super().__init__()
+        super().__init__(expand=True)
 
     def set_content(self, content : List[ConversationDTO|Action]):
         #todo: make more efficient on reload

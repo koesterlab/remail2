@@ -1,6 +1,7 @@
 from typing import Callable
 
 import flet as ft
+
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 
 
@@ -10,22 +11,24 @@ class ConversationPreview(ft.Container):
                  on_toggle_fav: Callable[[], None], on_click: Callable[[], None]):
         print("Conversation Preview")
 
-        # favorite button
-        fav_btn = ft.IconButton(
-            icon=ft.Icons.STAR if fav else ft.Icons.STAR_OUTLINE,
-            tooltip="favorite",
-            on_click=lambda e: on_toggle_fav()
+        icon_btn = ft.Row([],
+                spacing=2,
+                expand = True,
+                alignment = ft.MainAxisAlignment.END
         )
 
-        # registered badge
-        badge = None
-        if registered:
-            badge = ft.Container(
-                content=ft.Text("Registered", size=11, color=ft.Colors.WHITE),
-                padding=ft.padding.symmetric(horizontal=6, vertical=3),
-                border_radius=6,
-                bgcolor=ft.Colors.BLUE
-            )
+        if not registered:
+            icon_btn.controls =[
+                ft.Icon(ft.Icons.ADD, color=ft.Colors.ORANGE),
+                ft.Icon(ft.Icons.DRAW, color=ft.Colors.ORANGE),
+            ]
+        else:
+            icon_btn.controls = [ft.IconButton(
+                icon=ft.Icons.STAR if fav else ft.Icons.STAR_OUTLINE,
+                tooltip="favorite",
+                on_click=lambda e: on_toggle_fav(),
+
+            )]
 
         super().__init__(
             on_click=lambda e: on_click(),
@@ -41,7 +44,6 @@ class ConversationPreview(ft.Container):
                             ft.Row(
                                 [
                                     ft.Text(primary_text, weight=ft.FontWeight.BOLD, color=ft.Colors.BLACK),
-                                    badge or ft.Container()
                                 ],
                                 alignment=ft.MainAxisAlignment.START
                             ),
@@ -56,11 +58,7 @@ class ConversationPreview(ft.Container):
                         spacing=3,
                         alignment=ft.MainAxisAlignment.START
                     ),
-                    ft.Row(
-                        [fav_btn],
-                        expand=True,
-                        alignment=ft.MainAxisAlignment.END
-                    )
+                    icon_btn
                 ],
                 spacing=12,
                 alignment=ft.MainAxisAlignment.START

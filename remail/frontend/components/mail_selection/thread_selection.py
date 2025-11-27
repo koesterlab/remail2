@@ -11,7 +11,7 @@ Subwidget of selectionBar to choose between different conversations of a contact
 class ThreadSelection(flet.Column):
     def __init__(self, callback : Callable[[ConversationDTO], None]):
         self.callback = callback
-        super().__init__()
+        super().__init__(scroll=flet.ScrollMode.AUTO)
 
     def set_content(self, content : ConversationDTO):
         #todo: make more efficient on reload

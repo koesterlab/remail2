@@ -26,4 +26,10 @@ class ContactPreview(ConversationPreview):
                 ],
             )
 
-        super().__init__(ft.Text(initials), full_name, contact.email, conversation.is_favorite, contact.is_known, toggle_fav, on_click)
+        super().__init__(ft.Text(initials) if contact.is_known else ft.Icon(ft.Icons.PERSON),
+                         full_name if contact.is_known else contact.email,
+                         full_name if not contact.is_known else contact.email,
+                         conversation.is_favorite,
+                         contact.is_known,
+                         toggle_fav,
+                         on_click)
