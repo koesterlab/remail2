@@ -1,7 +1,7 @@
-from remail.frontend.components.mail_selection.conversation_preview import ConversationPreview
+from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
 import flet as ft
 
-from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
+from remail.controllers.dtos.conversations import ConversationDTO
 
 
 class GroupPreview(ConversationPreview):

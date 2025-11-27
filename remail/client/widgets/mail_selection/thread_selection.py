@@ -1,9 +1,9 @@
-from typing import Callable, List
+from typing import Callable
 
 import flet
 
 from remail.controllers.dtos.conversations import ConversationDTO
-from remail.frontend.components.mail_selection.thread_preview import ThreadPreview
+from remail.client.widgets.mail_selection.thread_preview import ThreadPreview
 
 """
 Subwidget of selectionBar to choose between different conversations of a contact

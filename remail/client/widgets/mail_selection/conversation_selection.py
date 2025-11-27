@@ -2,12 +2,11 @@ from typing import Callable, List
 
 import flet as ft
 
-from remail.frontend.components.mail_selection.contact_preview import ContactPreview
-from remail.frontend.components.mail_selection.group_preview import GroupPreview
-from remail.frontend.components.mail_selection.action import Action
-from remail.frontend.components.mail_selection.action_preview import ActionPreview
-from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
-
+from remail.client.widgets.mail_selection.contact_preview import ContactPreview
+from remail.client.widgets.mail_selection.group_preview import GroupPreview
+from remail.client.widgets.mail_selection.action import Action
+from remail.client.widgets.mail_selection.action_preview import ActionPreview
+from remail.controllers.dtos.conversations import ConversationDTO
 
 """
 Subwidget of selectionBar to choose between different contacts (+groups) and actions

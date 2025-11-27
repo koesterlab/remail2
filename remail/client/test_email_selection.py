@@ -1,12 +1,6 @@
-import asyncio
-import random
-import threading
-from datetime import datetime, timedelta
-from typing import List
-
 import flet
 
-from remail.frontend.components.mail_selection.selection_bar import SelectionBar
+from remail.client.widgets.mail_selection import SelectionBar
 
 selection = SelectionBar()
 

@@ -4,11 +4,11 @@ from typing import List
 import flet as ft
 
 from remail.controllers.dtos.conversations import ConversationDTO
-from remail.frontend.components.mail_selection.action import Action
-from remail.frontend.components.mail_selection.conversation_selection import ConversationSelection
-from remail.frontend.components.mail_selection.search_header import SearchHeader
-from remail.frontend.components.mail_selection.thread_selection import ThreadSelection
-from remail.frontend.test_data_conversations import create_test_data, create_search_result_test_data
+from remail.client.widgets.mail_selection.action import Action
+from remail.client.widgets.mail_selection.conversation_selection import ConversationSelection
+from remail.client.widgets.mail_selection.search_header import SearchHeader
+from remail.client.widgets.mail_selection.thread_selection import ThreadSelection
+from remail.client.test_data_conversations import create_test_data, create_search_result_test_data
 
 """
 Overall Widget to combine searchbar and selection widgets
