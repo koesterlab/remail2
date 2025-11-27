@@ -1,33 +1,11 @@
-import asyncio
-import random
-import threading
+from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO, ContactDTO
 from datetime import datetime, timedelta
 from typing import List
-
-import flet
-
-from remail.controllers.dtos.conversations import ConversationDTO, ContactDTO, ThreadPreviewDTO
+import random
 from remail.enums import ContactType
-from remail.frontend.components.mail_selection.selection_bar import SelectionBar
-
-selection = SelectionBar()
-
-def main(page : flet.Page):
-    test_container = flet.Container()
-    test_container.bgcolor = flet.colors.WHITE
-    test_container.width = 300
-    test_container.height = 1300
-    test_container.content = selection
-    page.add(test_container)
-    selection.set_base_content()
 
 
-
-
-flet.app(main)
-
-
-def create_test_data():
+def create_test_data(): #chatgpt
     first_names = ["Alice", "Bob", "Charlie", "Diana", "Eve", "Frank", "Grace", "Hannah", "Ivan", "Judy"]
     last_names = ["Smith", "Johnson", "Brown", "Miller", "Davis", "Wilson", "Taylor", "Anderson", "Thomas", "Jackson"]
     messages = [
@@ -78,4 +56,27 @@ def create_test_data():
             is_favorite=random.choice([True, False]),
             customName=None if num_contacts == 1 else f"Gruppe {i + 1}"
         ))
+    return conversations
+
+def create_search_result_test_data(term: str):
+    return [ConversationDTO(
+        contacts=[ContactDTO(
+                id=1,
+                first_name="Gandalf",
+                last_name=term,
+                email=f"user@example.com",
+                is_known=False,
+                type=ContactType.PRIVATE
+            )],
+        threads=[ThreadPreviewDTO(
+            thread_id=1,
+            title=f"Thread 1",
+            total_count=random.randint(5, 50),
+            unread_count=random.randint(0, 10),
+            last_message="random.choice(messages)",
+            last_message_datetime=datetime.now() - timedelta(days=random.randint(0, 30))
+        )],
+        is_favorite=random.choice([True, False]),
+        customName=None
+    )]
 
