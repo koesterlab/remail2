@@ -16,16 +16,6 @@ class ContactPreview(ConversationPreview):
         def toggle_fav():
             conversation.is_favorite = not conversation.is_favorite
 
-        # registered badge
-        badge = None
-        if not contact.is_known:
-            badge = ft.Row(
-                controls=[
-                    ft.Icon(ft.Icons.EDIT, color=ft.Colors.SECONDARY),
-                    ft.Icon(ft.Icons.CHECK, color=ft.Colors.SECONDARY)
-                ],
-            )
-
         super().__init__(ft.Text(initials) if contact.is_known else ft.Icon(ft.Icons.PERSON),
                          full_name if contact.is_known else contact.email,
                          full_name if not contact.is_known else contact.email,

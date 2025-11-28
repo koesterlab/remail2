@@ -15,4 +15,4 @@ class GroupPreview(ConversationPreview):
         def toggle_fav():
             group.favorite = not group.favorite
 
-        super().__init__(ft.Icon(ft.Icons.GROUP), primary, secondary, group.is_favorite, bool(group.customName), toggle_fav, on_click)
+        super().__init__(ft.Icon(ft.Icons.GROUP, color=ft.Colors.ON_SECONDARY), primary, secondary, group.is_favorite, bool(group.customName), toggle_fav, on_click)

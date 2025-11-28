@@ -13,13 +13,16 @@ class ThreadPreview(ft.Container):
                         [
                             ft.Row(
                                 [
-                                    ft.Text(("(" + str(topic.unread_count) + ") " if topic.unread_count > 0 else "") + topic.title, weight=ft.FontWeight.BOLD if topic.unread_count > 0 else ft.FontWeight.NORMAL, color=ft.Colors.BLACK),
+                                    ft.Text((
+                                                "(" + str(topic.unread_count) + ") " if topic.unread_count > 0 else "") + topic.title,
+                                            weight=ft.FontWeight.BOLD if topic.unread_count > 0 else ft.FontWeight.NORMAL,
+                                            color=ft.Colors.ON_SURFACE),
                                 ],
                                 alignment=ft.MainAxisAlignment.START
                             ),
                             ft.Row(
                                 [
-                                    ft.Text(topic.last_message, size=12, color=ft.Colors.GREY)
+                                    ft.Text(topic.last_message, size=12, color=ft.Colors.ON_SURFACE_VARIANT)
                                 ],
                                 alignment=ft.MainAxisAlignment.START,
                                 spacing=6
