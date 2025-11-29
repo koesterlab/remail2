@@ -18,7 +18,7 @@ def create_test_data(): #chatgpt
     contact_id_counter = 1
     thread_id_counter = 1
 
-    for i in range(10):
+    for i in range(17):
         # Zufällige Anzahl von Kontakten: 1 für Einzelchat, 2-4 für Gruppen
         if i < 5:
             num_contacts = 1

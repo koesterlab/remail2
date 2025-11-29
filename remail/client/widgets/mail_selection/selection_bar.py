@@ -2,7 +2,6 @@ import re
 from typing import List
 
 import flet as ft
-
 from remail.client.views.main.state import MainAppState
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.client.widgets.mail_selection.action import Action
@@ -33,16 +32,13 @@ class SelectionBar(ft.Container):
             width=300,
             content=ft.Column(controls = [
                     SearchHeader(state),
-                    ft.Container(
-                        content=self.main_content,
-                        expand=True
-                    )
+                    self.main_content
                 ],
                 expand=True,
                 spacing=0,
                 alignment=ft.MainAxisAlignment.START
             ),
-            expand=True,
+            expand=False,
             clip_behavior = ft.ClipBehavior.HARD_EDGE
         )
         state.listen_search_term(self.__on_search_change)
@@ -52,7 +48,7 @@ class SelectionBar(ft.Container):
 
 
     def __on_search_change(self, new_search_term:str|None):
-        mails = self.__load_messages(new_search_term)
+        mails = self.__search_request(new_search_term)
         if new_search_term and re.match("[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]", new_search_term): #option "mail hinzufügen
             mails.insert(0,Action(new_search_term + " zu Kontakten hinzufügen", "Als neuen Kontakt erstellen", None, ft.Colors.SECONDARY, ft.Icons.ADD))
             mails.insert(0,Action("Nachricht an " + new_search_term, "Neuer Chat", None, ft.Colors.PRIMARY, ft.Icons.MAIL))
@@ -93,7 +89,7 @@ class SelectionBar(ft.Container):
         self.main_content.content = self.topic_selection
 
     @classmethod
-    def __load_messages(cls, searchterm: str|None = None):
+    def __search_request(cls, searchterm: str | None = None) -> List[ConversationDTO]:
         if searchterm:
             print("requesting search data")
             return create_search_result_test_data(searchterm)

@@ -27,15 +27,23 @@ class ConversationPreview(ft.Container):
                     tooltip="Spam"
                 ),
             ]
+            def on_hover(e): pass
         else:
-            icon_btn.controls = [ft.IconButton(
+            fav_button = ft.IconButton(
                 icon=ft.Icons.STAR if fav else ft.Icons.STAR_OUTLINE,
                 tooltip="Favorit",
                 on_click=lambda e: on_toggle_fav(),
+                icon_color= ft.Colors.ON_SURFACE_VARIANT,
+                visible= fav,
+            )
+            icon_btn.controls = [fav_button]
 
-            )]
+            def on_hover(e):
+                fav_button.visible =  fav or e.data == "true"
+                fav_button.update()
 
         super().__init__(
+            on_hover=on_hover,
             on_click=lambda e: on_click(),
             bgcolor=ft.Colors.TRANSPARENT,
             margin=0,

@@ -12,10 +12,13 @@ from remail.controllers.dtos.conversations import ConversationDTO
 """
 Subwidget of selectionBar to choose between different contacts (+groups) and actions
 """
-class ConversationSelection(ft.Column):
+class ConversationSelection(ft.Container):
     def __init__(self, callback : Callable[[Action|ConversationDTO], None], state: MainAppState):
         self.callback = callback
-        super().__init__(expand=True, spacing=0)
+        self.content = ft.Column(spacing=0)
+        super().__init__(alignment=ft.alignment.top_center, expand=True, content=ft.Column( #outer: align content to top, middle: scroll, inner: enumeration of elements
+            scroll=ft.ScrollMode.AUTO, alignment=ft.MainAxisAlignment.START, spacing=0, controls=[self.content]
+        ))
 
     def set_content(self, content : List[ConversationDTO|Action]):
         #todo: make more efficient on reload
@@ -31,4 +34,4 @@ class ConversationSelection(ft.Column):
 
             return item
 
-        self.controls = [create_list_item(elem) for elem in content]
+        self.content.controls = [create_list_item(elem) for elem in content]
