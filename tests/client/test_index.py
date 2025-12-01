@@ -8,6 +8,13 @@ import pytest
 from remail.client.index import main
 
 
+@pytest.fixture(autouse=True)
+def mock_llm_controller():
+    """Mock LLMController to avoid requiring environment variables."""
+    with patch("remail.client.widgets.chatbot.chatbot.LLMController"):
+        yield
+
+
 class TestMain:
     """Test suite for the main function."""
 
