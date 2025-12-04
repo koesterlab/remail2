@@ -4,6 +4,7 @@ import flet as ft
 
 from remail.client.state import AppState
 from remail.client.views.main.main_view import create_main_view
+from remail.client.views.chatbot_view import create_chatbot_view
 from remail.client.views.settings.settings_view import create_settings_view
 from remail.client.views.view_router import ViewRouter
 from remail.enums import MainView
