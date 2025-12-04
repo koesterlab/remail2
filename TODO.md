@@ -92,14 +92,13 @@
 - Implement connecting to real email accounts using the email controller (login / logout) (In Progress)
 - Implement displaying the thread view (In Code-Review)
 - Implement the threads model (In Code-Review)
-
-- Implement controller for fetching the conversations
-- Implement fetching the threads/emails (Pola Eskandar)
-- Implement sending an email and creating/updating a thread (Pola Eskandar)
+- Implement controller for fetching the conversations (In Progress)
+- 
+- Implement fetching the threads/emails
+- Implement sending an email and creating/updating a thread
 - Implement searching/sorting the conversations
 - Implement the settings features and save it locally for the user
 - Implement attaching the emails in the AI chatbot and using it to answer questions on the email
 - Implement AI actions for the emails (tagging, attaching a priority, ...etc)
 - Implement exchange protocol
 - Implement Accounts controller for fetching the email.
-- Implement fixtures for test data using pyfixtures
