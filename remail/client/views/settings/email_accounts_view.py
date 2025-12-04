@@ -16,6 +16,8 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         can_reveal_password=True,
         width=300,
     )
+    host_input = ft.TextField(label="Host", hint_text="Enter your host name", width=300)
+    port_input = ft.TextField(label="Port", hint_text="Enter your port number", width=300)
     # Liste mit emails um überprüfen
     connected_emails = []
 
@@ -26,6 +28,8 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
                 ft.Text("Add Email Account", size=16, weight=ft.FontWeight.BOLD),
                 email_input,
                 password_input,
+                host_input,
+                port_input,
                 ft.Row(
                     [
                         ft.OutlinedButton("Connect", icon=ft.Icons.CHECK, on_click=connect_account),
@@ -124,8 +128,6 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         alignment=ft.alignment.center,
         margin=ft.margin.only(top=20),
     )
-
-
 
     create_connected_email_accounts = ft.Container(
         ft.Column(
