@@ -48,7 +48,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
 
     def connect_account(e):
         # ob name und passport getippt sind
-        if not email_input.value or not password_input.value:
+        if not email_input.value or not password_input.value or not host_input.value or not port_input.value:
             show_snackbar("Please fill in all fields", ft.Colors.RED_400)
             return
 
@@ -101,6 +101,8 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         # Leert die Eingabefelder
         email_input.value = ""
         password_input.value = ""
+        host_input.value = "" 
+        port_input.value = ""  
         input_panel.content = None
 
         add_button.visible = True
@@ -109,6 +111,8 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
     def cancel_add(e):
         email_input.value = ""
         password_input.value = ""
+        host_input.value = "" 
+        port_input.value = ""  
         input_panel.content = None
         add_button.visible = True
         page.update()
