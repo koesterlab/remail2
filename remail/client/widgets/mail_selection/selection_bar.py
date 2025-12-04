@@ -109,3 +109,4 @@ class SelectionBar(ft.Container):
             return create_search_result_test_data(searchterm)
         else:
             return self.__state.displayed
+
