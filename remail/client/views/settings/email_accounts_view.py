@@ -125,15 +125,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         margin=ft.margin.only(top=20),
     )
 
-    add_button = ft.Container(
-        ft.OutlinedButton(
-            "Add Email Account",
-            icon=ft.Icons.ADD,
-            on_click=add_account_click,
-        ),
-        alignment=ft.alignment.center,
-        margin=ft.margin.only(top=20),
-    )
+
 
     create_connected_email_accounts = ft.Container(
         ft.Column(
