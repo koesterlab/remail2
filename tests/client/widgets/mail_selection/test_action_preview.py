@@ -1,6 +1,7 @@
 # test_action_preview.py
 import unittest
 from unittest.mock import Mock
+
 import flet as ft
 
 from remail.client.widgets.mail_selection.action import Action
@@ -8,7 +9,6 @@ from remail.client.widgets.mail_selection.action_preview import ActionPreview
 
 
 class TestActionPreview(unittest.TestCase):
-
     def setUp(self):
         # Mock Action
         self.callback = Mock()
@@ -17,7 +17,7 @@ class TestActionPreview(unittest.TestCase):
             secondary="Secondary Text",
             on_executed=Mock(),
             color=ft.Colors.BLUE,
-            icon=ft.Icons.ADD
+            icon=ft.Icons.ADD,
         )
         self.preview = ActionPreview(self.action, self.callback)
 

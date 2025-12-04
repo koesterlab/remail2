@@ -1,6 +1,6 @@
 # test_conversation_preview.py
 import unittest
-from unittest.mock import Mock
+
 import flet as ft
 
 from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
@@ -9,7 +9,6 @@ from remail.enums import ContactType
 
 
 class TestConversationPreview(unittest.TestCase):
-
     def setUp(self):
         # Dummy Kontakt
         self.contact = ContactDTO(
@@ -18,7 +17,7 @@ class TestConversationPreview(unittest.TestCase):
             first_name="Max",
             last_name="Mustermann",
             email="max@example.com",
-            is_known=True
+            is_known=True,
         )
 
     def test_registered_contact_preview(self):
@@ -39,7 +38,7 @@ class TestConversationPreview(unittest.TestCase):
             fav=True,
             registered=True,
             on_toggle_fav=on_toggle_fav,
-            on_click=on_click
+            on_click=on_click,
         )
 
         # Prüfen von Avatar und Column
@@ -69,8 +68,8 @@ class TestConversationPreview(unittest.TestCase):
 
         # on_hover sichtbarkeitsänderung testen
         fav_button.visible = False
-        #preview.on_hover(Mock(data="true"))   #doesnt work with mocked component
-        #self.assertTrue(fav_button.visible)
+        # preview.on_hover(Mock(data="true"))   #doesnt work with mocked component
+        # self.assertTrue(fav_button.visible)
 
     def test_unregistered_contact_preview(self):
         image = ft.Text("IMG")
@@ -81,7 +80,7 @@ class TestConversationPreview(unittest.TestCase):
             fav=False,
             registered=False,
             on_toggle_fav=lambda: None,
-            on_click=lambda: None
+            on_click=lambda: None,
         )
 
         icon_btn_row = preview.content.controls[2]

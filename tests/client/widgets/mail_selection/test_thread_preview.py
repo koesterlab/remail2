@@ -8,7 +8,6 @@ from remail.controllers.dtos.conversations import ThreadPreviewDTO
 
 
 class TestThreadPreview(unittest.TestCase):
-
     def setUp(self):
         self.topic = ThreadPreviewDTO(
             thread_id=1,
@@ -16,7 +15,7 @@ class TestThreadPreview(unittest.TestCase):
             last_message="Last message content",
             total_count=5,
             unread_count=3,
-            last_message_datetime=datetime(2025, 12, 3, 12, 0)
+            last_message_datetime=datetime(2025, 12, 3, 12, 0),
         )
         self.clicked = {"called": False, "topic": None}
 
@@ -54,7 +53,7 @@ class TestThreadPreview(unittest.TestCase):
             total_count=5,
             last_message_datetime=datetime(2025, 12, 3, 12, 0),
             last_message="Nothing unread",
-            unread_count=0
+            unread_count=0,
         )
         preview = ThreadPreview(topic2, self._on_click)
         column = preview.content.controls[0]

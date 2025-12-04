@@ -1,5 +1,6 @@
 from enum import Enum
 
+
 class MainSubView(Enum):
     INBOX = "inbox"
     DASHBOARD = "dashboard"

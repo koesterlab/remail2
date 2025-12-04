@@ -1,8 +1,6 @@
 # test_search_header.py
 import unittest
 from unittest.mock import Mock
-import flet as ft
-from flet.core.control_event import ControlEvent
 
 from remail.client.views.main.state import MainAppState
 from remail.client.widgets.mail_selection.search_header import SearchHeader
@@ -10,7 +8,6 @@ from remail.enums.email_folders import EmailFolders
 
 
 class TestSearchHeader(unittest.TestCase):
-
     def setUp(self):
         self.state = MainAppState()
         self.state.set_search_term("initial")

@@ -1,12 +1,13 @@
-from remail.client.widgets.mail_selection.action import Action
-import flet
 # test_action.py
 import unittest
 from unittest.mock import Mock
 
+import flet
+
+from remail.client.widgets.mail_selection.action import Action
+
 
 class TestAction(unittest.TestCase):
-
     def test_action_attributes(self):
         callback = Mock()
         action = Action(
@@ -14,7 +15,7 @@ class TestAction(unittest.TestCase):
             secondary="Secondary Text",
             on_executed=callback,
             color=flet.Colors.BLUE,
-            icon=flet.Icons.ADD
+            icon=flet.Icons.ADD,
         )
 
         # Prüfen, ob die Attribute korrekt gesetzt sind
@@ -35,7 +36,7 @@ class TestAction(unittest.TestCase):
             secondary="Test2",
             on_executed=callback,
             color=flet.Colors.RED,
-            icon=flet.Icons.DELETE
+            icon=flet.Icons.DELETE,
         )
 
         # Callback aufrufen

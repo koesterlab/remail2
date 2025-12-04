@@ -1,41 +1,34 @@
+import weakref
+from collections.abc import Callable
+from typing import Any, Union
+from uuid import uuid4
+
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.enums.email_folders import EmailFolders
 
-#State mit Listener erstellen
-#Base Layout erstellen
-#mit searchbar zusammen machen
-#searchbar reaktiv machen
-
-import weakref
-from typing import Callable, Dict, List, Union
-from uuid import uuid4
 
 class MainAppState:
-    search_term: str | None
-    displayed: ThreadPreviewDTO | None
-    active_folder: "EmailFolders"
-
-    def __init__(self):
-        self.__selected: List[Union["ConversationDTO", "ThreadPreviewDTO"]] = []
-        self.__selection_listeners: Dict[
-            Union["ConversationDTO", "ThreadPreviewDTO"], Callable[[bool], None]
+    def __init__(self) -> None:
+        self.__selected: list[ConversationDTO | ThreadPreviewDTO] = []
+        self.__selection_listeners: dict[
+            ConversationDTO | ThreadPreviewDTO, Callable[[bool], None]
         ] = {}
 
         self.__search_term: str | None = None
-        self.__search_term_listeners: Dict[str, Union[weakref.WeakMethod, Callable]] = {}
+        self.__search_term_listeners: dict[str, weakref.WeakMethod | Callable] = {}
 
         self.__active_folder: EmailFolders | None = None
-        self.__active_folder_listeners: Dict[str, Union[weakref.WeakMethod, Callable]] = {}
+        self.__active_folder_listeners: dict[str, weakref.WeakMethod | Callable] = {}
 
-        self.__displayed: List["ConversationDTO"] = []
-        self.__displayed_listeners: Dict[str, Union[weakref.WeakMethod, Callable]] = {}
+        self.__displayed: list[ConversationDTO] = []
+        self.__displayed_listeners: dict[str, weakref.WeakMethod | Callable] = {}
 
         self.__active_thread: ThreadPreviewDTO | None = None
-        self.__active_thread_listeners: Dict[str, Union[weakref.WeakMethod, Callable]] = {}
+        self.__active_thread_listeners: dict[str, weakref.WeakMethod | Callable] = {}
 
     # ---------------- Selection ----------------
 
-    def toggle_selection(self, item: Union["ConversationDTO", "ThreadPreviewDTO"]):
+    def toggle_selection(self, item: Union["ConversationDTO", "ThreadPreviewDTO"]) -> None:
         already_selected = item in self.__selected
         if already_selected:
             self.__selected.remove(item)
@@ -47,16 +40,16 @@ class MainAppState:
 
     def listen_selection(
         self, item: Union["ConversationDTO", "ThreadPreviewDTO"], callback: Callable[[bool], None]
-    ):
+    ) -> None:
         self.__selection_listeners[item] = callback
 
     # ---------------- Search Term ----------------
 
     @property
-    def search_term(self):
-        return self.__search_term
+    def search_term(self) -> str:
+        return self.__search_term if self.__search_term else ""
 
-    def set_search_term(self, term: str):
+    def set_search_term(self, term: str) -> None:
         if self.__search_term != term:
             self.__search_term = term
             self.__cleanup_weak_listeners(self.__search_term_listeners)
@@ -70,16 +63,16 @@ class MainAppState:
         self.__search_term_listeners[token] = self.__wrap_weak(callback)
         return token
 
-    def remove_search_term_listener(self, token: str):
+    def remove_search_term_listener(self, token: str) -> None:
         self.__search_term_listeners.pop(token, None)
 
     # ---------------- Active Folder ----------------
 
     @property
-    def active_folder(self):
+    def active_folder(self) -> EmailFolders | None:
         return self.__active_folder
 
-    def set_active_folder(self, folder: "EmailFolders"):
+    def set_active_folder(self, folder: "EmailFolders") -> None:
         if self.__active_folder != folder:
             self.__active_folder = folder
             self.__cleanup_weak_listeners(self.__active_folder_listeners)
@@ -93,16 +86,16 @@ class MainAppState:
         self.__active_folder_listeners[token] = self.__wrap_weak(callback)
         return token
 
-    def remove_active_folder_listener(self, token: str):
+    def remove_active_folder_listener(self, token: str) -> None:
         self.__active_folder_listeners.pop(token, None)
 
     # ---------------- Displayed Conversations ----------------
 
     @property
-    def displayed(self) -> List["ConversationDTO"]:
+    def displayed(self) -> list[ConversationDTO]:
         return self.__displayed
 
-    def set_displayed(self, conversations: List["ConversationDTO"]):
+    def set_displayed(self, conversations: list[ConversationDTO]) -> None:
         self.__displayed = conversations
         self.__cleanup_weak_listeners(self.__displayed_listeners)
         for callback_ref in self.__displayed_listeners.values():
@@ -110,12 +103,12 @@ class MainAppState:
             if callback:
                 callback(conversations)
 
-    def listen_displayed(self, callback: Callable[[List["ConversationDTO"]], None]) -> str:
+    def listen_displayed(self, callback: Callable[[list["ConversationDTO"]], None]) -> str:
         token = str(uuid4())
         self.__displayed_listeners[token] = self.__wrap_weak(callback)
         return token
 
-    def remove_displayed_listener(self, token: str):
+    def remove_displayed_listener(self, token: str) -> None:
         self.__displayed_listeners.pop(token, None)
 
     # ---------------- Active Thread ----------------
@@ -124,7 +117,7 @@ class MainAppState:
     def active_thread(self) -> ThreadPreviewDTO | None:
         return self.__active_thread
 
-    def set_active_thread(self, thread: ThreadPreviewDTO | None):
+    def set_active_thread(self, thread: ThreadPreviewDTO | None) -> None:
         self.__active_thread = thread
         self.__cleanup_weak_listeners(self.__active_thread_listeners)
         for callback_ref in self.__active_thread_listeners.values():
@@ -137,12 +130,12 @@ class MainAppState:
         self.__active_thread_listeners[token] = self.__wrap_weak(callback)
         return token
 
-    def remove_active_thread_listener(self, token: str):
+    def remove_active_thread_listener(self, token: str) -> None:
         self.__active_thread_listeners.pop(token, None)
 
     # ---------------- Helpers ----------------
 
-    def __wrap_weak(self, callback):
+    def __wrap_weak(self, callback) -> Any:
         """Wrapped method if bound, else return callable as-is"""
         try:
             # gebundene Methode
@@ -151,12 +144,12 @@ class MainAppState:
             # normale Funktion
             return callback
 
-    def __unwrap_weak(self, callback_ref):
+    def __unwrap_weak(self, callback_ref) -> Any:
         if isinstance(callback_ref, weakref.WeakMethod):
             return callback_ref()
         return callback_ref
 
-    def __cleanup_weak_listeners(self, listeners_dict):
+    def __cleanup_weak_listeners(self, listeners_dict) -> Any:
         """Remove dead weakrefs"""
         dead_tokens = [t for t, ref in listeners_dict.items() if self.__unwrap_weak(ref) is None]
         for t in dead_tokens:

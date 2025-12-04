@@ -6,11 +6,12 @@ from remail.enums.email_folders import EmailFolders
 
 
 class SearchHeader(ft.Container):
-    def __init__(self, state:MainAppState):
+    def __init__(self, state: MainAppState):
         self.__state = state
         self.__term = state.search_term
+
         # ----- Search Input -----
-        def handle_change(e:ControlEvent):
+        def handle_change(e: ControlEvent):
             state.set_search_term(e.control.value)
 
         self.input = ft.TextField(
@@ -19,7 +20,7 @@ class SearchHeader(ft.Container):
             on_change=handle_change,
             expand=True,
             color=ft.Colors.ON_SECONDARY,
-            border_color="transparent",     # kein Outline
+            border_color="transparent",  # kein Outline
             bgcolor=ft.Colors.SECONDARY,
             border_radius=ft.border_radius.all(30),
             content_padding=ft.padding.symmetric(vertical=6, horizontal=8),
@@ -27,8 +28,9 @@ class SearchHeader(ft.Container):
         )
 
         def on_search_term_changed(s):
-            if s != self.input.value: self.input.value = s
-        state.listen_search_term(on_search_term_changed)
+            if s != self.input.value:
+                self.input.value = s
+            state.listen_search_term(on_search_term_changed)
 
         def on_home_clicked(_):
             state.set_search_term("")
@@ -41,38 +43,36 @@ class SearchHeader(ft.Container):
             icon_color=ft.Colors.SECONDARY,
             on_click=on_home_clicked,
             icon_size=30,
-            style=ft.ButtonStyle(
-                padding=0,
-                bgcolor="transparent"
-            ),
+            style=ft.ButtonStyle(padding=0, bgcolor="transparent"),
         )
 
         # ----- Links unterhalb -----
-        archiv_link = ft.Container(ft.Text(
-            "Archiv",
-            style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE),
-            color=ft.Colors.TERTIARY,
+        archiv_link = ft.Container(
+            ft.Text(
+                "Archiv",
+                style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE),
+                color=ft.Colors.TERTIARY,
+            ),
+            on_click=lambda _: state.set_active_folder(EmailFolders.ARCHIVED),
+        )
 
-        ),on_click=lambda _: state.set_active_folder(EmailFolders.ARCHIVED))
-
-        spam_link = ft.Container(content=ft.Text(
-            "Spam",
-            style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE),
-            color=ft.Colors.TERTIARY,
-
-        ), on_click=lambda _: state.set_active_folder(EmailFolders.ARCHIVED))
+        spam_link = ft.Container(
+            content=ft.Text(
+                "Spam",
+                style=ft.TextStyle(decoration=ft.TextDecoration.UNDERLINE),
+                color=ft.Colors.TERTIARY,
+            ),
+            on_click=lambda _: state.set_active_folder(EmailFolders.ARCHIVED),
+        )
 
         # ----- Layout -----
         content = ft.Column(
             controls=[
-                ft.Row(
-                    [self.input, home_icon],
-                    alignment=ft.MainAxisAlignment.START
-                ),
+                ft.Row([self.input, home_icon], alignment=ft.MainAxisAlignment.START),
                 ft.Row([archiv_link, spam_link], spacing=20),
-                ft.Divider(height=3, thickness=2)
+                ft.Divider(height=3, thickness=2),
             ],
-            spacing=5
+            spacing=5,
         )
 
         super().__init__(
