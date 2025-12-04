@@ -1,6 +1,7 @@
 import flet as ft
 
 from remail.client.state.app_state import AppState
+from remail.controllers.email_controller import EmailController
 
 
 def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Container:
@@ -20,6 +21,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
     port_input = ft.TextField(label="Port", hint_text="Enter your port number", width=300)
     # Liste mit emails um überprüfen
     connected_emails = []
+    email_controllers = {}
 
     def add_account_click(e):
         # Hier muss man email addieren
@@ -48,7 +50,12 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
 
     def connect_account(e):
         # ob name und passport getippt sind
-        if not email_input.value or not password_input.value or not host_input.value or not port_input.value:
+        if (
+            not email_input.value
+            or not password_input.value
+            or not host_input.value
+            or not port_input.value
+        ):
             show_snackbar("Please fill in all fields", ft.Colors.RED_400)
             return
 
@@ -57,25 +64,31 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
             show_snackbar("This email account is already connected", ft.Colors.ORANGE_400)
             return
 
-        connected_emails.append(email_input.value)
+        try:
+            show_snackbar("Connecting...", ft.Colors.BLUE_400)
 
-        start_text.visible = False
+            controller = EmailController(
+                username=email_input.value,
+                password=password_input.value,
+                host=host_input.value,
+                # port=port_input.value -should we do that too?
+            )
+            result = controller.login()
 
-        def remove_account(email_to_remove):
-            def handler(e):
-                # entfernt email aus dem List
-                connected_emails.remove(email_to_remove)
+            if result["status"] == "success":
+                email_controllers[email_input.value] = controller
+                connected_emails.append(email_input.value)
+                start_text.visible = False
 
-                # entfernt der container mit account
-                create_connected_email_accounts.content.controls.remove(e.control.parent.parent)
-
-                # Zeigt "No accounts connected yet", falls keine Accounts da
-                if len(connected_emails) == 0:
-                    start_text.visible = True
-
+                show_snackbar("Connected!", ft.Colors.GREEN_400)
+            else:
+                show_snackbar(f"Failed: {result['message']}", ft.Colors.RED_400)
                 page.update()
-
-            return handler
+                return
+        except Exception as ex:
+            show_snackbar(f"Error: {str(ex)}", ft.Colors.RED_400)
+            page.update()
+            return
 
         new_account = ft.Container(
             ft.Row(
@@ -101,18 +114,36 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         # Leert die Eingabefelder
         email_input.value = ""
         password_input.value = ""
-        host_input.value = "" 
-        port_input.value = ""  
+        host_input.value = ""
+        port_input.value = ""
         input_panel.content = None
 
         add_button.visible = True
         page.update()
 
+    def remove_account(email_to_remove):
+        def handler(e):
+            # entfernt email aus dem List
+            if email_to_remove in email_controllers:
+                email_controllers[email_to_remove].logout()
+                del email_controllers[email_to_remove]
+            connected_emails.remove(email_to_remove)
+            # entfernt der container mit account
+            create_connected_email_accounts.content.controls.remove(e.control.parent.parent)
+
+            # Zeigt "No accounts connected yet", falls keine Accounts da
+            if len(connected_emails) == 0:
+                start_text.visible = True
+
+                page.update()
+
+        return handler
+
     def cancel_add(e):
         email_input.value = ""
         password_input.value = ""
-        host_input.value = "" 
-        port_input.value = ""  
+        host_input.value = ""
+        port_input.value = ""
         input_panel.content = None
         add_button.visible = True
         page.update()
