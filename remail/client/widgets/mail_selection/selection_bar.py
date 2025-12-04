@@ -3,9 +3,6 @@ import re
 import flet as ft
 
 from remail.client.views.main.state import MainAppState
-from remail.client.views.main.test_data_conversations import (
-    create_search_result_test_data,
-)
 from remail.client.widgets.mail_selection.action import Action
 from remail.client.widgets.mail_selection.conversation_selection import ConversationSelection
 from remail.client.widgets.mail_selection.search_header import SearchHeader
@@ -46,12 +43,12 @@ class SelectionBar(ft.Container):
             clip_behavior=ft.ClipBehavior.HARD_EDGE,
         )
         state.listen_search_term(self.__on_search_change)
-        state.listen_displayed(self.__set_content_to_display) # type: ignore
-        self.__set_content_to_display(state.displayed) # type: ignore
+        state.listen_displayed(self.__set_content_to_display)  # type: ignore
+        self.__set_content_to_display(state.displayed)  # type: ignore
         self.__on_search_change(state.search_term)  # initially loading data
 
     def __on_search_change(self, new_search_term: str | None) -> None:
-        mails: list[ConversationDTO | Action] = self.__search_request(new_search_term) # type: ignore
+        mails: list[ConversationDTO | Action] = self.__search_request(new_search_term)  # type: ignore
         if new_search_term and re.match(
             r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]", new_search_term
         ):  # option "mail hinzufügen
@@ -60,7 +57,7 @@ class SelectionBar(ft.Container):
                 Action(
                     new_search_term + " zu Kontakten hinzufügen",
                     "Als neuen Kontakt erstellen",
-                    lambda:None, #todo
+                    lambda: None,  # todo
                     ft.Colors.SECONDARY,
                     ft.Icons.ADD,
                 ),
@@ -70,7 +67,7 @@ class SelectionBar(ft.Container):
                 Action(
                     "Nachricht an " + new_search_term,
                     "Neuer Chat",
-                    lambda:None, #todo
+                    lambda: None,  # todo
                     ft.Colors.PRIMARY,
                     ft.Icons.MAIL,
                 ),
@@ -106,7 +103,6 @@ class SelectionBar(ft.Container):
 
     def __search_request(self, searchterm: str | None = None) -> list[ConversationDTO]:
         if searchterm:
-            return create_search_result_test_data(searchterm)
+            return []  # todo request controller
         else:
             return self.__state.displayed
-

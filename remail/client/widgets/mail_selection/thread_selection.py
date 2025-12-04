@@ -82,4 +82,4 @@ class ThreadSelection(ft.Column):
             self.__secondary_text.value = str(len(content.contacts)) + " Members"
         # todo: make more efficient on reload
         # todo: sort algorithm
-        self.__content.controls = [ThreadPreview(elem, self.__on_click) for elem in content.threads]
+        self.__content.controls = [ThreadPreview(elem, self.__on_click) for elem in content.threads]  # type: ignore

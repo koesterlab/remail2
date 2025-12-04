@@ -28,9 +28,11 @@ class SearchHeader(ft.Container):
         )
 
         def on_search_term_changed(s):
+            print("asfasfafasdfasfdsaf")
             if s != self.input.value:
                 self.input.value = s
-            state.listen_search_term(on_search_term_changed)
+
+        state.listen_search_term(on_search_term_changed)
 
         def on_home_clicked(_):
             state.set_search_term("")
