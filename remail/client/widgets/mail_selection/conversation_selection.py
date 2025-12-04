@@ -23,7 +23,6 @@ class ConversationSelection(ft.Container):
     def set_content(self, content : List[ConversationDTO|Action]):
         #todo: make more efficient on reload
         #todo: sort algorithm
-        print("Setting content to conversation selection")
 
         def create_list_item(elem : Action |ConversationDTO):
             callback = lambda: self.callback(elem)

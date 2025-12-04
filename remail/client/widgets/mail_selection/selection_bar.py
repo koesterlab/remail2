@@ -25,7 +25,7 @@ class SelectionBar(ft.Container):
         )
         self.__state = state
         self.conversation_selection = ConversationSelection(self.__on_conversation_or_action_selected, state)
-        self.topic_selection = ThreadSelection(state)
+        self.topic_selection = ThreadSelection(state, self.__on_topic_selected)
 
         super().__init__(
             bgcolor=ft.Colors.SURFACE,
@@ -67,32 +67,26 @@ class SelectionBar(ft.Container):
         pass
 
     def __set_content_to_display(self, content_to_display : List[ConversationDTO|Action]):
-        print(content_to_display)
         if len(content_to_display) == 1:
             self.__show_topic_selection(content_to_display[0])
         else:
             self.__show_conversation_selection(content_to_display)
 
         if self.page:
-            print("updating page")
             self.main_content.update()
 
     def __show_conversation_selection(self, content : List[ConversationDTO]):
-        print("switching to conversation selection")
         self.conversation_selection.set_content(content)
         self.main_content.content = self.conversation_selection
 
 
     def __show_topic_selection(self, conversation : ConversationDTO):
-        print("switching to topic selection")
         self.topic_selection.set_content(conversation)
         self.main_content.content = self.topic_selection
 
     @classmethod
     def __search_request(cls, searchterm: str | None = None) -> List[ConversationDTO]:
         if searchterm:
-            print("requesting search data")
             return create_search_result_test_data(searchterm)
         else:
-            print("requesting standart data")
             return create_test_data()

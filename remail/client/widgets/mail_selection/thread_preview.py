@@ -1,3 +1,5 @@
+from typing import Callable
+
 import flet as ft
 
 from remail.controllers.dtos.conversations import ThreadPreviewDTO
@@ -5,7 +7,7 @@ from remail.controllers.dtos.conversations import ThreadPreviewDTO
 
 class ThreadPreview(ft.Container):
     # component representing a single contact entry
-    def __init__(self, topic: ThreadPreviewDTO):
+    def __init__(self, topic: ThreadPreviewDTO, on_click: Callable[[ThreadPreviewDTO|None], None]):
         super().__init__(
             content=ft.Row(
                 [
@@ -35,5 +37,6 @@ class ThreadPreview(ft.Container):
                 spacing=12,
                 alignment=ft.MainAxisAlignment.START
             ),
+            on_click= lambda _: on_click(topic),
             padding=12
         )

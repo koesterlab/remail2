@@ -7,8 +7,6 @@ from remail.controllers.dtos.conversations import ConversationDTO
 class GroupPreview(ConversationPreview):
     # component representing a single contact entry
     def __init__(self, group: ConversationDTO, on_click=lambda: None):
-        print("Conversation Preview")
-
         primary = group.customName if group.customName else ", ".join(map(lambda contact : contact.first_name[0] + ". " + contact.last_name, group.contacts))
         secondary = str(len(group.contacts)) + " Members"
         # favorite toggle handler

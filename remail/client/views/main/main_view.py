@@ -15,10 +15,9 @@ def create_main_view(page: ft.Page, state: AppState):
         selection_bar, thread_view
     ])
 
-    print(page)
 
     def resize(e):
-        print(container.height)
+        pass
 
 
     page.on_resized = resize
