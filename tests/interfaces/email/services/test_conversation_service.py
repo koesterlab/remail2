@@ -43,7 +43,7 @@ class TestConversationService:
             email_address="contact1@example.com",
             first_name="John",
             last_name="Doe",
-            contact_type=ContactType.PERSONAL,
+            contact_type=ContactType.PRIVATE,
             is_known=True,
         )
         contact2 = Contact(
@@ -59,7 +59,7 @@ class TestConversationService:
             email_address="contact3@example.com",
             first_name="Bob",
             last_name="Johnson",
-            contact_type=ContactType.PERSONAL,
+            contact_type=ContactType.PRIVATE,
             is_known=True,
         )
         session.add_all([contact1, contact2, contact3])
@@ -192,12 +192,12 @@ class TestConversationService:
         result = service.get_all_conversations(user_with_conversations.id)
 
         conv1 = next(c for c in result if c["custom_name"] == "First Conversation")
-        assert conv1["contacts"][0]["type"] == "personal"
+        assert conv1["contacts"][0]["type"] == "private"
         assert conv1["contacts"][0]["is_known"] is True
 
         conv2 = next(c for c in result if c["custom_name"] == "Second Conversation")
         contact_types = {c["type"] for c in conv2["contacts"]}
-        assert "personal" in contact_types
+        assert "private" in contact_types
         assert "business" in contact_types
 
     def test_get_all_conversations_type_values(

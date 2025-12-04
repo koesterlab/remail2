@@ -1,6 +1,9 @@
 """Tests for conversation DTOs."""
 
-from remail.controllers.dto.conversation_dto import ContactDTO, ConversationDTO
+from datetime import datetime
+
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
+from remail.enums import ContactType
 
 
 class TestContactDTO:
@@ -13,7 +16,7 @@ class TestContactDTO:
             email="test@example.com",
             first_name="John",
             last_name="Doe",
-            type="personal",
+            type=ContactType.PRIVATE,
             is_known=True,
         )
 
@@ -21,30 +24,45 @@ class TestContactDTO:
         assert contact.email == "test@example.com"
         assert contact.first_name == "John"
         assert contact.last_name == "Doe"
-        assert contact.type == "personal"
+        assert contact.type == ContactType.PRIVATE
         assert contact.is_known is True
 
-    def test_contact_dto_to_dict(self):
-        """Test converting ContactDTO to dictionary."""
+    def test_create_business_contact(self):
+        """Test creating a business ContactDTO."""
         contact = ContactDTO(
-            id=3,
-            email="dict@example.com",
+            id=2,
+            email="business@example.com",
             first_name="Jane",
             last_name="Smith",
-            type="personal",
-            is_known=True,
+            type=ContactType.BUSINESS,
+            is_known=False,
         )
 
-        result = contact.to_dict()
+        assert contact.type == ContactType.BUSINESS
+        assert contact.is_known is False
 
-        assert result == {
-            "id": 3,
-            "email": "dict@example.com",
-            "first_name": "Jane",
-            "last_name": "Smith",
-            "type": "personal",
-            "is_known": True,
-        }
+
+class TestThreadPreviewDTO:
+    """Test suite for ThreadPreviewDTO."""
+
+    def test_create_thread_preview_dto(self):
+        """Test creating a ThreadPreviewDTO."""
+        now = datetime.now()
+        thread = ThreadPreviewDTO(
+            thread_id=1,
+            title="Test Thread",
+            total_count=5,
+            unread_count=2,
+            last_message="Hello world",
+            last_message_datetime=now,
+        )
+
+        assert thread.thread_id == 1
+        assert thread.title == "Test Thread"
+        assert thread.total_count == 5
+        assert thread.unread_count == 2
+        assert thread.last_message == "Hello world"
+        assert thread.last_message_datetime == now
 
 
 class TestConversationDTO:
@@ -57,7 +75,7 @@ class TestConversationDTO:
             email="contact1@example.com",
             first_name="John",
             last_name="Doe",
-            type="personal",
+            type=ContactType.PRIVATE,
             is_known=True,
         )
         contact2 = ContactDTO(
@@ -65,86 +83,84 @@ class TestConversationDTO:
             email="contact2@example.com",
             first_name="Jane",
             last_name="Smith",
-            type="business",
+            type=ContactType.BUSINESS,
             is_known=False,
         )
 
         conversation = ConversationDTO(
-            custom_name="Meeting",
-            type="conversation",
+            customName="Meeting",
             contacts=[contact1, contact2],
+            threads=[],
             is_favorite=True,
         )
 
-        assert conversation.custom_name == "Meeting"
-        assert conversation.type == "conversation"
+        assert conversation.customName == "Meeting"
         assert len(conversation.contacts) == 2
         assert conversation.is_favorite is True
+        assert conversation.threads == []
 
-    def test_conversation_dto_to_dict(self):
-        """Test converting ConversationDTO to dictionary."""
+    def test_conversation_dto_with_threads(self):
+        """Test ConversationDTO with threads."""
         contact = ContactDTO(
             id=1,
             email="test@example.com",
             first_name="John",
             last_name="Doe",
-            type="personal",
+            type=ContactType.PRIVATE,
             is_known=True,
         )
 
+        thread = ThreadPreviewDTO(
+            thread_id=1,
+            title="Thread 1",
+            total_count=3,
+            unread_count=1,
+            last_message="Test message",
+            last_message_datetime=datetime.now(),
+        )
+
         conversation = ConversationDTO(
-            custom_name="Test Subject",
-            type="conversation",
+            customName="Test Subject",
             contacts=[contact],
+            threads=[thread],
             is_favorite=True,
         )
 
-        result = conversation.to_dict()
-
-        assert result["custom_name"] == "Test Subject"
-        assert result["type"] == "conversation"
-        assert result["is_favorite"] is True
-        assert len(result["contacts"]) == 1
-        assert result["contacts"][0]["email"] == "test@example.com"
-        assert result["contacts"][0]["type"] == "personal"
-
-    def test_conversation_dto_from_service_data(self):
-        """Test creating ConversationDTO from service data."""
-        contacts = [
-            {
-                "id": 1,
-                "email": "contact@example.com",
-                "first_name": "Contact",
-                "last_name": "Person",
-                "type": "personal",
-                "is_known": True,
-            }
-        ]
-
-        conversation = ConversationDTO.from_service_data(
-            contacts=contacts,
-            custom_name="Service Test",
-            conversation_type="conversation",
-            is_favorite=True,
-        )
-
-        assert conversation.custom_name == "Service Test"
-        assert conversation.type == "conversation"
+        assert conversation.customName == "Test Subject"
         assert conversation.is_favorite is True
         assert len(conversation.contacts) == 1
-        assert conversation.contacts[0].email == "contact@example.com"
-        assert isinstance(conversation.contacts[0], ContactDTO)
+        assert len(conversation.threads) == 1
+        assert conversation.threads[0].thread_id == 1
 
     def test_conversation_dto_empty_contacts(self):
         """Test ConversationDTO with empty contacts list."""
         conversation = ConversationDTO(
-            custom_name="Empty Contacts",
-            type="conversation",
+            customName="Empty Contacts",
             contacts=[],
+            threads=[],
             is_favorite=False,
         )
 
         assert len(conversation.contacts) == 0
+        assert len(conversation.threads) == 0
 
-        result = conversation.to_dict()
-        assert result["contacts"] == []
+    def test_conversation_dto_no_custom_name(self):
+        """Test ConversationDTO with None as customName."""
+        contact = ContactDTO(
+            id=1,
+            email="test@example.com",
+            first_name="John",
+            last_name="Doe",
+            type=ContactType.PRIVATE,
+            is_known=True,
+        )
+
+        conversation = ConversationDTO(
+            customName=None,
+            contacts=[contact],
+            threads=[],
+            is_favorite=False,
+        )
+
+        assert conversation.customName is None
+        assert len(conversation.contacts) == 1

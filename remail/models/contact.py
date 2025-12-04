@@ -23,7 +23,7 @@ class Contact(SQLModel, table=True):
     first_name: str | None = None
     last_name: str | None = None
     contact_type: ContactType = Field(
-        default=ContactType.PERSONAL,
+        default=ContactType.PRIVATE,
         sa_column=sqlalchemy.Column(sqlalchemy.Enum(ContactType), nullable=False),
     )
     is_known: bool = Field(

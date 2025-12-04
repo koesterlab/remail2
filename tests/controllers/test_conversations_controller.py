@@ -5,7 +5,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from remail.controllers.conversations_controller import ConversationsController
-from remail.controllers.dto.conversation_dto import ContactDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO
+from remail.enums import ContactType
 
 
 @pytest.fixture
@@ -66,7 +67,7 @@ class TestConversationsController:
                         "email": "test@example.com",
                         "first_name": "John",
                         "last_name": "Doe",
-                        "type": "personal",
+                        "type": "private",
                         "is_known": True,
                     }
                 ],
@@ -78,9 +79,9 @@ class TestConversationsController:
 
         assert len(result) == 1
         assert isinstance(result[0], ConversationDTO)
-        assert result[0].custom_name == "Test Conversation"
-        assert result[0].type == "conversation"
+        assert result[0].customName == "Test Conversation"
         assert result[0].is_favorite is True
+        assert result[0].threads == []
 
     def test_get_conversations_converts_multiple_conversations(
         self, controller, mock_conversation_service
@@ -113,9 +114,9 @@ class TestConversationsController:
 
         assert len(result) == 3
         assert all(isinstance(conv, ConversationDTO) for conv in result)
-        assert result[0].custom_name == "First"
-        assert result[1].custom_name == "Second"
-        assert result[2].custom_name == "Third"
+        assert result[0].customName == "First"
+        assert result[1].customName == "Second"
+        assert result[2].customName == "Third"
 
     def test_get_conversations_converts_contacts_to_dtos(
         self, controller, mock_conversation_service
@@ -133,7 +134,7 @@ class TestConversationsController:
                         "email": "contact1@example.com",
                         "first_name": "Alice",
                         "last_name": "Johnson",
-                        "type": "personal",
+                        "type": "private",
                         "is_known": True,
                     },
                     {
@@ -155,9 +156,9 @@ class TestConversationsController:
         assert len(result[0].contacts) == 2
         assert all(isinstance(contact, ContactDTO) for contact in result[0].contacts)
         assert result[0].contacts[0].email == "contact1@example.com"
-        assert result[0].contacts[0].type == "personal"
+        assert result[0].contacts[0].type == ContactType.PRIVATE
         assert result[0].contacts[1].email == "contact2@example.com"
-        assert result[0].contacts[1].type == "business"
+        assert result[0].contacts[1].type == ContactType.BUSINESS
 
     def test_get_conversations_handles_empty_list(self, controller, mock_conversation_service):
         """Test that get_conversations handles empty list from service."""
@@ -190,8 +191,9 @@ class TestConversationsController:
 
         result = controller.get_conversations(user_id=1)
 
-        assert result[0].type == "conversation"
-        assert result[1].type == "group"
+        # Note: New DTO doesn't have a 'type' field, only customName
+        assert result[0].customName == "Regular"
+        assert result[1].customName == "Group"
 
     def test_get_conversations_preserves_favorite_status(
         self, controller, mock_conversation_service
@@ -231,7 +233,7 @@ class TestConversationsController:
                         "email": "alice@example.com",
                         "first_name": "Alice",
                         "last_name": "Wonder",
-                        "type": "personal",
+                        "type": "private",
                         "is_known": True,
                     },
                     {
@@ -247,19 +249,18 @@ class TestConversationsController:
                         "email": "charlie@example.com",
                         "first_name": "Charlie",
                         "last_name": "Brown",
-                        "type": "personal",
+                        "type": "private",
                         "is_known": False,
                     },
                 ],
             }
         ]
         mock_conversation_service.get_all_conversations.return_value = service_data
-
         result = controller.get_conversations(user_id=1)
 
         assert len(result) == 1
-        assert result[0].type == "group"
         assert len(result[0].contacts) == 3
         assert result[0].contacts[0].first_name == "Alice"
         assert result[0].contacts[1].first_name == "Bob"
+        assert result[0].contacts[2].first_name == "Charlie"
         assert result[0].contacts[2].first_name == "Charlie"

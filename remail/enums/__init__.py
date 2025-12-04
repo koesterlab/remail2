@@ -22,5 +22,4 @@ __all__ = [
     "SettingsSubView",
     "ThemeMode",
     "Timezone",
-    "ContactType",
 ]

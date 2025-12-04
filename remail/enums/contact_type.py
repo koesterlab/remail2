@@ -3,7 +3,9 @@ from enum import Enum
 
 class ContactType(Enum):
     BUSINESS = "business"
-    PERSONAL = "personal"
+    PRIVATE = "private"
+    COMPANY = "company"
+    NEWSLETTER = "newsletter"
 
 
 __all__ = ["ContactType"]
