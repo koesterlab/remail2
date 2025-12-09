@@ -93,7 +93,7 @@ class ThreadService:
                 if email.thread_id != existing_thread.id and existing_thread.id is not None:
                     email.thread_id = existing_thread.id
         else:
-            thread_title = emails[0].subject if emails else "Conversation Thread"
+            thread_title = emails[0].subject
 
             new_thread = Thread(
                 title=thread_title,
