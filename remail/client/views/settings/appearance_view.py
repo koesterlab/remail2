@@ -8,6 +8,7 @@ from remail.client.widgets.settings.appearance import (
     create_font_size_selector,
     create_theme_selector,
 )
+from remail.database import init_settings, load_settings, save_settings
 from remail.enums import ThemeMode
 
 
@@ -22,14 +23,48 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
         A Container with the appearance settings view
     """
 
+    # Initialize settings and load current values
+    init_settings()
+    current_settings = load_settings()
+
     theme_selector = create_theme_selector(page, app_state)
     font_size_selector = create_font_size_selector(page, app_state)
     font_family_selector = create_font_family_selector(page, app_state)
+
+    # Load saved settings into UI controls
+    if current_settings:
+        # Set theme
+        if hasattr(theme_selector.controls[1], "value"):
+            theme_selector.controls[1].value = current_settings.theme_mode
+
+        # Set font size if available
+        if len(font_size_selector.controls) > 1 and hasattr(
+            font_size_selector.controls[1], "value"
+        ):
+            font_size_selector.controls[1].value = current_settings.font_size
+
+        # Set font family if available
+        if len(font_family_selector.controls) > 1 and hasattr(
+            font_family_selector.controls[1], "value"
+        ):
+            font_family_selector.controls[1].value = current_settings.font_family
 
     def apply_appearance_settings(e):
         """Apply the selected appearance settings."""
 
         theme = theme_selector.controls[1].value  # RadioGroup value
+        font_size = (
+            font_size_selector.controls[1].value
+            if len(font_size_selector.controls) > 1
+            else "medium"
+        )
+        font_family = (
+            font_family_selector.controls[1].value
+            if len(font_family_selector.controls) > 1
+            else "system"
+        )
+
+        # Update app state
         app_state.theme_mode = ThemeMode(theme)
 
         if app_state.theme_mode == ThemeMode.LIGHT:
@@ -38,6 +73,13 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
             page.theme_mode = ft.ThemeMode.DARK
         else:
             page.theme_mode = ft.ThemeMode.SYSTEM
+
+        # Save to database
+        save_settings(
+            theme_mode=theme,
+            font_size=font_size,
+            font_family=font_family,
+        )
 
         # TODO: Apply font size changes to the page/theme
         # TODO: Apply font family changes to the page/theme
