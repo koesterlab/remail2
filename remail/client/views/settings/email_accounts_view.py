@@ -18,7 +18,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         width=300,
     )
     host_input = ft.TextField(label="Host", hint_text="Enter your host name", width=300)
-    port_input = ft.TextField(label="Port", hint_text="Enter your port number", width=300)
+    #port_input = ft.TextField(label="Port", hint_text="Enter your port number", width=300)
     # Liste mit emails um überprüfen
     connected_emails = []
     email_controllers = {}
@@ -31,7 +31,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
                 email_input,
                 password_input,
                 host_input,
-                port_input,
+                #port_input,
                 ft.Row(
                     [
                         ft.OutlinedButton("Connect", icon=ft.Icons.CHECK, on_click=connect_account),
@@ -54,7 +54,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
             not email_input.value
             or not password_input.value
             or not host_input.value
-            or not port_input.value
+            #or not port_input.value
         ):
             show_snackbar("Please fill in all fields", ft.Colors.RED_400)
             return
@@ -117,7 +117,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         email_input.value = ""
         password_input.value = ""
         host_input.value = ""
-        port_input.value = ""
+        #port_input.value = ""
         input_panel.content = None
 
         add_button.visible = True
@@ -145,7 +145,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         email_input.value = ""
         password_input.value = ""
         host_input.value = ""
-        port_input.value = ""
+        #port_input.value = ""
         input_panel.content = None
         add_button.visible = True
         page.update()
