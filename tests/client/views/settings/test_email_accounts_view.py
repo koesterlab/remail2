@@ -140,7 +140,7 @@ class TestEmailAccoutsView(unittest.TestCase):
 
         self.assertIsInstance(input_panel, ft.Container)
         self.assertIsNone(input_panel.content)
-    
+
     def test_multiple_instances_independent(self):
         page = Mock(spec=ft.Page)
         page.update = Mock()
