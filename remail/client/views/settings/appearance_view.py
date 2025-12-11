@@ -8,7 +8,7 @@ from remail.client.widgets.settings.appearance import (
     create_font_size_selector,
     create_theme_selector,
 )
-from remail.database import load_settings, save_settings
+from remail.database import SettingsService
 from remail.enums import ThemeMode
 
 
@@ -23,7 +23,7 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
         A Container with the appearance settings view
     """
 
-    current_settings = load_settings()
+    current_settings = SettingsService.load_settings()
 
     theme_selector = create_theme_selector(page, app_state)
     font_size_selector = create_font_size_selector(page, app_state)
@@ -73,7 +73,7 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
             page.theme_mode = ft.ThemeMode.SYSTEM
 
         # Save to database
-        save_settings(
+        SettingsService.save_settings(
             theme_mode=theme,
             font_size=font_size,
             font_family=font_family,
