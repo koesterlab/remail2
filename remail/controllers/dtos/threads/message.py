@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from datetime import datetime
 
 from .attachment import AttachmentDTO
 from .sender import SenderDTO
@@ -16,4 +17,4 @@ class MessageDTO:
     sender: SenderDTO
     subject: str
     content: MessageContentDTO
-    sent_at: str
+    sent_at: datetime

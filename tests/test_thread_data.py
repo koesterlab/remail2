@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from remail.controllers.dtos.conversations import ThreadPreviewDTO
 from remail.controllers.dtos.threads import MessageContentDTO, MessageDTO, SenderDTO, ThreadDTO
 
@@ -25,14 +27,14 @@ def fetch_thread(preview: ThreadPreviewDTO) -> ThreadDTO:
             sender=contact,
             subject="Meeting Reminder",
             content=MessageContentDTO(body="Hello, how are you?", attachments=[]),
-            sent_at="2024-05-30T10:15:30Z",
+            sent_at=datetime(2024, 5, 30, 10, 15, 30),
         ),
         MessageDTO(
             id=102,
             sender=me,
             subject="Re: Meeting Reminder",
             content=MessageContentDTO(body="I'm good, thanks for asking!", attachments=[]),
-            sent_at="2024-05-30T10:17:45Z",
+            sent_at=datetime(2024, 5, 30, 10, 17, 45),
         ),
     ]
 
@@ -65,7 +67,7 @@ def fetch_thread(preview: ThreadPreviewDTO) -> ThreadDTO:
                 sender=me if sender_toggle else contact,
                 subject="Project Discussion",
                 content=MessageContentDTO(body=text, attachments=[]),
-                sent_at=f"2024-05-30T10:{20 + msg_id % 40:02d}:00Z",
+                sent_at=datetime(2024, 5, 30, 10, 20 + msg_id % 40, 0),
             )
         )
         msg_id += 1

@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 
 import flet as ft
 
@@ -30,7 +31,7 @@ class TestMessageBubble(unittest.TestCase):
         message = MessageDTO(
             sender=self.user_sender,
             content=MessageContentDTO(body="Hello me", attachments=[]),
-            sent_at="",
+            sent_at=datetime(2024, 1, 1),
             id=0,
             subject="Test",
         )
@@ -55,7 +56,7 @@ class TestMessageBubble(unittest.TestCase):
         message = MessageDTO(
             sender=self.other_sender,
             content=MessageContentDTO(body="Hello other", attachments=[]),
-            sent_at="",
+            sent_at=datetime(2024, 1, 1),
             id=0,
             subject="Test",
         )

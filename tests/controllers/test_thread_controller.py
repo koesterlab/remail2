@@ -1,5 +1,6 @@
 """Tests for ThreadController."""
 
+from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 import pytest
@@ -55,7 +56,7 @@ class TestThreadController:
                         body="Hello, how are you?",
                         attachments=[],
                     ),
-                    sent_at="2024-05-30T10:15:30Z",
+                    sent_at=datetime(2024, 5, 30, 10, 15, 30),
                 )
             ],
         )

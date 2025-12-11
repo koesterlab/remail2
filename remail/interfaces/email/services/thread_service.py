@@ -190,5 +190,5 @@ class ThreadService:
                     for att in attachments
                 ],
             ),
-            sent_at=email.sent_at.isoformat(),
+            sent_at=email.sent_at,
         )
