@@ -1,9 +1,10 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
-from remail.controllers.dtos.conversations import ContactDTO, ThreadPreviewDTO
 from .message import MessageDTO
 
+
 @dataclass
-class ThreadDTO(ThreadPreviewDTO):
+class ThreadDTO:
+    id: int
     title: str
     messages: list[MessageDTO]
