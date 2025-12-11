@@ -74,7 +74,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
                 host=host_input.value,
                 # port=port_input.value -should we do that too?
             )
-            
+
             result = controller.login()
             print(f"Result: {result}")
             if result["status"] == "success":
