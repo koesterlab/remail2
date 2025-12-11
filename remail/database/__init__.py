@@ -1,7 +1,7 @@
 """Database module."""
 
 from remail.database.db import engine, get_session, init_db
-from remail.database.settings_service import (
+from remail.interfaces.email.services.settings_service import (
     init_settings,
     load_settings,
     save_settings,

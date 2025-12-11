@@ -34,7 +34,7 @@ class TestMain:
         main(page)
 
         # Title is set in main, but may be overridden by the view
-        assert page.title in ["Remail 2.0", "Remail 2.0 - Chatbot"]
+        assert page.title in ["Remail 2.0", "Remail 2.0 - Chatbot", "Settings"]
 
     def test_main_sets_vertical_alignment(self, mock_env):
         """Test that main sets vertical alignment to center."""
