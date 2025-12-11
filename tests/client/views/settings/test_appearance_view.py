@@ -193,8 +193,13 @@ class TestCreateAppearanceView:
         app_state2 = AppState(theme_mode=ThemeMode.DARK)
 
         # Mock database functions to return None so AppState values are used
-        with patch("remail.client.views.settings.appearance_view.SettingsService") as mock_service:
-            mock_service.load_settings.return_value = None
+        with patch(
+            "remail.client.views.settings.appearance_view.SettingsController"
+        ) as mock_controller_class:
+            mock_controller = Mock()
+            mock_controller.get_settings.return_value = None
+            mock_controller_class.return_value = mock_controller
+
             view1 = create_appearance_view(page, app_state1)
             view2 = create_appearance_view(page, app_state2)
 

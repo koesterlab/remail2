@@ -13,4 +13,7 @@ class Settings(SQLModel, table=True):
     font_size: str = Field(default="medium")
     font_family: str = Field(default="system")
     language: str = Field(default="en")
-    notifications_enabled: bool = Field(default=True)
+    timezone: str = Field(default="Europe/London")
+    desktop_notifications: bool = Field(default=True)
+    email_notifications: bool = Field(default=True)
+    quiet_hours: bool = Field(default=False)

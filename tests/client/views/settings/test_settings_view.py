@@ -32,16 +32,6 @@ class TestCreateSettingsView:
 
         assert page.title == "Settings"
 
-    def test_sets_page_theme_mode(self):
-        """Test that view sets page theme mode to SYSTEM."""
-        page = Mock(spec=ft.Page)
-        page.update = Mock()
-        app_state = AppState()
-
-        create_settings_view(page, app_state)
-
-        assert page.theme_mode == ft.ThemeMode.SYSTEM
-
     def test_container_has_row(self):
         """Test that Container content is a Row."""
         page = Mock(spec=ft.Page)

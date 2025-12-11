@@ -8,7 +8,7 @@ from remail.client.widgets.settings.appearance import (
     create_font_size_selector,
     create_theme_selector,
 )
-from remail.database import SettingsService
+from remail.controllers import SettingsController
 from remail.enums import ThemeMode
 
 
@@ -23,7 +23,8 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
         A Container with the appearance settings view
     """
 
-    current_settings = SettingsService.load_settings()
+    controller = SettingsController()
+    current_settings = controller.get_settings()
 
     theme_selector = create_theme_selector(page, app_state)
     font_size_selector = create_font_size_selector(page, app_state)
@@ -72,12 +73,20 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
         else:
             page.theme_mode = ft.ThemeMode.SYSTEM
 
-        # Save to database
-        SettingsService.save_settings(
+        # Save to database using controller
+        controller.update_settings(
             theme_mode=theme,
             font_size=font_size,
             font_family=font_family,
         )
+
+        # Show success message
+        snack_bar = ft.SnackBar(
+            content=ft.Text("Settings saved successfully"),
+            bgcolor=ft.Colors.GREEN,
+        )
+        page.overlay.append(snack_bar)
+        snack_bar.open = True
 
         # TODO: Apply font size changes to the page/theme
         # TODO: Apply font family changes to the page/theme

@@ -22,7 +22,6 @@ def create_settings_view(page: ft.Page, app_state: AppState) -> ft.Container:
         A Container with the settings view
     """
     page.title = "Settings"
-    page.theme_mode = ft.ThemeMode.SYSTEM
 
     # Content container that will hold the active sub-view
     content_container = ft.Ref[ft.Container]()

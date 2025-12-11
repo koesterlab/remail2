@@ -33,7 +33,10 @@ class SettingsService:
                     font_size="medium",
                     font_family="system",
                     language="en",
-                    notifications_enabled=True,
+                    timezone="Europe/London",
+                    desktop_notifications=True,
+                    email_notifications=True,
+                    quiet_hours=False,
                 )
                 session.add(default_settings)
                 session.commit()
@@ -60,7 +63,10 @@ class SettingsService:
         font_size: str | None = None,
         font_family: str | None = None,
         language: str | None = None,
-        notifications_enabled: bool | None = None,
+        timezone: str | None = None,
+        desktop_notifications: bool | None = None,
+        email_notifications: bool | None = None,
+        quiet_hours: bool | None = None,
     ) -> Settings:
         """
         Update settings for id=1.
@@ -70,7 +76,10 @@ class SettingsService:
             font_size: Font size (small/medium/large)
             font_family: Font family name
             language: Language code
-            notifications_enabled: Whether notifications are enabled
+            timezone: Timezone string
+            desktop_notifications: Whether desktop notifications are enabled
+            email_notifications: Whether email notifications are enabled
+            quiet_hours: Whether quiet hours mode is enabled
 
         Returns:
             Updated Settings object
@@ -92,8 +101,14 @@ class SettingsService:
                 settings.font_family = font_family
             if language is not None:
                 settings.language = language
-            if notifications_enabled is not None:
-                settings.notifications_enabled = notifications_enabled
+            if timezone is not None:
+                settings.timezone = timezone
+            if desktop_notifications is not None:
+                settings.desktop_notifications = desktop_notifications
+            if email_notifications is not None:
+                settings.email_notifications = email_notifications
+            if quiet_hours is not None:
+                settings.quiet_hours = quiet_hours
 
             session.add(settings)
             session.commit()
