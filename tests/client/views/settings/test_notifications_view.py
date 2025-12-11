@@ -291,8 +291,14 @@ class TestCreateNotificationsView:
 
             assert switch.value is False
 
-    def test_quiet_hours_switch_true_value(self):
+    @patch("remail.client.views.settings.notifications_view.SettingsController")
+    def test_quiet_hours_switch_true_value(self, mock_controller_class):
         """Test that quiet hours switch can be True."""
+        # Mock controller to return None so app_state values are used
+        mock_controller = Mock()
+        mock_controller.get_settings.return_value = None
+        mock_controller_class.return_value = mock_controller
+
         page = Mock(spec=ft.Page)
         page.update = Mock()
         app_state = AppState(quiet_hours=True)

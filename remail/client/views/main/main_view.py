@@ -18,7 +18,7 @@ def create_main_view(page: ft.Page, global_state: AppState):
     main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
     main_state.set(MainAppStateProperties.SEARCH_TERM, "")
     selection_bar = SelectionBar(main_state)
-    
+
     # Settings button
     def navigate_to_settings(e):
         """Navigate to settings page."""
@@ -27,13 +27,13 @@ def create_main_view(page: ft.Page, global_state: AppState):
             settings_view = global_state.router.load_view(MainView.SETTINGS)
             page.add(settings_view)
             page.update()
-    
+
     settings_button = ft.IconButton(
         icon=ft.Icons.SETTINGS,
         tooltip="Settings",
         on_click=navigate_to_settings,
     )
-    
+
     dashboard = ft.Column(
         [
             ft.Container(

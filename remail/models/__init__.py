@@ -4,8 +4,8 @@ from .conversation import Conversation
 from .conversation_contact import ConversationContact
 from .email import Email
 from .email_reception import EmailReception
-from .thread import Thread
 from .settings import Settings
+from .thread import Thread
 from .user import User
 from .user_conversation import UserConversation
 
