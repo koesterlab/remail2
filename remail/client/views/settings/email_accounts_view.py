@@ -67,14 +67,16 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         try:
             show_snackbar("Connecting...", ft.Colors.BLUE_400)
 
+            print(f"Trying to connect: {email_input.value}@{host_input.value}")
             controller = EmailController(
                 username=email_input.value,
                 password=password_input.value,
                 host=host_input.value,
                 # port=port_input.value -should we do that too?
             )
+            
             result = controller.login()
-
+            print(f"Result: {result}")
             if result["status"] == "success":
                 email_controllers[email_input.value] = controller
                 connected_emails.append(email_input.value)

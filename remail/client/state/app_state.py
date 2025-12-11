@@ -12,7 +12,6 @@ from remail.enums import (
     Timezone,
 )
 
-
 @dataclass
 class AppState:
     """Central application state container.
