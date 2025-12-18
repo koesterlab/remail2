@@ -1,6 +1,7 @@
 import flet as ft
 
 from remail.client.state import AppState
+from remail.client.widgets.chatbot.chatbot import create_chatbot
 from remail.client.widgets.mail_selection import SelectionBar
 from remail.controllers.dtos.conversations import ContactDTO, ThreadPreviewDTO
 from remail.enums import ContactType, MainView
@@ -60,15 +61,16 @@ def create_main_view(page: ft.Page, global_state: AppState):
     )
 
     # Chatbot
-    # chatbot = create_chatbot(main_state)
-    # chatbot.height = 60
-    # chatbot.expand = False
-    # line 72 should be [ft.Container(selection_bar, expand=1), chatbot], col={"xs": 6, "md": 4, "lg": 3}
+    chatbot = create_chatbot(main_state)
+    chatbot.height = 60
+    chatbot.expand = False
 
     container = ft.ResponsiveRow(
         expand=True,
         controls=[
-            ft.Column([ft.Container(selection_bar, expand=1)], col={"xs": 6, "md": 4, "lg": 3}),
+            ft.Column(
+                [ft.Container(selection_bar, expand=1), chatbot], col={"xs": 6, "md": 4, "lg": 3}
+            ),
             right_view,
         ],
     )
@@ -86,15 +88,15 @@ def create_main_view(page: ft.Page, global_state: AppState):
             right_view.content = dashboard
         right_view.update()
 
-    # def on_chatbot_state_change(is_active: bool) -> None:
-    #    if is_active:
-    #        chatbot.expand = 4
-    #    else:
-    #        chatbot.expand = False
-    #        chatbot.height = 60
-    #    container.update()
+    def on_chatbot_state_change(is_active: bool) -> None:
+        if is_active:
+            chatbot.expand = 4
+        else:
+            chatbot.expand = False
+            chatbot.height = 60
+        container.update()
 
-    # main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
+    main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
     main_state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
 
     return container
