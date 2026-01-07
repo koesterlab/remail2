@@ -23,6 +23,5 @@ __all__ = [
     "SettingsSubView",
     "ThemeMode",
     "Timezone",
-    "UserAccountCategory"
+    "UserAccountCategory",
 ]
-
