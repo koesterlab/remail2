@@ -3,8 +3,8 @@ import flet as ft
 from remail.client.scheduler import Scheduler
 from remail.client.state.app_state import AppState
 from remail.controllers.email_controller import EmailController
-from remail.interfaces.email.services.user_service import UserService
 from remail.interfaces.email.services.email_sync_service import EmailSyncService
+from remail.interfaces.email.services.user_service import UserService
 
 
 def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Container:
@@ -164,8 +164,8 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         def handler(e):
             try:
                 UserService.delete_user(email_to_remove)
-            except Exception:
-                pass
+            except Exception as e:
+                show_snackbar(f"Failed to remove user: {e}", ft.Colors.ORANGE_400)
 
             app_state.remove_email_scheduler(email_to_remove)
             app_state.connected_emails.remove(email_to_remove)
