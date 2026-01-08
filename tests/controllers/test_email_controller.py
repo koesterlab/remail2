@@ -35,6 +35,22 @@ def controller(mock_protocol):
     )
 
 
+def mock_thread_service_with_contacts(controller, contacts):
+    """
+    Helper to mock thread_service on controller with given contacts.
+    
+    Args:
+        controller: EmailController instance
+        contacts: List of email addresses as strings
+    
+    Returns:
+        None - modifies controller.thread_service in place
+    """
+    mock_thread = MagicMock()
+    mock_thread.contacts = [MagicMock(email=email) for email in contacts]
+    controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+
+
 class TestLogin:
     """Tests for login functionality."""
 
@@ -112,9 +128,7 @@ class TestSendEmail:
         mock_protocol.send_email.return_value = None
 
         # Mock the thread_service instance on the controller
-        mock_thread = MagicMock()
-        mock_thread.contacts = [MagicMock(email="recipient@example.com")]
-        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+        mock_thread_service_with_contacts(controller, ["recipient@example.com"])
 
         result = controller.send_email(
             subject="Test Subject",
@@ -134,13 +148,10 @@ class TestSendEmail:
         mock_protocol.send_email.return_value = None
 
         # Mock the thread_service instance on the controller
-        mock_thread = MagicMock()
-        mock_thread.contacts = [
-            MagicMock(email="contact1@example.com"),
-            MagicMock(email="contact2@example.com"),
-            MagicMock(email="contact3@example.com"),
-        ]
-        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+        mock_thread_service_with_contacts(
+            controller,
+            ["contact1@example.com", "contact2@example.com", "contact3@example.com"]
+        )
 
         result = controller.send_email(
             subject="Test",
@@ -167,9 +178,7 @@ class TestSendEmail:
         mock_protocol.send_email.return_value = None
 
         # Mock the thread_service instance on the controller
-        mock_thread = MagicMock()
-        mock_thread.contacts = [MagicMock(email="to@example.com")]
-        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+        mock_thread_service_with_contacts(controller, ["to@example.com"])
 
         result = controller.send_email(
             subject="Test",
@@ -193,9 +202,7 @@ class TestSendEmail:
         mock_protocol.send_email.side_effect = ee.NotLoggedIn()
 
         # Mock the thread_service instance on the controller
-        mock_thread = MagicMock()
-        mock_thread.contacts = [MagicMock(email="to@example.com")]
-        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+        mock_thread_service_with_contacts(controller, ["to@example.com"])
 
         result = controller.send_email(
             subject="Test",
@@ -244,9 +251,7 @@ class TestSendEmail:
         mock_protocol.send_email.side_effect = Exception("SMTP error")
 
         # Mock the thread_service instance on the controller
-        mock_thread = MagicMock()
-        mock_thread.contacts = [MagicMock(email="to@example.com")]
-        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+        mock_thread_service_with_contacts(controller, ["to@example.com"])
 
         result = controller.send_email(
             subject="Test",

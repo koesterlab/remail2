@@ -109,7 +109,7 @@ class EmailController:
             if thread_dto is None:
                 raise ValueError("Thread with the specified ID does not exist.")
 
-            to = [rec.email for rec in thread_dto.contacts if rec.email]
+            to = [rec.email for rec in thread_dto.contacts if rec.email and rec.email.strip()]
             if not to:
                 raise ValueError("Thread has no contacts to send email to.")
 
