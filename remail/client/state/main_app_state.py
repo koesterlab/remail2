@@ -7,6 +7,8 @@ from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreview
 
 
 class MainAppStateProperties(Enum):
+    DRAFT = "draft"
+    ACTIVE_USER = "active_user"
     ACTIVE_THREAD = "active_thread"
     ACTIVE_CHATBOT = "active_chatbot"
     SEARCH_TERM = "search_term"

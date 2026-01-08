@@ -83,7 +83,7 @@ def create_main_view(page: ft.Page, global_state: AppState):
                     main_state.get(MainAppStateProperties.DISPLAYED_MAILS),
                 )
             )
-            right_view.content = ThreadList(new, current_conversation, active_user)
+            right_view.content = ThreadList(main_state)
         else:
             right_view.content = dashboard
         right_view.update()
