@@ -6,9 +6,10 @@ from datetime import datetime
 from typing import Any
 
 from remail import errors as ee
-from remail.enums import RecipientKind
+from remail.enums import ConversationType, RecipientKind
 from remail.interfaces.email.protocols.imap import ImapProtocol
-from remail.interfaces.email.services import ThreadService
+from remail.interfaces.email.services import ConversationService, ThreadService
+from remail.interfaces.email.services.contact_service import ContactService
 from remail.models import Contact, Email, EmailReception
 
 
@@ -87,8 +88,8 @@ class EmailController:
         self,
         subject: str,
         body: str,
-        thread_id: int,
         attachments: list[str] | None = None,
+        thread_id: int | None = None,
     ) -> dict[str, Any]:
         """
         Send an email.
@@ -96,28 +97,29 @@ class EmailController:
         Args:
             subject: Email subject
             body: Email body
-            thread_id: Thread ID
             attachments: List of attachment filenames
+            thread_id: Thread ID (used when recipients are inferred from a thread)
 
         Returns:
             Dict with status and message
         """
 
         try:
-            thread_dto = self.thread_service.get_thread_by_id(thread_id)
+            if thread_id is None:
+                raise ValueError("Invalid thread ID provided.")
 
-            if thread_dto is None:
+            thread = ThreadService().get_thread_by_id(thread_id)
+
+            if thread is None:
                 raise ValueError("Thread with the specified ID does not exist.")
 
-            to = [rec.email for rec in thread_dto.contacts if rec.email and rec.email.strip()]
-            if not to:
-                raise ValueError("Thread has no contacts to send email to.")
+            resolved_to = [rec.email for rec in thread.contacts]
 
             email = self._create_email_model(
                 subject=subject,
                 body=body,
-                to=to,
-                attachments=attachments or [],
+                to=resolved_to,
+                attachments=attachments,
                 thread_id=thread_id,
             )
 
@@ -127,6 +129,146 @@ class EmailController:
                 "status": "success",
                 "message": "Email sent successfully",
                 "email": self._serialize_email(email),
+            }
+
+        except ee.NotLoggedIn:
+            return {
+                "status": "error",
+                "message": "Not logged in",
+            }
+
+        except ValueError as e:
+            return {
+                "status": "error",
+                "message": str(e),
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to send email: {str(e)}",
+            }
+
+    def send_email_new_thread(
+        self, subject: str, body: str, conversation_id: int, attachments: list[str] | None = None
+    ) -> dict[str, Any]:
+        """
+        Send an email starting a new thread.
+
+        Args:
+            subject: Email subject
+            body: Email body
+            conversation_id: Conversation ID to associate the new thread with
+            attachments: List of attachment filenames
+
+        Returns:
+            Dict with status and message
+        """
+
+        try:
+            conversation = ConversationService().get_conversation_by_id(conversation_id)
+
+            if conversation is None:
+                raise ValueError("Invalid conversation ID provided.")
+
+            thread = ThreadService().create_thread(
+                title=subject,
+                conversation_id=conversation_id,
+            )
+
+            if thread.id is None:
+                raise ValueError("Failed to create thread.")
+
+            to = [contact["email"] for contact in conversation["contacts"]]
+
+            email = self._create_email_model(
+                subject=subject,
+                body=body,
+                to=to,
+                attachments=attachments or [],
+                thread_id=thread.id,
+            )
+
+            self.protocol.send_email(email)
+
+            return {
+                "status": "success",
+                "message": "Email sent successfully",
+                "email": self._serialize_email(email),
+                "thread_id": thread.id,
+                "conversation_id": conversation_id,
+            }
+
+        except ee.NotLoggedIn:
+            return {
+                "status": "error",
+                "message": "Not logged in",
+            }
+
+        except ValueError as e:
+            return {
+                "status": "error",
+                "message": str(e),
+            }
+
+        except Exception as e:
+            return {
+                "status": "error",
+                "message": f"Failed to send email: {str(e)}",
+            }
+
+    def send_email_new_conversation(
+        self, contact_ids: list[int], subject: str, body: str, attachments: list[str] | None = None
+    ) -> dict[str, Any]:
+        try:
+            contacts: list[Contact] = []
+
+            for contact_id in contact_ids:
+                contact = ContactService().get_contact_by_id(contact_id)
+
+                if contact is None:
+                    raise ValueError(f"Contact ID {contact_id} not found.")
+
+                contacts.append(contact)
+
+            if not contacts:
+                raise ValueError("No recipients provided.")
+
+            conversation = ConversationService().create_conversation(
+                conversation_type=ConversationType.GROUP,
+                custom_name=subject,
+                contacts=contacts,
+            )
+
+            if conversation.id is None:
+                raise ValueError("Failed to create conversation.")
+
+            thread = ThreadService().create_thread(
+                title=subject,
+                conversation_id=conversation.id,
+            )
+
+            if thread.id is None:
+                raise ValueError("Failed to create thread.")
+
+            to = [rec.email_address for rec in contacts]
+
+            email = self._create_email_model(
+                subject=subject,
+                body=body,
+                to=to,
+                attachments=attachments or [],
+                thread_id=thread.id,
+            )
+
+            self.protocol.send_email(email)
+
+            return {
+                "status": "success",
+                "message": "Email sent successfully",
+                "email": self._serialize_email(email),
+                "thread_id": thread.id,
+                "conversation_id": conversation.id,
             }
 
         except ee.NotLoggedIn:
@@ -221,9 +363,9 @@ class EmailController:
         self,
         subject: str,
         body: str,
-        to: list[str],
-        attachments: list[str],
-        thread_id: int,
+        to: list[str] | None = None,
+        attachments: list[str] | None = None,
+        thread_id: int | None = None,
     ) -> Email:
         """
         Create an Email model instance from parameters.
@@ -233,13 +375,15 @@ class EmailController:
             body: Email body
             to: TO recipients
             attachments: Attachment filenames
-            thread_id: Thread ID
+            thread_id: Thread ID (optional for sending)
 
         Returns:
             Email model instance
         """
 
         from remail.models import Attachment
+
+        resolved_thread_id = thread_id if thread_id is not None else 0
 
         sender = Contact(
             name=self.protocol.user_username or "Unknown",
@@ -251,12 +395,12 @@ class EmailController:
             body=body,
             sent_at=datetime.now(),
             sender=sender,
-            thread_id=thread_id,
+            thread_id=resolved_thread_id,
         )
 
         recipients: list[EmailReception] = []
 
-        for addr in to:
+        for addr in to or []:
             contact = Contact(name=addr, email_address=addr)
 
             recipients.append(
