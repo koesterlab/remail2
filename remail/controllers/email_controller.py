@@ -8,6 +8,7 @@ from typing import Any
 from remail import errors as ee
 from remail.enums import RecipientKind
 from remail.interfaces.email.protocols.imap import ImapProtocol
+from remail.interfaces.email.services import ThreadService
 from remail.models import Contact, Email, EmailReception
 
 
@@ -85,9 +86,7 @@ class EmailController:
         self,
         subject: str,
         body: str,
-        to: list[str] | None = None,
-        cc: list[str] | None = None,
-        bcc: list[str] | None = None,
+        thread_id: int,
         attachments: list[str] | None = None,
     ) -> dict[str, Any]:
         """
@@ -96,9 +95,7 @@ class EmailController:
         Args:
             subject: Email subject
             body: Email body
-            to: List of TO recipients
-            cc: List of CC recipients
-            bcc: List of BCC recipients
+            thread_id: Thread ID
             attachments: List of attachment filenames
 
         Returns:
@@ -106,13 +103,19 @@ class EmailController:
         """
 
         try:
+            thread = ThreadService().get_thread_by_id(thread_id)
+
+            if thread is None:
+                raise ValueError("Invalid thread ID provided.")
+
+            to = [rec.email for rec in thread.contacts]
+
             email = self._create_email_model(
                 subject=subject,
                 body=body,
-                to=to or [],
-                cc=cc or [],
-                bcc=bcc or [],
+                to=to,
                 attachments=attachments or [],
+                thread_id=thread_id,
             )
 
             self.protocol.send_email(email)
@@ -216,9 +219,8 @@ class EmailController:
         subject: str,
         body: str,
         to: list[str],
-        cc: list[str],
-        bcc: list[str],
         attachments: list[str],
+        thread_id: int,
     ) -> Email:
         """
         Create an Email model instance from parameters.
@@ -227,9 +229,8 @@ class EmailController:
             subject: Email subject
             body: Email body
             to: TO recipients
-            cc: CC recipients
-            bcc: BCC recipients
             attachments: Attachment filenames
+            thread_id: Thread ID
 
         Returns:
             Email model instance
@@ -243,10 +244,7 @@ class EmailController:
         )
 
         email = Email(
-            subject=subject,
-            body=body,
-            sent_at=datetime.now(),
-            sender=sender,
+            subject=subject, body=body, sent_at=datetime.now(), sender=sender, thread_id=thread_id
         )
 
         recipients: list[EmailReception] = []
@@ -257,28 +255,6 @@ class EmailController:
             recipients.append(
                 EmailReception(
                     kind=RecipientKind.TO,
-                    email=email,
-                    contact=contact,
-                )
-            )
-
-        for addr in cc:
-            contact = Contact(name=addr, email_address=addr)
-
-            recipients.append(
-                EmailReception(
-                    kind=RecipientKind.CC,
-                    email=email,
-                    contact=contact,
-                )
-            )
-
-        for addr in bcc:
-            contact = Contact(name=addr, email_address=addr)
-
-            recipients.append(
-                EmailReception(
-                    kind=RecipientKind.BCC,
                     email=email,
                     contact=contact,
                 )
