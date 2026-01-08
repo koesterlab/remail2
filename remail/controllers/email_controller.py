@@ -26,6 +26,7 @@ class EmailController:
         """
 
         self.protocol = ImapProtocol(username=username, password=password, host=host)
+        self.thread_service = ThreadService()
 
     def login(self) -> dict[str, Any]:
         """
@@ -103,12 +104,14 @@ class EmailController:
         """
 
         try:
-            thread = ThreadService().get_thread_by_id(thread_id)
+            thread_dto = self.thread_service.get_thread_by_id(thread_id)
 
-            if thread is None:
-                raise ValueError("Invalid thread ID provided.")
+            if thread_dto is None:
+                raise ValueError("Thread with the specified ID does not exist.")
 
-            to = [rec.email for rec in thread.contacts]
+            to = [rec.email for rec in thread_dto.contacts if rec.email and rec.email.strip()]
+            if not to:
+                raise ValueError("Thread has no contacts to send email to.")
 
             email = self._create_email_model(
                 subject=subject,
@@ -244,7 +247,11 @@ class EmailController:
         )
 
         email = Email(
-            subject=subject, body=body, sent_at=datetime.now(), sender=sender, thread_id=thread_id
+            subject=subject,
+            body=body,
+            sent_at=datetime.now(),
+            sender=sender,
+            thread_id=thread_id,
         )
 
         recipients: list[EmailReception] = []

@@ -92,7 +92,7 @@
 {
   "status": "success",
   "message_id": 103,
-  "thread_id": 1,
+  "thread_id": 1
 }
 ```
 
