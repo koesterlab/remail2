@@ -111,11 +111,17 @@ class TestSendEmail:
 
         mock_protocol.send_email.return_value = None
 
-        result = controller.send_email(
-            subject="Test Subject",
-            body="Test Body",
-            to=["recipient@example.com"],
-        )
+        # Mock ThreadService to return a thread with contacts
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread = MagicMock()
+            mock_thread.contacts = [MagicMock(email="recipient@example.com")]
+            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+
+            result = controller.send_email(
+                subject="Test Subject",
+                body="Test Body",
+                thread_id=1,
+            )
 
         assert result["status"] == "success"
         assert result["message"] == "Email sent successfully"
@@ -123,18 +129,26 @@ class TestSendEmail:
 
         mock_protocol.send_email.assert_called_once()
 
-    def test_send_email_with_all_recipients(self, controller, mock_protocol):
-        """Test sending email with TO, CC, and BCC recipients."""
+    def test_send_email_with_multiple_contacts(self, controller, mock_protocol):
+        """Test sending email with multiple thread contacts."""
 
         mock_protocol.send_email.return_value = None
 
-        result = controller.send_email(
-            subject="Test",
-            body="Body",
-            to=["to@example.com"],
-            cc=["cc@example.com"],
-            bcc=["bcc@example.com"],
-        )
+        # Mock ThreadService to return a thread with multiple contacts
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread = MagicMock()
+            mock_thread.contacts = [
+                MagicMock(email="contact1@example.com"),
+                MagicMock(email="contact2@example.com"),
+                MagicMock(email="contact3@example.com"),
+            ]
+            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+
+            result = controller.send_email(
+                subject="Test",
+                body="Body",
+                thread_id=1,
+            )
 
         assert result["status"] == "success"
 
@@ -145,23 +159,27 @@ class TestSendEmail:
         assert email_arg.body == "Body"
         assert len(email_arg.recipients) == 3
 
-        kinds = {rec.kind for rec in email_arg.recipients}
-
-        assert RecipientKind.TO in kinds
-        assert RecipientKind.CC in kinds
-        assert RecipientKind.BCC in kinds
+        # All recipients should be TO recipients
+        for rec in email_arg.recipients:
+            assert rec.kind == RecipientKind.TO
 
     def test_send_email_with_attachments(self, controller, mock_protocol):
         """Test sending email with attachments."""
 
         mock_protocol.send_email.return_value = None
 
-        result = controller.send_email(
-            subject="Test",
-            body="Body",
-            to=["to@example.com"],
-            attachments=["file1.pdf", "file2.jpg"],
-        )
+        # Mock ThreadService to return a thread with contacts
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread = MagicMock()
+            mock_thread.contacts = [MagicMock(email="to@example.com")]
+            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+
+            result = controller.send_email(
+                subject="Test",
+                body="Body",
+                thread_id=1,
+                attachments=["file1.pdf", "file2.jpg"],
+            )
 
         assert result["status"] == "success"
 
@@ -177,38 +195,53 @@ class TestSendEmail:
 
         mock_protocol.send_email.side_effect = ee.NotLoggedIn()
 
-        result = controller.send_email(
-            subject="Test",
-            body="Body",
-            to=["to@example.com"],
-        )
+        # Mock ThreadService to return a thread with contacts
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread = MagicMock()
+            mock_thread.contacts = [MagicMock(email="to@example.com")]
+            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+
+            result = controller.send_email(
+                subject="Test",
+                body="Body",
+                thread_id=1,
+            )
 
         assert result["status"] == "error"
         assert result["message"] == "Not logged in"
 
-    def test_send_email_no_recipients(self, controller, mock_protocol):
-        """Test sending email with no recipients raises ValueError."""
+    def test_send_email_invalid_thread(self, controller, mock_protocol):
+        """Test sending email with invalid thread ID."""
 
-        mock_protocol.send_email.side_effect = ValueError("No recipients provided.")
+        # Mock ThreadService to return None (thread not found)
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread_service.return_value.get_thread_by_id.return_value = None
 
-        result = controller.send_email(
-            subject="Test",
-            body="Body",
-        )
+            result = controller.send_email(
+                subject="Test",
+                body="Body",
+                thread_id=999,
+            )
 
         assert result["status"] == "error"
-        assert "No recipients provided" in result["message"]
+        assert "Invalid thread ID provided" in result["message"]
 
     def test_send_email_generic_error(self, controller, mock_protocol):
         """Test sending email with generic error."""
 
         mock_protocol.send_email.side_effect = Exception("SMTP error")
 
-        result = controller.send_email(
-            subject="Test",
-            body="Body",
-            to=["to@example.com"],
-        )
+        # Mock ThreadService to return a thread with contacts
+        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
+            mock_thread = MagicMock()
+            mock_thread.contacts = [MagicMock(email="to@example.com")]
+            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+
+            result = controller.send_email(
+                subject="Test",
+                body="Body",
+                thread_id=1,
+            )
 
         assert result["status"] == "error"
         assert "Failed to send email" in result["message"]
@@ -287,39 +320,34 @@ class TestEmailModelCreation:
             subject="Test",
             body="Body",
             to=["to@example.com"],
-            cc=[],
-            bcc=[],
             attachments=[],
+            thread_id=1,
         )
 
         assert email.subject == "Test"
         assert email.body == "Body"
         assert email.sender.email_address == "user@example.com"
+        assert email.thread_id == 1
         assert len(email.recipients) == 1
         assert email.recipients[0].kind == RecipientKind.TO
         assert email.recipients[0].contact.email_address == "to@example.com"
 
     def test_create_email_model_multiple_recipients(self, controller):
-        """Test creating email with multiple recipient types."""
+        """Test creating email with multiple recipients."""
 
         email = controller._create_email_model(
             subject="Test",
             body="Body",
             to=["to1@example.com", "to2@example.com"],
-            cc=["cc@example.com"],
-            bcc=["bcc@example.com"],
             attachments=[],
+            thread_id=1,
         )
 
-        assert len(email.recipients) == 4
+        assert len(email.recipients) == 2
 
-        to_recipients = [r for r in email.recipients if r.kind == RecipientKind.TO]
-        cc_recipients = [r for r in email.recipients if r.kind == RecipientKind.CC]
-        bcc_recipients = [r for r in email.recipients if r.kind == RecipientKind.BCC]
-
-        assert len(to_recipients) == 2
-        assert len(cc_recipients) == 1
-        assert len(bcc_recipients) == 1
+        # All recipients should be TO recipients
+        for rec in email.recipients:
+            assert rec.kind == RecipientKind.TO
 
 
 class TestEmailSerialization:
