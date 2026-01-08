@@ -111,17 +111,16 @@ class TestSendEmail:
 
         mock_protocol.send_email.return_value = None
 
-        # Mock ThreadService to return a thread with contacts
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread = MagicMock()
-            mock_thread.contacts = [MagicMock(email="recipient@example.com")]
-            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+        # Mock the thread_service instance on the controller
+        mock_thread = MagicMock()
+        mock_thread.contacts = [MagicMock(email="recipient@example.com")]
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
 
-            result = controller.send_email(
-                subject="Test Subject",
-                body="Test Body",
-                thread_id=1,
-            )
+        result = controller.send_email(
+            subject="Test Subject",
+            body="Test Body",
+            thread_id=1,
+        )
 
         assert result["status"] == "success"
         assert result["message"] == "Email sent successfully"
@@ -134,21 +133,20 @@ class TestSendEmail:
 
         mock_protocol.send_email.return_value = None
 
-        # Mock ThreadService to return a thread with multiple contacts
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread = MagicMock()
-            mock_thread.contacts = [
-                MagicMock(email="contact1@example.com"),
-                MagicMock(email="contact2@example.com"),
-                MagicMock(email="contact3@example.com"),
-            ]
-            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+        # Mock the thread_service instance on the controller
+        mock_thread = MagicMock()
+        mock_thread.contacts = [
+            MagicMock(email="contact1@example.com"),
+            MagicMock(email="contact2@example.com"),
+            MagicMock(email="contact3@example.com"),
+        ]
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
 
-            result = controller.send_email(
-                subject="Test",
-                body="Body",
-                thread_id=1,
-            )
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=1,
+        )
 
         assert result["status"] == "success"
 
@@ -168,18 +166,17 @@ class TestSendEmail:
 
         mock_protocol.send_email.return_value = None
 
-        # Mock ThreadService to return a thread with contacts
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread = MagicMock()
-            mock_thread.contacts = [MagicMock(email="to@example.com")]
-            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+        # Mock the thread_service instance on the controller
+        mock_thread = MagicMock()
+        mock_thread.contacts = [MagicMock(email="to@example.com")]
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
 
-            result = controller.send_email(
-                subject="Test",
-                body="Body",
-                thread_id=1,
-                attachments=["file1.pdf", "file2.jpg"],
-            )
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=1,
+            attachments=["file1.pdf", "file2.jpg"],
+        )
 
         assert result["status"] == "success"
 
@@ -195,17 +192,16 @@ class TestSendEmail:
 
         mock_protocol.send_email.side_effect = ee.NotLoggedIn()
 
-        # Mock ThreadService to return a thread with contacts
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread = MagicMock()
-            mock_thread.contacts = [MagicMock(email="to@example.com")]
-            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+        # Mock the thread_service instance on the controller
+        mock_thread = MagicMock()
+        mock_thread.contacts = [MagicMock(email="to@example.com")]
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
 
-            result = controller.send_email(
-                subject="Test",
-                body="Body",
-                thread_id=1,
-            )
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=1,
+        )
 
         assert result["status"] == "error"
         assert result["message"] == "Not logged in"
@@ -213,35 +209,50 @@ class TestSendEmail:
     def test_send_email_invalid_thread(self, controller, mock_protocol):
         """Test sending email with invalid thread ID."""
 
-        # Mock ThreadService to return None (thread not found)
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread_service.return_value.get_thread_by_id.return_value = None
+        # Mock the thread_service instance on the controller to return None
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=None)
 
-            result = controller.send_email(
-                subject="Test",
-                body="Body",
-                thread_id=999,
-            )
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=999,
+        )
 
         assert result["status"] == "error"
-        assert "Invalid thread ID provided" in result["message"]
+        assert "Thread with the specified ID does not exist" in result["message"]
+
+    def test_send_email_empty_contacts(self, controller, mock_protocol):
+        """Test sending email with thread that has no contacts."""
+
+        # Mock the thread_service instance to return a thread with no contacts
+        mock_thread = MagicMock()
+        mock_thread.contacts = []
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
+
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=1,
+        )
+
+        assert result["status"] == "error"
+        assert "Thread has no contacts to send email to" in result["message"]
 
     def test_send_email_generic_error(self, controller, mock_protocol):
         """Test sending email with generic error."""
 
         mock_protocol.send_email.side_effect = Exception("SMTP error")
 
-        # Mock ThreadService to return a thread with contacts
-        with patch("remail.controllers.email_controller.ThreadService") as mock_thread_service:
-            mock_thread = MagicMock()
-            mock_thread.contacts = [MagicMock(email="to@example.com")]
-            mock_thread_service.return_value.get_thread_by_id.return_value = mock_thread
+        # Mock the thread_service instance on the controller
+        mock_thread = MagicMock()
+        mock_thread.contacts = [MagicMock(email="to@example.com")]
+        controller.thread_service.get_thread_by_id = MagicMock(return_value=mock_thread)
 
-            result = controller.send_email(
-                subject="Test",
-                body="Body",
-                thread_id=1,
-            )
+        result = controller.send_email(
+            subject="Test",
+            body="Body",
+            thread_id=1,
+        )
 
         assert result["status"] == "error"
         assert "Failed to send email" in result["message"]
