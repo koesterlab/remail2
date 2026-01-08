@@ -11,7 +11,7 @@ import flet as ft
 from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.thread.message_bubble import MessageBubble
 from remail.client.widgets.thread.new_message_dialog import create_new_message_dialog
-from remail.controllers.dtos.conversations import ThreadPreviewDTO
+from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from tests import fetch_thread
 
@@ -37,17 +37,21 @@ class ThreadList(ft.Container):
         if not new_thread:  # dashboard -> just do nothing
             self.thread = None
             return
-        if (
-            not self.thread
-        ):  # or new_thread.thread_id != self.thread.id: #new thread #todo: threads ids geben
-            self.thread = fetch_thread(new_thread)
 
-        self.conversation = next(  # could be better
+        self.conversation:ConversationDTO = next(  # could be better
             filter(
                 lambda conv: new_thread in conv.threads,
                 self.state.get(MainAppStateProperties.DISPLAYED_MAILS),
             )
         )
+
+        if (
+            not self.thread and new_thread.thread_id > 0
+        ):  # or new_thread.thread_id != self.thread.id: #new thread #todo: threads ids geben
+            self.thread = fetch_thread(new_thread)
+        elif new_thread.thread_id < 0: #new, unsaved thread
+            self.thread = ThreadDTO(-1, new_thread.title, [], self.conversation.contacts)
+
         self.active_user = self.state.get(MainAppStateProperties.ACTIVE_USER)
 
         # ---------- the information of top contact -------- #
