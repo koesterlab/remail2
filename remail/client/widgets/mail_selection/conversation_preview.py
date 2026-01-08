@@ -3,6 +3,7 @@ from collections.abc import Callable
 import flet as ft
 from flet.core.control_event import ControlEvent
 
+from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.mail_selection.profile_picture import create_profile_picture
 from remail.controllers.dtos.conversations import ConversationDTO
 
@@ -11,6 +12,7 @@ class ConversationPreview(ft.Container):
     # component representing a single contact entry
     def __init__(
         self,
+        state: MainAppState,
         conversation: ConversationDTO,
         primary_text: str,
         secondary_text: str,
@@ -20,6 +22,7 @@ class ConversationPreview(ft.Container):
         def toggle_fav(e: ControlEvent):  # todo change in backend
             conversation.is_favorite = not conversation.is_favorite
             fav_button.icon = ft.Icons.STAR if conversation.is_favorite else ft.Icons.STAR_OUTLINE
+            state.trigger(MainAppStateProperties.DISPLAYED_MAILS)  # reload to reorder
             if fav_button.page:
                 fav_button.update()
 

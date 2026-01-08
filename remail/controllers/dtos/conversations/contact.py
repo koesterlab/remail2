@@ -2,9 +2,11 @@ from dataclasses import dataclass
 
 from remail.enums import ContactType
 
+from ..threads import SenderDTO
+
 
 @dataclass
-class ContactDTO:
+class ContactDTO(SenderDTO):
     id: int
     first_name: str
     last_name: str

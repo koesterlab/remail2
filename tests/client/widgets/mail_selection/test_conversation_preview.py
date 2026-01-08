@@ -3,6 +3,7 @@ import unittest
 
 import flet as ft
 
+from remail.client.state import MainAppState
 from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO
 from remail.enums import ContactType
@@ -34,6 +35,7 @@ class TestConversationPreview(unittest.TestCase):
             click_called["called"] = True
 
         preview = ConversationPreview(
+            MainAppState(),
             self.conversation,
             primary_text="Max Mustermann",
             secondary_text="max@example.com",
@@ -73,6 +75,7 @@ class TestConversationPreview(unittest.TestCase):
 
     def test_unregistered_contact_preview(self):
         preview = ConversationPreview(
+            MainAppState(),
             self.conversation,
             primary_text="Unknown",
             secondary_text="unknown@example.com",
