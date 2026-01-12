@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from remail.database import engine
 from remail.enums import ConversationType
-from remail.models import Contact, Conversation, ConversationContact, UserConversation
+from remail.models import Contact, Conversation, ConversationContact, User, UserConversation
 
 
 class ConversationService:
@@ -63,24 +63,89 @@ class ConversationService:
 
             return result
 
-    def get_conversation_by_id(self, conversation_id: int) -> dict | None:
+    def create_conversation(
+        self, user_id: int, contact_ids: list[int], custom_name: str | None = None
+    ) -> dict | None:
         """
-        Fetch a conversation by its ID.
+        Create a new conversation for a user or return an existing one.
 
         Args:
-            conversation_id: Conversation ID to fetch
+            user_id: User ID to create the conversation for
+            contact_ids: List of contact IDs to include
+            custom_name: Optional custom name for the conversation
 
         Returns:
-            Dictionary with conversation data
+            Conversation dictionary with contacts and favorite status, or None if invalid input
         """
+        if not contact_ids:
+            return None
+
+        normalized_ids = {contact_id for contact_id in contact_ids if contact_id is not None}
+        if not normalized_ids:
+            return None
 
         with Session(self.engine) as session:
-            conversation = session.get(Conversation, conversation_id)
-
-            if not conversation:
+            user = session.get(User, user_id)
+            if not user:
                 return None
 
             contacts = session.exec(
+                select(Contact).where(col(Contact.id).in_(normalized_ids))
+            ).all()
+            if len(contacts) != len(normalized_ids):
+                return None
+
+            conversation = None
+            existing_conversations = session.exec(
+                select(Conversation)
+                .join(UserConversation)
+                .where(UserConversation.user_id == user_id)
+            ).all()
+
+            for conv in existing_conversations:
+                conv_contact_ids = session.exec(
+                    select(ConversationContact.contact_id).where(
+                        ConversationContact.conversation_id == conv.id
+                    )
+                ).all()
+
+                if set(conv_contact_ids) == normalized_ids:
+                    conversation = conv
+                    break
+
+            if conversation is None:
+                conversation_type = (
+                    ConversationType.GROUP
+                    if len(normalized_ids) > 1
+                    else ConversationType.CONVERSATION
+                )
+                conversation = Conversation(custom_name=custom_name, type=conversation_type)
+                session.add(conversation)
+                session.flush()
+
+                for contact in contacts:
+                    conv_contact = ConversationContact(
+                        conversation_id=conversation.id,  # type: ignore[arg-type]
+                        contact_id=contact.id,  # type: ignore[arg-type]
+                    )
+                    session.add(conv_contact)
+
+                user_conv = UserConversation(
+                    user_id=user_id,
+                    conversation_id=conversation.id,  # type: ignore[arg-type]
+                    is_favorite=False,
+                )
+                session.add(user_conv)
+            elif custom_name is not None:
+                conversation.custom_name = custom_name
+                session.add(conversation)
+
+            session.commit()
+
+            if conversation.id is None:
+                return None
+
+            contact_models = session.exec(
                 select(Contact)
                 .join(
                     ConversationContact,
@@ -88,37 +153,15 @@ class ConversationService:
                 )
                 .where(ConversationContact.conversation_id == conversation.id)
             ).all()
+            user_conversation = session.exec(
+                select(UserConversation)
+                .where(UserConversation.user_id == user_id)
+                .where(UserConversation.conversation_id == conversation.id)
+            ).first()
 
-            return self._build_conversation_dict(
-                conversation,
-                list(contacts),
-                is_favorite=False,  # Favorite status not fetched in this method
-            )
+            is_favorite = user_conversation.is_favorite if user_conversation else False
 
-    def create_conversation(
-        self, conversation_type: ConversationType, contacts: list[Contact], custom_name: str
-    ) -> Conversation:
-        """
-        Create a new conversation.
-
-        Args:
-            conversation_type: Type of the conversation
-            contacts: List of Contact model instances to associate with the conversation
-            custom_name: Custom name for the conversation
-
-        Returns:
-            Created Conversation object
-        """
-        new_conversation = Conversation(
-            type=conversation_type, custom_name=custom_name, contacts=contacts
-        )
-
-        with Session(self.engine) as session:
-            session.add(new_conversation)
-            session.commit()
-            session.refresh(new_conversation)
-
-        return new_conversation
+            return self._build_conversation_dict(conversation, list(contact_models), is_favorite)
 
     def _build_conversation_dict(
         self, conversation: Conversation, contacts: list[Contact], is_favorite: bool
