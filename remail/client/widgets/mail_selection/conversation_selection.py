@@ -35,12 +35,16 @@ class ConversationSelection(ft.Container):
     def set_content(self, content: list[ConversationDTO | Action]):
         # todo: make more efficient on reload
         def compute_order_value(elem: ConversationDTO | Action):
+            time = datetime.datetime.min
             if isinstance(elem, Action):
-                return (datetime.MAXYEAR,)
-            latest = max([t.last_message_datetime for t in elem.threads])
-            if elem.is_favorite:
-                return latest + timedelta(days=10000)
-            return latest
+                category = "C"
+            else:
+                if len(elem.threads) <= 0:
+                    time = datetime.datetime.min
+                else:
+                    time = max([t.last_message_datetime for t in elem.threads])
+                category = "B" if elem.is_favorite else "A"
+            return category,time
 
         content.sort(key=compute_order_value, reverse=True)
 

@@ -75,10 +75,9 @@ class SearchHeader(ft.Container):
             state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
             state.clear_selected()
 
-        # ----- Links unterhalb -----
+        # ----- unterhalb -----
         archiv_link = create_bottom_option("Archive", ft.Icons.ARCHIVE, lambda: None)
         spam_link = create_bottom_option("Spam", ft.Icons.WARNING, lambda: None)
-
         delete_button = create_bottom_option("Delete", ft.Icons.DELETE, lambda: None)
         archiv_button = create_bottom_option("Archive", ft.Icons.ARCHIVE, lambda: None)
         group_button = create_bottom_option(

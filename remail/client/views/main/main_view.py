@@ -3,8 +3,10 @@ import flet as ft
 from remail.client.state import AppState
 from remail.client.widgets.chatbot.chatbot import create_chatbot
 from remail.client.widgets.mail_selection import SelectionBar
+from remail.controllers import ConversationsController
 from remail.controllers.dtos.conversations import ThreadPreviewDTO
 from remail.enums import MainView
+from remail.interfaces.email.services.user_service import UserService
 from tests.client.views.main.test_data_conversations import create_test_data
 
 from ...state.main_app_state import MainAppState, MainAppStateProperties
@@ -13,7 +15,12 @@ from ...widgets.thread.thread_list import ThreadList
 
 def create_main_view(page: ft.Page, global_state: AppState):
     main_state = MainAppState()
-    main_state.set(MainAppStateProperties.DISPLAYED_MAILS, create_test_data())  # todo
+    users = UserService.get_all_users()
+    if len(users) < 1:
+        global_state.router.load_view(MainView.SETTINGS)
+        return ft.Container()
+    main_state.set(MainAppStateProperties.ACTIVE_USER, users[0])
+    main_state.set(MainAppStateProperties.DISPLAYED_MAILS, list(main_state.conversations_controller.get_conversations(users[0].id)))  # todo
     main_state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
     main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
     main_state.set(MainAppStateProperties.ACTIVE_CONVERSATION, None)

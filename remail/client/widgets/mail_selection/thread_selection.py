@@ -85,8 +85,8 @@ class ThreadSelection(ft.Container):
             if not self.conversation:
                 return  # just for mypy
             self.conversation.threads.append(thread)  # only in the frontend, until message is sent
-            self.__state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
             self.__state.set(MainAppStateProperties.ACTIVE_CONVERSATION, self.conversation)
+            self.__state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
 
         self.add_thread_field = ft.TextField(
             on_submit=on_submit_new_thread,
