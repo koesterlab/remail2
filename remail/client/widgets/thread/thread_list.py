@@ -11,7 +11,7 @@ import flet as ft
 from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.thread.message_bubble import MessageBubble
 from remail.client.widgets.thread.new_message_dialog import create_new_message_dialog
-from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from tests import fetch_thread
 
@@ -34,21 +34,21 @@ class ThreadList(ft.Container):
     # ------------------------------------------------------------------ #
     def _rebuild(self) -> None:
         new_thread: ThreadPreviewDTO = self.state.get(MainAppStateProperties.ACTIVE_THREAD)
-        self.conversation: ConversationDTO = self.state.get(MainAppStateProperties.ACTIVE_CONVERSATION)
+        self.conversation: ConversationDTO = self.state.get(
+            MainAppStateProperties.ACTIVE_CONVERSATION
+        )
         if not new_thread:  # dashboard -> just do nothing
             self.thread = None
             return
-        if (
-            not self.thread and new_thread.thread_id > 0
-        ):
+        if not self.thread and new_thread.thread_id > 0:
             self.thread = fetch_thread(new_thread)
-        elif new_thread.thread_id < 0: #new, unsaved thread
+        elif new_thread.thread_id < 0:  # new, unsaved thread
             self.thread = ThreadDTO(-1, new_thread.title, [], self.conversation.contacts)
-
+        elif self.thread is None:
+            return  # just for mypy
         self.active_user = self.state.get(MainAppStateProperties.ACTIVE_USER)
 
         # ---------- the information of top contact -------- #
-
         header = ft.Container(
             ft.Row(
                 controls=[
@@ -59,12 +59,15 @@ class ThreadList(ft.Container):
                                 hint_text="Enter a thread name",
                                 content_padding=ft.padding.all(0),
                                 collapsed=True,
-                                text_style= ft.TextStyle(size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.ON_SURFACE),
-                                focused_border_color = ft.Colors.TRANSPARENT,
-                                border_color = ft.Colors.TRANSPARENT,
+                                text_style=ft.TextStyle(
+                                    size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.ON_SURFACE
+                                ),
+                                focused_border_color=ft.Colors.TRANSPARENT,
+                                border_color=ft.Colors.TRANSPARENT,
                             ),
                             ft.Text(
-                                str(len(self.thread.messages)) + " messages" if len(self.conversation.contacts) == 1
+                                str(len(self.thread.messages)) + " messages"
+                                if len(self.conversation.contacts) == 1
                                 else self.conversation.get_member_string(),
                                 size=15,
                                 color=ft.Colors.ON_SURFACE_VARIANT,

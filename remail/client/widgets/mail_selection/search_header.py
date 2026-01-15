@@ -1,5 +1,5 @@
 import datetime
-from typing import Union, Callable
+from collections.abc import Callable
 
 import flet as ft
 from flet.core.control_event import ControlEvent
@@ -51,15 +51,24 @@ class SearchHeader(ft.Container):
             style=ft.ButtonStyle(padding=0, bgcolor="transparent"),
         )
 
-        def create_bottom_option(text:str, icon: ft.Icons, callback: Callable[[],None]):
-            return ft.Container(ft.Row([
-                ft.Icon(icon, size=18),
-                ft.Text(text, size=15),
-            ]),
-                on_click=lambda _: callback())
+        def create_bottom_option(text: str, icon: ft.Icons, callback: Callable[[], None]):
+            return ft.Container(
+                ft.Row(
+                    [
+                        ft.Icon(icon, size=18),
+                        ft.Text(text, size=15),
+                    ]
+                ),
+                on_click=lambda _: callback(),
+            )
 
         def create_group_from_selected():
-            contacts = [c for e in state.get_selected() for c in e.contacts if isinstance(e, ConversationDTO)]
+            contacts = [
+                c
+                for e in state.get_selected()
+                for c in e.contacts
+                if isinstance(e, ConversationDTO)
+            ]
             thread = ThreadPreviewDTO(-1, "", 0, 0, "", datetime.datetime.now())
             conversation = ConversationDTO(contacts, [thread], False, None)
             state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation)
@@ -72,7 +81,9 @@ class SearchHeader(ft.Container):
 
         delete_button = create_bottom_option("Delete", ft.Icons.DELETE, lambda: None)
         archiv_button = create_bottom_option("Archive", ft.Icons.ARCHIVE, lambda: None)
-        group_button = create_bottom_option("Create Group", ft.Icons.GROUP, create_group_from_selected)
+        group_button = create_bottom_option(
+            "Create Group", ft.Icons.GROUP, create_group_from_selected
+        )
 
         bottom_row = ft.Row([], spacing=20, expand=True, height=20)
 
@@ -95,7 +106,8 @@ class SearchHeader(ft.Container):
         content = ft.Column(
             controls=[
                 ft.Row([self.input, home_icon], alignment=ft.MainAxisAlignment.START),
-                bottom_row, ft.Divider(height=3, thickness=2),
+                bottom_row,
+                ft.Divider(height=3, thickness=2),
             ],
             spacing=5,
         )

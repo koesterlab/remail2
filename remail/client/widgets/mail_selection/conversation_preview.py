@@ -60,9 +60,11 @@ class ConversationPreview(ft.Container):
         profile_picture = ft.Container()
         profile_picture.on_click = lambda e: state.toggle_selection(conversation)
 
-        def on_toggle_selection(is_selected:bool):
+        def on_toggle_selection(is_selected: bool):
             if is_selected:
-                profile_picture.content = CircleAvatar(ft.Icon(ft.Icons.CHECK, color=ft.Colors.BLUE_900), bgcolor=ft.Colors.BLUE_200)
+                profile_picture.content = CircleAvatar(
+                    ft.Icon(ft.Icons.CHECK, color=ft.Colors.BLUE_900), bgcolor=ft.Colors.BLUE_200
+                )
             else:
                 profile_picture.content = create_profile_picture(conversation)
             if profile_picture.page:

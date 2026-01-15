@@ -91,7 +91,9 @@ class SelectionBar(ft.Container):
 
     def __on_topic_selected(self, selected: ThreadPreviewDTO) -> None:
         self.__state.set(MainAppStateProperties.ACTIVE_THREAD, selected)
-        self.__state.set(MainAppStateProperties.ACTIVE_CONVERSATION, self.__last_selected_conversation)
+        self.__state.set(
+            MainAppStateProperties.ACTIVE_CONVERSATION, self.__last_selected_conversation
+        )
 
     def __set_content_to_display(self, content_to_display: list[ConversationDTO | Action]) -> None:
         if len(content_to_display) == 1 and isinstance(content_to_display[0], ConversationDTO):

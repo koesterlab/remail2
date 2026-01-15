@@ -1,13 +1,14 @@
 import flet as ft
 
 from remail.client.state import MainAppState, MainAppStateProperties
-from remail.controllers.dtos.conversations import ThreadPreviewDTO
-from remail.models import Conversation
+from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 
 
 class ThreadPreview(ft.Container):
     # component representing a single contact entry
-    def __init__(self, state: MainAppState, thread: ThreadPreviewDTO, conversation: Conversation):
+    def __init__(
+        self, state: MainAppState, thread: ThreadPreviewDTO, conversation: ConversationDTO
+    ):
         def on_click():
             state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation)
             state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
