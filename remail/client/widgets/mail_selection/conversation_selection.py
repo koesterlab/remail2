@@ -1,6 +1,5 @@
 import datetime
 from collections.abc import Callable
-from datetime import timedelta
 
 import flet as ft
 
@@ -44,7 +43,7 @@ class ConversationSelection(ft.Container):
                 else:
                     time = max([t.last_message_datetime for t in elem.threads])
                 category = "B" if elem.is_favorite else "A"
-            return category,time
+            return category, time
 
         content.sort(key=compute_order_value, reverse=True)
 

@@ -19,7 +19,7 @@ class EmailController:
 
     @classmethod
     def from_id(cls, account_id: int):
-        user:User = next(filter(lambda u: u.id == account_id, UserService.get_all_users()))
+        user: User = next(filter(lambda u: u.id == account_id, UserService.get_all_users()))
         [name, host] = user.email.split("@")
         return EmailController(username=name, password=user.password, host=host)
 

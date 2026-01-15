@@ -67,23 +67,25 @@ def create_new_message_dialog(state: MainAppState) -> ft.Container:
         on_change()
 
     def send_mail():
-        #retrieve data
+        # retrieve data
         thread = state.get(MainAppStateProperties.ACTIVE_THREAD)
         conversation = state.get(MainAppStateProperties.ACTIVE_CONVERSATION)
         if thread.title == "":
             return
         message = input_field.value
 
-        #send
+        # send
         controller = EmailController.from_id(state.get(MainAppStateProperties.ACTIVE_USER).id)
-        if conversation.id < 0: #creating new conversation
-            controller.send_email_new_conversation([c.id for c in conversation.contacts], thread.title, message, None)
+        if conversation.id < 0:  # creating new conversation
+            controller.send_email_new_conversation(
+                [c.id for c in conversation.contacts], thread.title, message, None
+            )
         elif thread.id < 0:
             controller.send_email_new_thread(thread.title, message, conversation.id, None)
         else:
             controller.send_email(thread.title, message, None, thread.id)
 
-        #clear
+        # clear
         state.set(MainAppStateProperties.DRAFT, "")
 
     state.register_observer(MainAppStateProperties.DRAFT, on_draft_change)

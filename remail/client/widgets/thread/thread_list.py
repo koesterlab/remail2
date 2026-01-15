@@ -14,7 +14,6 @@ from remail.client.widgets.thread.new_message_dialog import create_new_message_d
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.thread_controller import ThreadController
-from tests import fetch_thread
 
 ThreadDict = dict[str, Any]
 MessageDict = dict[str, Any]
@@ -45,10 +44,9 @@ class ThreadList(ft.Container):
             self.thread = ThreadController().get_thread(new_thread.thread_id)
         elif new_thread.thread_id < 0:  # new, unsaved thread
             self.thread = ThreadDTO(-1, new_thread.title, [], self.conversation.contacts)
-        elif self.thread is None:
-            return  # just for mypy
         self.active_user = self.state.get(MainAppStateProperties.ACTIVE_USER)
-
+        if self.thread is None:
+            return  # just for mypy
         # ---------- the information of top contact -------- #
         header = ft.Container(
             ft.Row(

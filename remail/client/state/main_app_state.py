@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Union
 
 from remail.client.state.observable_state import ObservableState
-from remail.controllers import ConversationsController, EmailController
+from remail.controllers import ConversationsController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.thread_controller import ThreadController
 
