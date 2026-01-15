@@ -49,12 +49,12 @@ def load_settings_into_state(app_state: AppState, page: ft.Page) -> None:
     for user in saved_users:
         try:
             # Get full user credentials from database
-            user_credentials = UserService.get_user(user.email)
-            if not user_credentials:
+            user_orm = UserService.get_user_by_email(user.email)
+            if not user_orm:
                 continue
 
             email_controller = EmailController(
-                username=user.email, password=user_credentials.password, host=user_credentials.host
+                username=user.email, password=user_orm.password, host=user_orm.host
             )
 
             sync_service = EmailSyncService(
