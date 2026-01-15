@@ -54,7 +54,9 @@ def load_settings_into_state(app_state: AppState, page: ft.Page) -> None:
                 continue
 
             email_controller = EmailController(
-                username=user.email, password=user_orm.password, host=user_orm.host
+                username=user.email,
+                password=user_orm.password,
+                host="",  # TODO: add host field to the users model
             )
 
             sync_service = EmailSyncService(
