@@ -36,7 +36,7 @@ def create_new_message_dialog(state: MainAppState) -> ft.Container:
             collapse()
 
     input_field = ft.TextField(
-        hint_text="Type a reply...",
+        hint_text="Send a message...",
         border_radius=20,
         min_lines=1,
         max_lines=1,

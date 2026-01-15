@@ -10,7 +10,7 @@ class MainAppStateProperties(Enum):
     DRAFT = "draft"
     ACTIVE_USER = "active_user"
     ACTIVE_THREAD = "active_thread"
-    ACTIVE_CONVERSATION = "active_thread"
+    ACTIVE_CONVERSATION = "active_conversation"
     ACTIVE_CHATBOT = "active_chatbot"
     SEARCH_TERM = "search_term"
     DISPLAYED_MAILS = "displayed_mails"
@@ -41,3 +41,13 @@ class MainAppState(ObservableState[MainAppStateProperties]):
 
     def get_selected(self):
         return self.__selected
+
+    def clear_selected(self):
+        selected = self.__selected
+        self.__selected = []
+        for s in selected:
+            if s in self.__selection_listeners:
+                self.__selection_listeners[s](False)
+
+        if None in self.__selection_listeners:
+            self.__selection_listeners[None](False)

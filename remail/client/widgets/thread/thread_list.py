@@ -34,20 +34,13 @@ class ThreadList(ft.Container):
     # ------------------------------------------------------------------ #
     def _rebuild(self) -> None:
         new_thread: ThreadPreviewDTO = self.state.get(MainAppStateProperties.ACTIVE_THREAD)
+        self.conversation: ConversationDTO = self.state.get(MainAppStateProperties.ACTIVE_CONVERSATION)
         if not new_thread:  # dashboard -> just do nothing
             self.thread = None
             return
-
-        self.conversation:ConversationDTO = next(  # could be better
-            filter(
-                lambda conv: new_thread in conv.threads,
-                self.state.get(MainAppStateProperties.DISPLAYED_MAILS),
-            )
-        )
-
         if (
             not self.thread and new_thread.thread_id > 0
-        ):  # or new_thread.thread_id != self.thread.id: #new thread #todo: threads ids geben
+        ):
             self.thread = fetch_thread(new_thread)
         elif new_thread.thread_id < 0: #new, unsaved thread
             self.thread = ThreadDTO(-1, new_thread.title, [], self.conversation.contacts)
@@ -61,14 +54,18 @@ class ThreadList(ft.Container):
                 controls=[
                     ft.Column(
                         controls=[
-                            ft.Text(
-                                self.thread.title,
-                                size=22,
-                                weight=ft.FontWeight.BOLD,
-                                color=ft.Colors.ON_SURFACE,
+                            ft.TextField(
+                                value=self.thread.title,
+                                hint_text="Enter a thread name",
+                                content_padding=ft.padding.all(0),
+                                collapsed=True,
+                                text_style= ft.TextStyle(size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.ON_SURFACE),
+                                focused_border_color = ft.Colors.TRANSPARENT,
+                                border_color = ft.Colors.TRANSPARENT,
                             ),
                             ft.Text(
-                                str(len(self.thread.messages)) + " messages",
+                                str(len(self.thread.messages)) + " messages" if len(self.conversation.contacts) == 1
+                                else self.conversation.get_member_string(),
                                 size=15,
                                 color=ft.Colors.ON_SURFACE_VARIANT,
                             ),

@@ -13,3 +13,6 @@ class ConversationDTO:
 
     def __hash__(self):
         return hash(tuple(self.contacts))
+
+    def get_member_string(self):
+        return ", ".join([c.first_name[0] + ". " + c.last_name for c in self.contacts])

@@ -1,9 +1,11 @@
+import datetime
 from typing import Union, Callable
 
 import flet as ft
 from flet.core.control_event import ControlEvent
 
 from remail.client.state.main_app_state import MainAppState, MainAppStateProperties
+from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 
 
 class SearchHeader(ft.Container):
@@ -57,7 +59,12 @@ class SearchHeader(ft.Container):
                 on_click=lambda _: callback())
 
         def create_group_from_selected():
-            pass #todo
+            contacts = [c for e in state.get_selected() for c in e.contacts if isinstance(e, ConversationDTO)]
+            thread = ThreadPreviewDTO(-1, "", 0, 0, "", datetime.datetime.now())
+            conversation = ConversationDTO(contacts, [thread], False, None)
+            state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation)
+            state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
+            state.clear_selected()
 
         # ----- Links unterhalb -----
         archiv_link = create_bottom_option("Archive", ft.Icons.ARCHIVE, lambda: None)
@@ -65,7 +72,7 @@ class SearchHeader(ft.Container):
 
         delete_button = create_bottom_option("Delete", ft.Icons.DELETE, lambda: None)
         archiv_button = create_bottom_option("Archive", ft.Icons.ARCHIVE, lambda: None)
-        group_button = create_bottom_option("Create Group", ft.Icons.GROUP, lambda: None)
+        group_button = create_bottom_option("Create Group", ft.Icons.GROUP, create_group_from_selected)
 
         bottom_row = ft.Row([], spacing=20, expand=True, height=20)
 

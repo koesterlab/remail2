@@ -9,9 +9,7 @@ class GroupPreview(ConversationPreview):
         primary = (
             group.customName
             if group.customName
-            else ", ".join(
-                contact.first_name[0] + ". " + contact.last_name for contact in group.contacts
-            )
+            else group.get_member_string()
         )
         secondary = str(len(group.contacts)) + " Members"
 
