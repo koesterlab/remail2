@@ -57,18 +57,19 @@ class ConversationPreview(ft.Container):
                 fav_button.visible = conversation.is_favorite or e.data == "true"
                 fav_button.update()
 
-        profile_picture = ft.Container(create_profile_picture(conversation))
+        profile_picture = ft.Container()
         profile_picture.on_click = lambda e: state.toggle_selection(conversation)
 
         def on_toggle_selection(is_selected:bool):
             if is_selected:
                 profile_picture.content = CircleAvatar(ft.Icon(ft.Icons.CHECK, color=ft.Colors.BLUE_900), bgcolor=ft.Colors.BLUE_200)
-                profile_picture.update()
             else:
                 profile_picture.content = create_profile_picture(conversation)
+            if profile_picture.page:
                 profile_picture.update()
 
         state.listen_selection(conversation, on_toggle_selection)
+        on_toggle_selection(conversation in state.get_selected())
 
         super().__init__(
             on_hover=on_hover,
