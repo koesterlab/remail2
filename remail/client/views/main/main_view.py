@@ -16,6 +16,7 @@ def create_main_view(page: ft.Page, global_state: AppState):
     main_state.set(MainAppStateProperties.DISPLAYED_MAILS, create_test_data())  # todo
     main_state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
     main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
+    main_state.set(MainAppStateProperties.ACTIVE_CONVERSATION, None)
     main_state.set(MainAppStateProperties.SEARCH_TERM, "")
     selection_bar = SelectionBar(main_state)
 

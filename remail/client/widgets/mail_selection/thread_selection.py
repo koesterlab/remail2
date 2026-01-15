@@ -83,6 +83,7 @@ class ThreadSelection(ft.Container):
             thread = ThreadPreviewDTO(-1, self.add_thread_field.value, 0, 0, "", datetime.datetime.now())
             self.conversation.threads.append(thread) #only in the frontend, until message is sent
             self.__state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
+            self.__state.set(MainAppStateProperties.ACTIVE_CONVERSATION, self.conversation)
 
         self.add_thread_field = ft.TextField(
             on_submit=on_submit_new_thread,
@@ -90,6 +91,7 @@ class ThreadSelection(ft.Container):
             color=ft.Colors.ON_SURFACE_VARIANT,
             focused_color=ft.Colors.ON_SURFACE,
             focused_border_color=ft.Colors.TRANSPARENT,
+            border_color=ft.Colors.TRANSPARENT,
             bgcolor=ft.Colors.TRANSPARENT,
             dense=True,
             expand=True,
@@ -100,8 +102,6 @@ class ThreadSelection(ft.Container):
         )
 
         self.add_thread_btn = ft.Container(
-            #ft.Row([ft.Icon(ft.Icons.ADD, color=ft.Colors.ON_SURFACE_VARIANT), self.add_thread_field]),
-            #border=ft.border.only(top=ft.BorderSide(2, ft.Colors.ON_SURFACE)),
             self.add_thread_field,
             padding=ft.padding.only(top=5)
         )
