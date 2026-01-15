@@ -35,6 +35,9 @@ class UserService:
         Returns:
             UserDTO object
         """
+        if user.id is None:
+            raise ValueError("User must have an ID")
+
         return UserDTO(
             id=user.id,
             name=user.name,
