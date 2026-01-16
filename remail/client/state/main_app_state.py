@@ -28,6 +28,7 @@ class MainAppState(ObservableState[MainAppStateProperties]):
 
         self.conversations_controller = ConversationsController()
         self.thread_controller = ThreadController()
+        self.email_controller = None
 
     def toggle_selection(self, item: Union["ConversationDTO", "ThreadPreviewDTO"]) -> None:
         already_selected = item in self.__selected

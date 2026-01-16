@@ -97,9 +97,11 @@ class SearchHeader(ft.Container):
             else:
                 bottom_row.controls = [delete_button, archiv_button, group_button]
                 bottom_row.alignment = ft.MainAxisAlignment.SPACE_BETWEEN
-            bottom_row.update()
+            if bottom_row.page:
+                bottom_row.update()
 
         state.listen_selection(None, on_selection_change)
+        on_selection_change(None)
 
         # ----- Layout -----
         content = ft.Column(
