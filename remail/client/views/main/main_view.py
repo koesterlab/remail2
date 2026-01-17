@@ -1,3 +1,7 @@
+import asyncio
+import threading
+from collections import UserDict
+
 import flet as ft
 
 from remail.client.state import AppState
@@ -7,7 +11,10 @@ from remail.controllers import EmailController
 from remail.controllers.dtos.conversations import ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import MainView
+from remail.interfaces.email.services import EmailSyncService
 from remail.interfaces.email.services.user_service import UserService
+from remail.models import User
+from tests.controllers.test_conversations_controller import controller
 from ...scheduler import Scheduler
 
 from ...state.main_app_state import MainAppState, MainAppStateProperties
@@ -16,16 +23,7 @@ from ...widgets.thread.thread_list import ThreadList
 
 def create_main_view(page: ft.Page, global_state: AppState):
     main_state = MainAppState()
-    # users = UserService.get_all_users()
-    # if len(users) < 1:
-    #     if global_state.router is not None:
-    #         global_state.router.load_view(MainView.SETTINGS)
-    #     return ft.Container()
-    # main_state.set(MainAppStateProperties.ACTIVE_USER, users[0])
-    main_state.set(
-        MainAppStateProperties.DISPLAYED_MAILS,
-        list(main_state.conversations_controller.get_conversations(users[0].id)),
-    )  # todo
+    main_state.set(MainAppStateProperties.DISPLAYED_MAILS, [])
     main_state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
     main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
     main_state.set(MainAppStateProperties.ACTIVE_CONVERSATION, None)
@@ -94,29 +92,56 @@ def create_main_view(page: ft.Page, global_state: AppState):
             chatbot.height = 60
         container.update()
 
-    def on_emails_synced(response: dict):
-        pass
+    def on_emails_synced(acting_account: UserDTO, response: dict):
+        print(response)
+        if not response["synced_count"] or response["synced_count"] < 0:
+            return
+        if acting_account == main_state.get(MainAppStateProperties.ACTIVE_USER): #if active account: show new mails
+            main_state.set(MainAppStateProperties.DISPLAYED_MAILS, main_state.conversations_controller.get_conversations(main_state.get(MainAppStateProperties.ACTIVE_USER).id))
 
-    def on_email_sync_error(msg:str):
-        snack_bar = ft.SnackBar(ft.Text("Error while syncing mails: " + msg, color=ft.Colors.ON_ERROR), bgcolor=ft.Colors.ERROR, duration=5000)
+    def on_email_sync_error(acting_account: UserDTO, msg:str):
+        snack_bar = ft.SnackBar(ft.Text("[" + acting_account.email + "] Error while syncing mails: " + msg, color=ft.Colors.ON_ERROR), bgcolor=ft.Colors.ERROR, duration=50000)
         page.overlay.append(snack_bar)
         snack_bar.open = True
         page.update()
 
-    scheduler: Scheduler = Scheduler(
-        task = lambda:{},
-        sync_interval = 30,
-        on_complete = on_emails_synced,
-        on_error = on_email_sync_error)
+    #stop old schedulers
+    for k in list(global_state.email_schedulers.keys()):
+        global_state.remove_email_scheduler(k)
 
-    def on_user_change(user:UserDTO) -> None:
-        main_state.email_controller = EmailController.from_id(user.id)
-        scheduler.stop()
-        scheduler.task=
+    #start schedulers
+    def start_scheduler(account: UserDTO):
+        try:
+            print("a")
+            mail_controller = EmailController.from_id(account.id)
+            print("b")
+        except OSError as e:
+            on_email_sync_error(account, "Could not connect to Server")
+            return
+
+        main_state.email_controllers[account.email] = mail_controller
+        sync_service = EmailSyncService(
+            protocol=mail_controller.protocol,
+            email_parser=mail_controller.protocol.email_parser,
+            user_email=account.email,
+        )
+        scheduler = Scheduler(
+            task=sync_service.sync_emails,
+            sync_interval=20,  # Sync every 60 seconds
+            on_complete=lambda r: on_emails_synced(account, r),
+            on_error=lambda r: on_email_sync_error(account, r),
+        )
+        global_state.add_email_scheduler(account.email, scheduler)
         scheduler.start()
+
+    for account in UserService.get_all_users():
+        threading.Thread(target=start_scheduler, args=(account,)).start()
 
 
     main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
     main_state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
+
+    #test
+    main_state.set(MainAppStateProperties.ACTIVE_USER, UserService.get_all_users()[0])
 
     return container

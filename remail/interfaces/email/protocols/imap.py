@@ -112,7 +112,7 @@ class ImapProtocol(EmailProtocol):
         if not self.logged_in:
             raise ee.NotLoggedIn()
 
-        boxes = [folder] if folder else self.folder_service.get_user_folders()
+        boxes = [folder] if folder else self.folder_service.get_all_folders()
         criteria = FolderService.build_search_criteria(since, flags)
         out: list[Email] = []
 

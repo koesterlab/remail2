@@ -39,6 +39,19 @@ class FolderService:
             if not (set(flags) & excluded)
         ]
 
+    def get_all_folders(self) -> list[str]:
+        """
+        Get list of folders in the mail account.
+
+        Returns:
+            List of folder names
+        """
+
+        return [
+            name
+            for flags, _, name in self.imap_client.list_folders()
+        ]
+
     def get_trash_folder(self) -> str | None:
         """
         Find the trash folder.
@@ -67,8 +80,9 @@ class FolderService:
         """
 
         crit: list = []
-
-        if since:
+        lowest_since_date = datetime.now() #server might complain about too low since dates
+        lowest_since_date.replace(year=lowest_since_date.year - 1)
+        if since and since > lowest_since_date:
             crit += ["SINCE", since.date()]  # IMAP SINCE is date-based
 
         if flags:

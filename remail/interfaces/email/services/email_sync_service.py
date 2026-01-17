@@ -71,6 +71,8 @@ class EmailSyncService:
 
             # Fetch emails from IMAP
             try:
+                if not self.protocol.logged_in:
+                    self.protocol.login()
                 raw_emails = self.protocol.fetch_emails(since=fetch_since)
 
             except Exception as e:

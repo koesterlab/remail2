@@ -3,7 +3,7 @@ from enum import Enum
 from typing import Union
 
 from remail.client.state.observable_state import ObservableState
-from remail.controllers import ConversationsController
+from remail.controllers import ConversationsController, EmailController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.thread_controller import ThreadController
 
@@ -28,7 +28,7 @@ class MainAppState(ObservableState[MainAppStateProperties]):
 
         self.conversations_controller = ConversationsController()
         self.thread_controller = ThreadController()
-        self.email_controller = None
+        self.email_controllers:dict[str, EmailController] = dict()
 
     def toggle_selection(self, item: Union["ConversationDTO", "ThreadPreviewDTO"]) -> None:
         already_selected = item in self.__selected

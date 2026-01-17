@@ -84,7 +84,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
             if result["status"] == "success":
                 try:
                     UserService.add_user(
-                        email=email_input.value,
+                        email=email_input.value + "@" + host_input.value,
                         password=password_input.value,
                     )
 
