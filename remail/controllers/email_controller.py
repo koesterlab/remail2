@@ -6,12 +6,13 @@ from datetime import datetime
 from typing import Any
 
 from remail import errors as ee
+from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import ConversationType, RecipientKind
 from remail.interfaces.email.protocols.imap import ImapProtocol
 from remail.interfaces.email.services import ConversationService, ThreadService
 from remail.interfaces.email.services.contact_service import ContactService
 from remail.interfaces.email.services.user_service import UserService
-from remail.models import Contact, Email, EmailReception, User
+from remail.models import Contact, Email, EmailReception
 
 
 class EmailController:
@@ -19,7 +20,7 @@ class EmailController:
 
     @classmethod
     def from_id(cls, account_id: int):
-        user: User = next(filter(lambda u: u.id == account_id, UserService.get_all_users()))
+        user: UserDTO = next(filter(lambda u: u.id == account_id, UserService.get_all_users()))
         [name, host] = user.email.split("@")
         return EmailController(username=name, password=user.password, host=host)
 
