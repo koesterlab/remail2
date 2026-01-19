@@ -44,6 +44,19 @@ class ContactService:
 
             return list(contacts)
 
+    def get_contact_by_id(self, contact_id: int) -> Contact | None:
+        """
+        Fetch a contact by ID.
+
+        Args:
+            contact_id: Contact ID to fetch
+
+        Returns:
+            Contact model instance, or None if not found
+        """
+        with Session(self.engine) as session:
+            return session.get(Contact, contact_id)
+
     def create_contact(
         self,
         email: str,

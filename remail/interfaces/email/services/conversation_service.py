@@ -63,6 +63,46 @@ class ConversationService:
 
             return result
 
+    def get_conversation_by_id(
+        self, conversation_id: int, user_id: int | None = None
+    ) -> dict | None:
+        """
+        Fetch a single conversation with its contacts.
+
+        Args:
+            conversation_id: Conversation ID to fetch
+            user_id: Optional user ID to include favorite status
+
+        Returns:
+            Conversation dictionary with contacts and favorite status, or None if not found
+        """
+        with Session(self.engine) as session:
+            conversation = session.get(Conversation, conversation_id)
+
+            if not conversation or conversation.id is None:
+                return None
+
+            contacts = session.exec(
+                select(Contact)
+                .join(
+                    ConversationContact,
+                    Contact.id == ConversationContact.contact_id,  # type: ignore[arg-type]
+                )
+                .where(ConversationContact.conversation_id == conversation.id)
+            ).all()
+
+            is_favorite = False
+            if user_id is not None:
+                user_conversation = session.exec(
+                    select(UserConversation)
+                    .where(UserConversation.user_id == user_id)
+                    .where(UserConversation.conversation_id == conversation.id)
+                ).first()
+                if user_conversation:
+                    is_favorite = user_conversation.is_favorite
+
+            return self._build_conversation_dict(conversation, list(contacts), is_favorite)
+
     def create_conversation(
         self, user_id: int, contact_ids: list[int], custom_name: str | None = None
     ) -> dict | None:
