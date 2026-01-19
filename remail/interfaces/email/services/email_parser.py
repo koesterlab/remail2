@@ -1,5 +1,6 @@
 from datetime import datetime
 from email.header import decode_header, make_header
+from email.message import Message
 from email.utils import getaddresses, parsedate_to_datetime
 from typing import cast
 
@@ -78,7 +79,7 @@ class EmailParser:
 
         return [(n, a) for n, a in getaddresses([header_val]) if a] if header_val else []
 
-    def parse_email_message(self, em) -> Email:
+    def parse_email_message(self, em: Message[str, str]) -> Email:
         """
         Parse an email message into an Email object.
 

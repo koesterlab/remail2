@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from imapclient import IMAPClient
 
@@ -80,10 +80,9 @@ class FolderService:
         """
 
         crit: list = []
-        lowest_since_date = datetime.now() #server might complain about too low since dates
-        lowest_since_date.replace(year=lowest_since_date.year - 1)
-        if since and since > lowest_since_date:
-            crit += ["SINCE", since.date()]  # IMAP SINCE is date-based
+        lowest_since_date = datetime.now() - timedelta(days=365) #server might complain about too low since dates
+        if since:
+            crit += ["SINCE", max(since, lowest_since_date).strftime("%d-%b-%Y")]  # IMAP SINCE is date-based
 
         if flags:
             crit += flags
