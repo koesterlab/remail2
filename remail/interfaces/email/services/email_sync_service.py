@@ -124,6 +124,32 @@ class EmailSyncService:
                 "skipped_count": skipped_count,
             }
 
+
+    def wait_for_mail_changes(self):
+        #clone protokoll, because connection will always be blocked
+        protokol = ImapProtocol(self.protocol.user_username, self.protocol.user_password, self.protocol.host)
+        protokol.login()
+        protokol.IMAP.select_folder("INBOX") #todo: find out name of inbox folder
+        protokol.IMAP.idle()
+        last_refresh = datetime.now()
+        while True:
+            for update in protokol.IMAP.idle_check():
+                #proceed updates
+                if update[0] == b"EXISTS":
+                    self.sync_emails(since=last_refresh)
+                elif update[0] == b"EXPUNGE":
+                    #todo: delete mail, reload view
+                    pass
+                elif update[0] == b"FLAGS":
+                    msgid = update[1][0]
+                    flags = update[1][1]
+                    #todo: change flags, reload view
+                    pass
+                yield None
+
+
+
+
     def _get_user(self, session: Session) -> User:
         """
         Get existing user by email.
