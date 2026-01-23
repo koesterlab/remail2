@@ -1,10 +1,7 @@
 """Tests for ConversationService."""
 
-from unittest.mock import patch
-
 import pytest
-from sqlalchemy.pool import StaticPool
-from sqlmodel import Session, SQLModel, create_engine, select
+from sqlmodel import Session, select
 
 from remail.enums.contact_type import ContactType
 from remail.enums.conversation_type import ConversationType
@@ -21,6 +18,7 @@ def _create_user(session: Session, email: str) -> User:
     user = User(
         name=email.split("@")[0],
         email=email,
+        host="imap.example.com",
         password="hash123",
         protocol=Protocol.IMAP,
     )
@@ -53,26 +51,11 @@ class TestConversationService:
     """Test suite for ConversationService."""
 
     @pytest.fixture
-    def test_engine(self):
-        """Create a test database engine."""
-        engine = create_engine(
-            "sqlite://",
-            connect_args={"check_same_thread": False},
-            poolclass=StaticPool,
-            echo=False,
-        )
-        SQLModel.metadata.create_all(engine)
-        yield engine
-        SQLModel.metadata.drop_all(engine)
-
-    @pytest.fixture
     def service(self, test_engine):
         """Create a ConversationService instance with test engine."""
-        with patch("remail.interfaces.email.services.conversation_service.engine", test_engine):
-            svc = ConversationService()
-            # Also patch engine on the instance for when methods are called
-            svc.engine = test_engine
-            return svc
+        svc = ConversationService()
+        svc.engine = test_engine
+        return svc
 
     @pytest.fixture
     def user_with_conversations(self, test_engine):
