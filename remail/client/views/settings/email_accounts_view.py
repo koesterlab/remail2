@@ -76,9 +76,7 @@ def create_email_accounts_view(page: ft.Page, app_state: AppState) -> ft.Contain
         try:
             show_snackbar("Connecting...", ft.Colors.BLUE_400)
 
-            controller = EmailController(
-                username=email_input.value, password=password_input.value, host=host_input.value
-            )
+
             result = controller.login()
 
             if result["status"] == "success":

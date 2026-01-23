@@ -37,7 +37,7 @@ class TestSelectionBar(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
         self.conv2 = ConversationDTO(
             contacts=[contact],
@@ -52,7 +52,7 @@ class TestSelectionBar(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
         self.state.set(MainAppStateProperties.DISPLAYED_MAILS, [self.conv1, self.conv2])
         self.bar = SelectionBar(self.state)

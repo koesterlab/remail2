@@ -66,7 +66,7 @@ class TestConversationSelection(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
         self.selection.set_content([conv])
         self.assertEqual(len(self.selection.content.controls), 1)
@@ -105,7 +105,7 @@ class TestConversationSelection(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
         self.selection.set_content([conv])
         self.assertEqual(len(self.selection.content.controls), 1)

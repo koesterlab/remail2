@@ -48,7 +48,6 @@ class AppState:
     current_views: dict[MainView, SettingsSubView | None] = field(default_factory=dict)
     router: ViewRouter | None = None
     connected_emails: list[UserDTO] = field(default_factory=list)
-    email_schedulers: dict[str, Any] = field(default_factory=dict)
 
     def add_email_scheduler(self, email: str, scheduler: "Scheduler") -> None:
         """Add an email scheduler for an account.

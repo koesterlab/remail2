@@ -31,7 +31,7 @@ class TestGroupPreview(unittest.TestCase):
         conv = ConversationDTO(
             contacts=[self.contact1, self.contact2],
             is_favorite=False,
-            customName=None,
+            custom_name=None,
             threads=[
                 ThreadPreviewDTO(
                     title="Thread 1",
@@ -70,7 +70,7 @@ class TestGroupPreview(unittest.TestCase):
         conv = ConversationDTO(
             contacts=[self.contact1, self.contact2],
             is_favorite=True,
-            customName="My Group",
+            custom_name="My Group",
             threads=[
                 ThreadPreviewDTO(
                     title="Thread 1",

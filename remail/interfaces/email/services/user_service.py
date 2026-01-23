@@ -6,12 +6,14 @@ from remail.controllers.dtos.user_dto import UserDTO
 from remail.database.db import engine
 from remail.enums import Protocol, UserAccountCategory
 from remail.models.user import User
+from remail.utils.session_management import session
 
 
 class UserService:
     """Service for managing user accounts in the database."""
 
     @staticmethod
+    @session
     def count_unread(user: User) -> int:
         """
         Count unread conversations for a user.
@@ -42,7 +44,6 @@ class UserService:
             id=user.id,
             name=user.name,
             email=user.email,
-            password=user.password,
             category=UserAccountCategory.PRIVATE,  # User model doesn't have category
             protocol=user.protocol,
             unread_conversations=UserService.count_unread(user),

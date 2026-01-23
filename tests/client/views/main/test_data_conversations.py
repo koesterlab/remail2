@@ -89,7 +89,7 @@ def create_test_data():  # chatgpt
                 contacts=contacts,
                 threads=threads,
                 is_favorite=random.choice([True, False]),
-                customName=None if num_contacts == 1 else f"Gruppe {i + 1}",
+                custom_name=None if num_contacts == 1 else f"Gruppe {i + 1}",
             )
         )
     return conversations
@@ -119,7 +119,7 @@ def create_search_result_test_data(term: str):
                 )
             ],
             is_favorite=random.choice([True, False]),
-            customName=None,
+            custom_name=None,
         ),
         ConversationDTO(
             contacts=[
@@ -143,6 +143,6 @@ def create_search_result_test_data(term: str):
                 )
             ],
             is_favorite=random.choice([True, False]),
-            customName=None,
+            custom_name=None,
         ),
     ]

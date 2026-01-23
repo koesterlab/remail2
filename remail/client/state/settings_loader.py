@@ -45,34 +45,3 @@ def load_settings_into_state(app_state: AppState, page: ft.Page) -> None:
 
     saved_users = UserService.get_all_users()
     app_state.connected_emails = saved_users
-
-    for user in saved_users:
-        try:
-            # Get full user credentials from database
-            user_orm = UserService.get_user_by_email(user.email)
-            if not user_orm:
-                continue
-
-            [name, host] = user.email.split("@")
-            email_controller = EmailController(
-                username=name,
-                password=user_orm.password,
-                host=host,  # TODO: add host field to the users model
-            )
-
-            sync_service = EmailSyncService(
-                protocol=email_controller.protocol,
-                email_parser=email_controller.protocol.email_parser,
-                user_email=user.email,
-            )
-
-            scheduler = Scheduler(
-                task=sync_service.sync_emails,
-                sync_interval=60,
-            )
-
-            app_state.add_email_scheduler(user.email, scheduler)
-            scheduler.start()
-
-        except Exception as e:
-            print(f"Failed to load email account {user.email}: {e}")

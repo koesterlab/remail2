@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import email as py_email
 from collections import OrderedDict
-from datetime import datetime
+from datetime import datetime, timedelta
+from mailbox import Message
+from typing import List
 
 from imapclient import IMAPClient
 from imapclient.exceptions import LoginError
@@ -15,7 +17,6 @@ from remail.interfaces.email.services import (
     EmailParser,
     FolderService,
     MessageBuilder,
-    RecipientService,
     SmtpSender,
     TagService,
 )
@@ -23,6 +24,10 @@ from remail.models import Email
 
 UTC = timezone("UTC")
 
+class ImapException(Exception):
+    def __str__(self):
+        return f"Unable to connect to IMAP server: {self.args[0]}"
+    pass
 
 class ImapProtocol(EmailProtocol):
     """IMAP/SMTP email protocol implementation."""
@@ -41,12 +46,14 @@ class ImapProtocol(EmailProtocol):
             password: User password
             host: IMAP/SMTP server hostname
         """
-
         self.user_username: str | None = username
         self.user_password: str | None = password
         self.host = host
         self._logged_in = False
-        self.IMAP = IMAPClient(self.host, use_uid=True, ssl=True)
+        try:
+            self.IMAP = IMAPClient(self.host, use_uid=True, ssl=True)
+        except Exception as e:
+            raise ImapException(e)
 
         # Initialize services
         self.folder_service = FolderService(self.IMAP)
@@ -98,7 +105,7 @@ class ImapProtocol(EmailProtocol):
         folder: str | None = None,
         since: datetime | None = None,
         flags: list[str] | None = None,
-    ) -> list[Email]:
+    ) -> list[tuple[int, Message]]:
         """
         Fetch emails only (no flag mutations).
 
@@ -111,10 +118,11 @@ class ImapProtocol(EmailProtocol):
 
         if not self.logged_in:
             raise ee.NotLoggedIn()
-
+        if since:
+            since = max(since, datetime.now() - timedelta(days=365))
         boxes = [folder] if folder else self.folder_service.get_all_folders()
         criteria = FolderService.build_search_criteria(since, flags)
-        out: list[Email] = []
+        out: list[tuple[int, Message]] = []
 
         for box in boxes:
             with self.folder_service.selected_folder(box):
@@ -125,34 +133,38 @@ class ImapProtocol(EmailProtocol):
 
                 fetched = self.IMAP.fetch(uids, ["RFC822"])
 
-            for _, data in fetched.items():
-                em = py_email.message_from_bytes(data[b"RFC822"])
+            for uid, data in fetched.items():
+                try:
 
-                if since:
-                    dt = self.email_parser.safe_msg_datetime(em)
+                    em = py_email.message_from_bytes(data[b"RFC822"])
 
-                    if not isinstance(dt, datetime):
-                        dt = getattr(em, "dt", None)
+                    if since:
+                        dt = self.email_parser.extract_msg_date(em)
 
-                    cutoff = since.astimezone(UTC)
+                        if not isinstance(dt, datetime):
+                            dt = getattr(em, "dt", None)
 
-                    if isinstance(dt, datetime):
-                        try:
-                            if dt.tzinfo is None:
-                                from pytz import UTC as _UTC
+                        cutoff = since.astimezone(UTC)
 
-                                dt_utc = _UTC.localize(dt)
+                        if isinstance(dt, datetime):
+                            try:
+                                if dt.tzinfo is None:
+                                    from pytz import UTC as _UTC
 
-                            else:
-                                dt_utc = dt.astimezone(UTC)
+                                    dt_utc = _UTC.localize(dt)
 
-                            if dt_utc < cutoff:
+                                else:
+                                    dt_utc = dt.astimezone(UTC)
+
+                                if dt_utc < cutoff:
+                                    continue
+
+                            except Exception:  # nosec B112
                                 continue
 
-                        except Exception:  # nosec B112
-                            continue
-
-                out.append(self.email_parser.parse_email_message(em))
+                    out.append((uid, em))#self.email_parser.parse_email_message(em, uid))
+                except Exception as e:
+                    print(e)
 
         return out
 
@@ -160,24 +172,22 @@ class ImapProtocol(EmailProtocol):
         """Send email via SMTP."""
 
         self.smtp_sender.validate_send_state(self.logged_in)
-
-        to, cc, bcc = RecipientService.split_recipients(mail)
-
-        if not (to or cc or bcc):
-            raise ValueError("No recipients provided.")
+        thread = mail.thread
+        conversation = thread.conversation
+        recipients = conversation.contacts
 
         msg = MessageBuilder.build_message(
             subject=mail.subject or "",
             body=mail.body or "",
             from_addr=self.user_username or "",
-            to=to,
-            cc=cc,
+            to=map(lambda c: f"{c.first_name} {c.last_name} <{c.email_address}>", recipients),
+            cc=[]
         )
 
         if mail.attachments:
             MessageBuilder.attach_files(msg, (a.filename for a in mail.attachments))
 
-        ordered_recipients = [*to, *cc, *bcc]
+        ordered_recipients: List[str] = map(lambda c: c.email_address, recipients)
         envelope = list(OrderedDict.fromkeys(ordered_recipients).keys())
 
         self.smtp_sender.send(msg, envelope)

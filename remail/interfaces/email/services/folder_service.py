@@ -80,9 +80,8 @@ class FolderService:
         """
 
         crit: list = []
-        lowest_since_date = datetime.now() - timedelta(days=365) #server might complain about too low since dates
         if since:
-            crit += ["SINCE", max(since, lowest_since_date).strftime("%d-%b-%Y")]  # IMAP SINCE is date-based
+            crit += ["SINCE", since.strftime("%d-%b-%Y")]  # IMAP SINCE is date-based
 
         if flags:
             crit += flags

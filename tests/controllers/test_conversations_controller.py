@@ -79,7 +79,7 @@ class TestConversationsController:
 
         assert len(result) == 1
         assert isinstance(result[0], ConversationDTO)
-        assert result[0].customName == "Test Conversation"
+        assert result[0].custom_name == "Test Conversation"
         assert result[0].is_favorite is True
         assert result[0].threads == []
 
@@ -114,9 +114,9 @@ class TestConversationsController:
 
         assert len(result) == 3
         assert all(isinstance(conv, ConversationDTO) for conv in result)
-        assert result[0].customName == "First"
-        assert result[1].customName == "Second"
-        assert result[2].customName == "Third"
+        assert result[0].custom_name == "First"
+        assert result[1].custom_name == "Second"
+        assert result[2].custom_name == "Third"
 
     def test_get_conversations_converts_contacts_to_dtos(
         self, controller, mock_conversation_service
@@ -192,8 +192,8 @@ class TestConversationsController:
         result = controller.get_conversations(user_id=1)
 
         # Note: New DTO doesn't have a 'type' field, only customName
-        assert result[0].customName == "Regular"
-        assert result[1].customName == "Group"
+        assert result[0].custom_name == "Regular"
+        assert result[1].custom_name == "Group"
 
     def test_get_conversations_preserves_favorite_status(
         self, controller, mock_conversation_service

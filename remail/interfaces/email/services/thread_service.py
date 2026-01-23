@@ -2,13 +2,17 @@
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
+from email.header import decode_header
 from typing import TYPE_CHECKING
 
+from sqlalchemy import func
 from sqlmodel import Session, col, desc, select
 
 from remail.database import engine
-from remail.models import Attachment, Contact, Email, EmailReception, Thread
+from remail.models import Attachment, Contact, Email, EmailReception, Thread, Conversation
+from remail.utils.session_management import session
 
 if TYPE_CHECKING:
     from remail.controllers.dtos.threads import (
@@ -93,45 +97,102 @@ class ThreadService:
 
             return self._build_thread_preview_dict(thread, list(messages))
 
-    def organize_emails_into_threads(self, emails: list[Email], conversation_id: int) -> None:
+    @session
+    def organize_email_into_thread(self, email: Email, subject:str, conversation: Conversation, session:Session=None) -> None:
         """
         Organize emails into threads within a conversation.
 
         Creates or updates a single thread for the conversation with all emails in chronological order.
 
         Args:
-            emails: List of Email objects to organize
-            conversation_id: Conversation ID to create thread for
+            email: Email to organize
+            conversation: Conversation to search/create thread in
         """
-
-        if not emails:
-            return
-
-        with Session(self.engine) as session:
+        conversation_id = conversation.id
+        try:
+            subject = self.normalize_subject(subject)
             existing_thread = session.exec(
-                select(Thread).where(Thread.conversation_id == conversation_id)
+                select(Thread).where(
+                    (Thread.conversation_id == conversation_id) & (func.lower(Thread.title) == subject.lower())
+                )
             ).first()
 
             if existing_thread:
-                for email in emails:
-                    if email.thread_id != existing_thread.id and existing_thread.id is not None:
-                        email.thread_id = existing_thread.id
+                if email.thread_id != existing_thread.id and existing_thread.id is not None:
+                    email.thread_id = existing_thread.id
+                    if not email.read:
+                        existing_thread.unread_count = existing_thread.unread_count + 1
+                    existing_thread.last_message_time = max(existing_thread.last_message_time, email.sent_at)
             else:
-                thread_title = emails[0].subject
-
                 new_thread = Thread(
-                    title=thread_title,
-                    conversation_id=conversation_id,
+                    title=subject,
+                    conversation_id=conversation.id,
+                    unread_count= 0 if email.read else 1,
+                    last_message_time = email.sent_at,
                 )
 
                 session.add(new_thread)
-                session.flush()  # Get the thread ID
 
                 if new_thread.id is not None:
-                    for email in emails:
-                        email.thread_id = new_thread.id
+                    email.thread_id = new_thread.id
+        except Exception as e:
+            print(e)
 
-            session.commit()
+    #from here with chatgpt
+    _PREFIXES = [
+        "re", "fw", "fwd", "fwd:", "fwd", "rv", "tr", "antwort",
+        # deutsch
+        "aw",
+        # französisch
+        "re", "tr", "r\u00E9",  # Ré:
+        # spanisch / portugiesisch
+        "res", "rsp", "resposta", "res:", "res",
+        # italienisch
+        "ris", "rif",
+        # niederländisch
+        "antw", "doorsturen", "dv",
+        # skandinavisch (se/fi/no/dk)
+        "sv", "vs", "vedr", "ang", "svar", "vid", "bs", "vb",
+        # osteuropa
+        "odp", "odp:", "odp", "odpoveď", "odpověď", "ats", "atb",
+        # russisch
+        "\u043e\u0442\u0432",  # Отв:
+        "\u043f\u0435\u0440\u0435\u0441\u044b\u043b\u043a\u0430",  # Пересылка:
+        # türkisch
+        "yn:", "cevap", "ilet", "ynt",
+        # arabisch (vereinfachte latinisierte Varianten)
+        "rad", "twd",
+        # chinesisch + japanisch (vereinfacht, translit.)
+        "huifu", "转发", "回复", "答复", "転送", "返信"
+    ]
+
+    _PREFIX_REGEX = re.compile(
+        r"^(?:"
+        + r"|".join([re.escape(p) for p in _PREFIXES])
+        + r")\s*:\s*",
+        re.IGNORECASE
+    )
+
+    @classmethod
+    def normalize_subject(cls, subject: str) -> str:
+        """
+        Remove all Reply/Forward-Prefixes (RE:, AW:, Fwd:, ...),
+        """
+        if not subject:
+            return subject
+        subject = ''.join(
+            part.decode(enc or "utf-8") if isinstance(part, bytes) else part
+            for part, enc in decode_header(subject)
+        )
+        cleaned = subject.strip()
+        while True:
+            new = cls._PREFIX_REGEX.sub("", cleaned).lstrip()
+            if new == cleaned:
+                break
+            cleaned = new
+
+        return cleaned.strip() or "Unparsable Subject"
+    #chatgpt end
 
     def _build_thread_dto(
         self, session: Session, thread: Thread, messages: list[Email]

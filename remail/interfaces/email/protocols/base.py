@@ -31,12 +31,12 @@ class EmailProtocol(ABC):
         pass
 
     @abstractmethod
-    def fetch_emails(self, date: datetime | None = None) -> list["Email"]:
+    def fetch_emails(self, since: datetime | None = None) -> list["Email"]:
         """
         Retrieve emails from server.
 
         Args:
-            date: If provided, only return emails after this datetime.
+            since: If provided, only return emails after this datetime.
                   Must include timezone information.
 
         Returns:

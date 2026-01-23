@@ -32,7 +32,7 @@ class TestThreadList(unittest.TestCase):
             unread_count=1,
         )
         self.conversation = ConversationDTO(
-            contacts=[self.user], threads=[self.thread_preview], is_favorite=False, customName=None
+            contacts=[self.user], threads=[self.thread_preview], is_favorite=False, custom_name=None
         )
         self.state = MainAppState()
 

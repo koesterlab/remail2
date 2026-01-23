@@ -42,7 +42,7 @@ class TestContactPreview(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
         self.conv_unknown = ConversationDTO(
             contacts=[self.contact_unknown],
@@ -57,7 +57,7 @@ class TestContactPreview(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            customName=None,
+            custom_name=None,
         )
 
     def test_unknown_contact_preview_creation(self):

@@ -52,7 +52,7 @@ def test_safe_msg_datetime_happy_path(parser: EmailParser):
     msg = EmailMessage()
     dt = datetime(2025, 1, 2, 15, 30, tzinfo=UTC)
     msg["Date"] = format_datetime(dt)
-    got = parser.safe_msg_datetime(msg)
+    got = parser.extract_msg_date(msg)
 
     assert got is not None
     assert got.tzinfo is not None
@@ -64,8 +64,8 @@ def test_safe_msg_datetime_missing_or_bad(parser: EmailParser):
     msg2 = EmailMessage()
     msg2["Date"] = "not-a-real-date"
 
-    assert parser.safe_msg_datetime(msg) is None
-    assert parser.safe_msg_datetime(msg2) is None
+    assert parser.extract_msg_date(msg) is None
+    assert parser.extract_msg_date(msg2) is None
 
 
 def test_decode_header_plain_and_encoded(parser: EmailParser):

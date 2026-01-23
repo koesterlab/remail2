@@ -1,8 +1,8 @@
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from remail.database import engine
-from remail.models import Contact
-
+from remail.models import Contact, User
+from remail.utils.session_management import session
 
 class ContactService:
     def __init__(self):
@@ -27,15 +27,24 @@ class ContactService:
 
             return contact
 
-    def create_contact(self, name: str, email: str) -> Contact:
+    @session
+    def create_contact(self, name: str, email: str, session:Session|None) -> Contact:
         new_contact = Contact(
             name=name,
             email_address=email,
         )
 
-        with Session(self.engine) as session:
-            session.add(new_contact)
-            session.commit()
-            session.refresh(new_contact)
-
+        session.add(new_contact)
         return new_contact
+
+    @session
+    def get_or_create_contact(self, email: str, name:str = None, session:Session = None) -> Contact:
+        contact = session.exec( select(Contact).where(Contact.email_address == email)).first()
+        if contact:
+            return contact
+        contact = Contact(name=name, email_address=email, is_known=False)
+        session.add(contact)
+        return contact
+
+    def get_user_contact(self, user: User) -> Contact:
+        return self.get_or_create_contact(user.email, user.name)

@@ -10,8 +10,8 @@ from remail.controllers.dtos.conversations import (
     ThreadPreviewDTO,
 )
 from remail.enums import ContactType
-from remail.interfaces.email.services.conversation_service import ConversationService
-from remail.interfaces.email.services.thread_service import ThreadService
+from remail.interfaces.email.services import ConversationService
+from remail.interfaces.email.services import ThreadService
 
 if TYPE_CHECKING:
     pass
@@ -76,7 +76,7 @@ class ConversationsController:
                     if thread_data
                     else [],
                     is_favorite=conv["is_favorite"],
-                    customName=conv["custom_name"],
+                    custom_name=conv["custom_name"],
                 )
             )
 
