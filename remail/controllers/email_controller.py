@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import Any
 
 from remail import errors as ee
+from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import RecipientKind
 from remail.interfaces.email.protocols.imap import ImapProtocol
 from remail.interfaces.email.services import ConversationService, ThreadService
