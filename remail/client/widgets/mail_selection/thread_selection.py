@@ -111,7 +111,7 @@ class ThreadSelection(ft.Container):
         self.conversation = content
         if len(content.contacts) == 1:
             contact = content.contacts[0]
-            self.__primary_text.value = contact.first_name if contact.first_name else "" + " " + contact.last_name if contact.last_name else ""
+            self.__primary_text.value = content.get_member_string(extended=True)
             self.__secondary_text.value = contact.email
         else:
             self.__primary_text.value = (

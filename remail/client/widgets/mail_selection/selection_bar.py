@@ -130,7 +130,10 @@ class SelectionBar(ft.Container):
                 self.main_content.offset = ft.Offset(0, 0)
                 self.topic_selection_active = False
         if self.page:
-            self.update()
+            try:
+                self.update()
+            except Exception as e:
+                print(e)
     def __show_conversation_selection(self, content: list[ConversationDTO | Action]) -> None:
         self.conversation_selection.set_content(content)
 

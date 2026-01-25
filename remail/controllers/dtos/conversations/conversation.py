@@ -15,10 +15,10 @@ class ConversationDTO:
     def __hash__(self):
         return hash(tuple(self.contacts))
 
-    def get_member_string(self):
+    def get_member_string(self, extended:bool = False) -> str:
         def to_string(contact: ContactDTO) -> str:
             if contact.first_name and contact.last_name and len(contact.first_name) > 0:
-                return contact.first_name[0] + ". " + contact.last_name
+                return (contact.first_name if extended else (contact.first_name[0] + ".")) +" " + contact.last_name
             elif contact.first_name:
                 return contact.first_name
             elif contact.last_name:

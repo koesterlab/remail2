@@ -70,7 +70,7 @@ class SearchHeader(ft.Container):
                 if isinstance(e, ConversationDTO)
             ]
             thread = ThreadPreviewDTO(-1, "", 0, 0, "", datetime.datetime.now())
-            conversation = ConversationDTO(contacts, [thread], False, None)
+            conversation = ConversationDTO(-1, contacts, [thread], False, None)
             state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation)
             state.set(MainAppStateProperties.ACTIVE_THREAD, thread)
             state.clear_selected()
