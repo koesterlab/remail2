@@ -119,7 +119,7 @@ class ThreadService:
 
             if existing_thread:
                 if email.thread_id != existing_thread.id and existing_thread.id is not None:
-                    email.thread_id = existing_thread.id
+                    email.thread = existing_thread
                     if not email.read:
                         existing_thread.unread_count = existing_thread.unread_count + 1
                     existing_thread.last_message_time = max(existing_thread.last_message_time, email.sent_at)
@@ -132,9 +132,7 @@ class ThreadService:
                 )
 
                 session.add(new_thread)
-
-                if new_thread.id is not None:
-                    email.thread_id = new_thread.id
+                email.thread = new_thread
         except Exception as e:
             print(e)
 

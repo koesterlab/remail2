@@ -115,8 +115,7 @@ class ConversationService:
         Returns:
             Created Conversation object
         """
-        print("Aktueller Typ: " + str(conversation_type))
-        conversation = Conversation()
+
         new_conversation = Conversation(
             type=conversation_type if conversation_type else ConversationType.GROUP, custom_name=custom_name, contacts=contacts, users=[user]
         )

@@ -104,6 +104,7 @@ class SelectionBar(ft.Container):
 
 
     def __on_conversation_or_action_selected(self, selected: ConversationDTO | Action) -> None:
+        print(selected)
         if isinstance(selected, ConversationDTO):
             self.selected_conversation = selected
             self._re_render()
