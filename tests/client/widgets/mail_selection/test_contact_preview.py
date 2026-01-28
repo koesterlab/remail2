@@ -42,7 +42,7 @@ class TestContactPreview(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            custom_name=None,
+            customName=None,
         )
         self.conv_unknown = ConversationDTO(
             contacts=[self.contact_unknown],
@@ -57,12 +57,8 @@ class TestContactPreview(unittest.TestCase):
                     thread_id=1,
                 )
             ],
-            custom_name=None,
+            customName=None,
         )
 
     def test_unknown_contact_preview_creation(self):
         ContactPreview(MainAppState(), self.conv_unknown)
-
-
-if __name__ == "__main__":
-    unittest.main()

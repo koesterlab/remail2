@@ -30,7 +30,8 @@ def load_conversation_fixtures(
     for _ in range(num_users):
         user = User(
             name=fake.user_name(),
-            email=fake.email(),
+            username=fake.user_name(),
+            host=f"imap.{fake.domain_name()}",
             password=fake.password(),
             protocol=Protocol.IMAP,
         )
@@ -43,9 +44,6 @@ def load_conversation_fixtures(
     contacts = []
     contact_types = [
         ContactType.PRIVATE,
-        ContactType.BUSINESS,
-        ContactType.COMPANY,
-        ContactType.NEWSLETTER,
     ]
     print(f"Creating {num_contacts} contacts...")
     for i in range(num_contacts):

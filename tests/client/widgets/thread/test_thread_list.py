@@ -32,7 +32,7 @@ class TestThreadList(unittest.TestCase):
             unread_count=1,
         )
         self.conversation = ConversationDTO(
-            contacts=[self.user], threads=[self.thread_preview], is_favorite=False, custom_name=None
+            contacts=[self.user], threads=[self.thread_preview], is_favorite=False, customName=None
         )
         self.state = MainAppState()
 
@@ -41,7 +41,3 @@ class TestThreadList(unittest.TestCase):
         widget = ThreadList(self.state)
         self.assertIsInstance(widget, ft.Container)
         self.assertTrue(widget.expand)
-
-
-if __name__ == "__main__":
-    unittest.main()

@@ -38,6 +38,7 @@ class ThreadService:
         Returns:
             ThreadDTO with thread data including messages, or None if not found
         """
+
         with Session(self.engine) as session:
             thread = session.get(Thread, thread_id)
 
@@ -61,6 +62,7 @@ class ThreadService:
         Returns:
             Created Thread object
         """
+
         new_thread = Thread(title=title, conversation_id=conversation_id)
 
         with Session(self.engine) as session:
@@ -80,6 +82,7 @@ class ThreadService:
         Returns:
             Thread dictionary with preview information, or None if no thread exists
         """
+
         with Session(self.engine) as session:
             thread = session.exec(
                 select(Thread).where(Thread.conversation_id == conversation_id)
@@ -206,6 +209,7 @@ class ThreadService:
         Returns:
             ThreadDTO with thread data and messages
         """
+
         from remail.controllers.dtos.threads import ThreadDTO
 
         if thread.id is None:

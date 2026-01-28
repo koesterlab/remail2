@@ -1,4 +1,4 @@
-"""Email interface package - Protocol implementations for email operations."""
+from importlib import import_module
 
 from remail.errors import (
     EmailError,
@@ -9,21 +9,12 @@ from remail.errors import (
     UnknownError,
     email_error_handler,
 )
-from remail.interfaces.email.protocols.base import EmailProtocol
-from remail.interfaces.email.protocols.imap import ImapProtocol
-from remail.interfaces.email.services.attachment_service import save_attachment
-from remail.interfaces.email.services.email_factory_service import (
-    EmailFactory,
-)
-from remail.interfaces.email.services.permission_service import PermissionService
 
 __all__ = [
     "EmailProtocol",
     "email_error_handler",
     "ImapProtocol",
-    "EmailFactory",
     "save_attachment",
-    "PermissionService",
     "EmailError",
     "InvalidLoginData",
     "NotLoggedIn",
@@ -31,3 +22,20 @@ __all__ = [
     "RecipientsFail",
     "UnknownError",
 ]
+
+_LAZY_IMPORTS = {
+    "EmailProtocol": "remail.interfaces.email.protocols.base",
+    "ImapProtocol": "remail.interfaces.email.protocols.imap",
+    "save_attachment": "remail.interfaces.email.services.attachment_service",
+}
+
+
+def __getattr__(name: str):
+    if name in _LAZY_IMPORTS:
+        module = import_module(_LAZY_IMPORTS[name])
+        return getattr(module, name)
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
+
+def __dir__():
+    return sorted(list(globals().keys()) + list(_LAZY_IMPORTS.keys()))

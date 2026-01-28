@@ -59,7 +59,7 @@ class TestLoadSettingsIntoState:
             font_size=FontSize.MEDIUM.value,
             font_family=FontFamily.ARIAL.value,
             language=Language.ENGLISH.value,
-            timezone=Timezone.EUROPE_LONDON.value,
+            timezone=Timezone.EUROPE_BERLIN.value,
             desktop_notifications=True,
             email_notifications=True,
             quiet_hours=False,
@@ -87,7 +87,7 @@ class TestLoadSettingsIntoState:
             font_size=FontSize.MEDIUM.value,
             font_family=FontFamily.ARIAL.value,
             language=Language.ENGLISH.value,
-            timezone=Timezone.EUROPE_LONDON.value,
+            timezone=Timezone.EUROPE_BERLIN.value,
             desktop_notifications=True,
             email_notifications=True,
             quiet_hours=False,
@@ -115,7 +115,7 @@ class TestLoadSettingsIntoState:
             font_size=FontSize.MEDIUM.value,
             font_family=FontFamily.ARIAL.value,
             language=Language.ENGLISH.value,
-            timezone=Timezone.EUROPE_LONDON.value,
+            timezone=Timezone.EUROPE_BERLIN.value,
             desktop_notifications=True,
             email_notifications=True,
             quiet_hours=False,
@@ -216,7 +216,7 @@ class TestLoadSettingsIntoState:
             font_size=FontSize.MEDIUM.value,
             font_family=FontFamily.ARIAL.value,
             language=Language.ENGLISH.value,
-            timezone=Timezone.EUROPE_LONDON.value,
+            timezone=Timezone.EUROPE_BERLIN.value,
             desktop_notifications=False,
             email_notifications=False,
             quiet_hours=True,
@@ -234,3 +234,49 @@ class TestLoadSettingsIntoState:
             assert app_state.desktop_notifications is False
             assert app_state.email_notifications is False
             assert app_state.quiet_hours is True
+
+    def test_uses_persisted_host_for_email_accounts(self):
+        """Test that persisted host is used when loading email accounts."""
+        mock_page = Mock(spec=ft.Page)
+        app_state = AppState()
+
+        mock_user_dto = Mock()
+        mock_user_dto.username = "user@example.com"
+        mock_user_dto.id = 1
+
+        mock_user_orm = Mock()
+        mock_user_orm.host = "imap.example.com"
+
+        with patch(
+            "remail.client.state.settings_loader.SettingsController"
+        ) as mock_settings_controller:
+            mock_settings_controller.return_value.initialize_settings.return_value = None
+
+            with patch("remail.client.state.settings_loader.UserService") as mock_user_service:
+                with patch(
+                    "remail.client.state.settings_loader.EmailController"
+                ) as mock_controller:
+                    with patch("remail.client.state.settings_loader.EmailSyncService"):
+                        with patch(
+                            "remail.client.state.settings_loader.Scheduler"
+                        ) as mock_scheduler:
+                            mock_user_service.get_all_users.return_value = [mock_user_dto]
+                            mock_user_service.get_user_by_username.return_value = mock_user_orm
+                            mock_user_service.get_user_password.return_value = "secret"
+
+                            controller_instance = Mock()
+                            protocol = Mock()
+                            protocol.email_parser = Mock()
+                            controller_instance.protocol = protocol
+                            mock_controller.return_value = controller_instance
+
+                            scheduler_instance = Mock()
+                            mock_scheduler.return_value = scheduler_instance
+
+                            load_settings_into_state(app_state, mock_page)
+
+                            mock_controller.assert_called_once_with(
+                                username="user@example.com",
+                                password="secret",
+                                host="imap.example.com",
+                            )
