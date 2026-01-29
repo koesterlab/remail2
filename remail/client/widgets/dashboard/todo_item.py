@@ -7,16 +7,16 @@ from typing import Any
 
 import flet as ft
 
-from remail.client.state import MainAppStateProperties, MainAppState
+from remail.client.state import MainAppState
 from remail.client.widgets.dashboard.croppable_email_adress import create_croppable_email_address
-from remail.controllers.dtos.threads import MessageDTO, ThreadDTO
+from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 
 TodoDict = dict[str, Any]
 
 
 class TodoItem(ft.Container):
-    def __init__(self, state: MainAppState, thread: ThreadDTO, account:UserDTO) -> None:
+    def __init__(self, state: MainAppState, thread: ThreadDTO, account: UserDTO) -> None:
         todo = thread.messages[0]
         top_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -39,17 +39,20 @@ class TodoItem(ft.Container):
                         weight=ft.FontWeight.W_500,
                         color=ft.Colors.WHITE,
                     ),
-                )
+                ),
             ],
         )
 
         meta_row = ft.Text(
-            value=(todo.sender.first_name.strip() + " " + todo.sender.last_name.strip()
-                  if todo.sender.first_name or todo.sender.last_name else todo.sender.email) + ": "
-                  + re.sub(r"\s+", " ", todo.content.body).strip(),
+            value=(
+                todo.sender.first_name.strip() + " " + todo.sender.last_name.strip()
+                if todo.sender.first_name or todo.sender.last_name
+                else todo.sender.email
+            )
+            + ": "
+            + re.sub(r"\s+", " ", todo.content.body).strip(),
             max_lines=2,
             overflow=ft.TextOverflow.ELLIPSIS,
-
         )
 
         quick_reply = ft.Container(
@@ -76,10 +79,13 @@ class TodoItem(ft.Container):
             ),
         )
 
-        bottom_row = ft.Row([
-            quick_reply,
-            create_croppable_email_address(account.email, 10, ft.Colors.ON_SURFACE_VARIANT)
-        ], vertical_alignment=ft.CrossAxisAlignment.CENTER)
+        bottom_row = ft.Row(
+            [
+                quick_reply,
+                create_croppable_email_address(account.email, 10, ft.Colors.ON_SURFACE_VARIANT),
+            ],
+            vertical_alignment=ft.CrossAxisAlignment.CENTER,
+        )
 
         content_column = ft.Column(
             spacing=6,
@@ -119,5 +125,3 @@ class TodoItem(ft.Container):
         if days == 1:
             return "yesterday"
         return f"{days}d"
-
-

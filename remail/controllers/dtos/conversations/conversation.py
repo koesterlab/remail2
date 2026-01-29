@@ -3,6 +3,7 @@ from dataclasses import dataclass
 
 from remail.models import User
 from remail.utils.session_management import session
+
 from .contact import ContactDTO
 from .thread_preview import ThreadPreviewDTO
 
@@ -37,7 +38,7 @@ class ConversationDTO:
 
     @staticmethod
     @session
-    def from_model(conversation, own_mail:User) -> "ConversationDTO":
+    def from_model(conversation, own_mail: User) -> "ConversationDTO":
         threads = []
         for thread in conversation.threads:
             unread_count = 0

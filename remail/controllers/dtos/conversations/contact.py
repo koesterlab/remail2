@@ -22,12 +22,12 @@ class ContactDTO(SenderDTO):
         return hash(self.id)
 
     @classmethod
-    def from_model(cls, contact:Contact):
+    def from_model(cls, contact: Contact):
         return ContactDTO(
-            id = contact.id,
-            first_name=contact.first_name,
-            last_name=contact.last_name,
+            id=contact.id or -1,
+            first_name=contact.first_name or "",
+            last_name=contact.last_name or contact.name or "",
             email=contact.email_address,
             is_known=contact.is_known,
-            type=contact.contact_type
+            type=contact.contact_type,
         )

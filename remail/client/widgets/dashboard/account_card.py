@@ -13,21 +13,30 @@ AccountDict = dict[str, Any]
 
 class AccountCard(ft.Container):
     def __init__(self, account: UserDTO) -> None:
-        icon_container = ft.Stack([
-            ft.CircleAvatar(ft.Icon(ft.Icons.MAIL, size=18), width=35, height=35),
-            ft.Container(
-                ft.Row([
-                    ft.Text(str(account.unread_conversations), color=ft.Colors.WHITE, size=11),
-                ], expand=True, alignment=ft.MainAxisAlignment.CENTER, vertical_alignment=ft.CrossAxisAlignment.CENTER),
-                offset=ft.Offset(1.32,.001),
-                bgcolor=ft.Colors.DEEP_ORANGE_900,
-                border_radius=30,
-                padding=ft.padding.all(0),
-                width=15,
-                height=15,
-                visible=account.unread_conversations > 0,
-            ),
-        ])
+        icon_container = ft.Stack(
+            [
+                ft.CircleAvatar(ft.Icon(ft.Icons.MAIL, size=18), width=35, height=35),
+                ft.Container(
+                    ft.Row(
+                        [
+                            ft.Text(
+                                str(account.unread_conversations), color=ft.Colors.WHITE, size=11
+                            ),
+                        ],
+                        expand=True,
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                    ),
+                    offset=ft.Offset(1.32, 0.001),
+                    bgcolor=ft.Colors.DEEP_ORANGE_900,
+                    border_radius=30,
+                    padding=ft.padding.all(0),
+                    width=15,
+                    height=15,
+                    visible=account.unread_conversations > 0,
+                ),
+            ]
+        )
 
         text_column = ft.Column(
             spacing=4,

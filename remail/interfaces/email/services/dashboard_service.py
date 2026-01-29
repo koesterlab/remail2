@@ -6,14 +6,14 @@ from datetime import datetime
 
 from sqlmodel import Session, col, select
 
-from remail.controllers.dtos.threads import ThreadDTO
+from remail.controllers.dtos.conversations import ThreadPreviewDTO
 from remail.database.db import engine
 from remail.models.contact import Contact
 from remail.models.conversation import Conversation
 from remail.models.email import Email
 from remail.models.thread import Thread
 from remail.models.user_conversation import UserConversation
-from remail.controllers.dtos.conversations import ThreadPreviewDTO
+
 
 class DashboardService:
     """

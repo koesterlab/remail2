@@ -1,4 +1,4 @@
-from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ConversationDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.interfaces.email.services.thread_service import ThreadService
@@ -27,5 +27,7 @@ class ThreadController:
 
         return result
 
-    def get_most_urgent_threads(self, count:int=5) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
-        return self.service.get_most_important_threads(count=count)
+    def get_most_urgent_threads(
+        self, count: int = 5
+    ) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
+        return self.service.get_most_important_threads(count=count)  # type:ignore

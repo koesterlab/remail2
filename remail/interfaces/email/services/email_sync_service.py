@@ -5,11 +5,10 @@ from __future__ import annotations
 import traceback
 from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
-from typing import TYPE_CHECKING, cast
+from typing import TYPE_CHECKING
 
 from sqlmodel import Session, col, select
 
-import remail
 from remail.database import engine
 from remail.interfaces.email import EmailProtocol, ImapProtocol
 from remail.models import (

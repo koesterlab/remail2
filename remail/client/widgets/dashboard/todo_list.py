@@ -5,14 +5,14 @@ from typing import Any
 
 import flet as ft
 
-from remail.client.state import MainAppState, MainAppStateProperties
+from remail.client.state import MainAppState
 from remail.client.widgets.dashboard.todo_item import TodoItem
 
 TodoDict = dict[str, Any]
 
 
 class TodoList(ft.Container):
-    def __init__(self, state:MainAppState) -> None:
+    def __init__(self, state: MainAppState) -> None:
         self.todos = state.thread_controller.get_most_urgent_threads(5)
         header_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,

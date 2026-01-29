@@ -62,8 +62,8 @@ def _display_name_from_account(account: AccountDict | None) -> str:
 
 class DashboardPage(ft.Column):
     def __init__(
-            self,
-            state: MainAppState,
+        self,
+        state: MainAppState,
     ) -> None:
         super().__init__(expand=True, spacing=20)
         self.state = state
@@ -88,40 +88,48 @@ class DashboardPage(ft.Column):
             border_radius=24,
             options=[
                 ft.DropdownOption(
-                    content=AccountCard(acc),
-                    key=acc.id,
-                    text=f"{acc.name} <{acc.email}>"
+                    content=AccountCard(acc), key=acc.id, text=f"{acc.name} <{acc.email}>"
                 )
                 for acc in [c.get_user() for c in self.accounts]
             ],
-            on_change=lambda user_id: self.state.set(MainAppStateProperties.ACTIVE_USER,
-                                                     [a for a in self.accounts if a.user_id == user_id][0])
+            on_change=lambda user_id: self.state.set(
+                MainAppStateProperties.ACTIVE_USER,
+                [a for a in self.accounts if a.user_id == user_id][0],
+            ),
         )
 
-        header = ft.Container(ft.Row([
-            ft.Text(
-                f"{greeting}, {first_name}!",
-                size=26,
-                weight=ft.FontWeight.BOLD,
-                color=ft.Colors.ON_SURFACE,
-            ),
-            ft.Column([
-                self.dropdown,
-                ft.IconButton(
-                    icon_color=ft.Colors.ON_SURFACE_VARIANT,
-                    icon=ft.Icons.SETTINGS,
-                    on_click=lambda _: self.state.navigate_to_settings(SettingsSubView.APPEARANCE),
-                ),
-            ], horizontal_alignment=ft.CrossAxisAlignment.END),
-        ],
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-            expand=True,
-            vertical_alignment=ft.CrossAxisAlignment.END,
-        ))
+        header = ft.Container(
+            ft.Row(
+                [
+                    ft.Text(
+                        f"{greeting}, {first_name}!",
+                        size=26,
+                        weight=ft.FontWeight.BOLD,
+                        color=ft.Colors.ON_SURFACE,
+                    ),
+                    ft.Column(
+                        [
+                            self.dropdown,
+                            ft.IconButton(
+                                icon_color=ft.Colors.ON_SURFACE_VARIANT,
+                                icon=ft.Icons.SETTINGS,
+                                on_click=lambda _: self.state.navigate_to_settings(
+                                    SettingsSubView.APPEARANCE
+                                ),
+                            ),
+                        ],
+                        horizontal_alignment=ft.CrossAxisAlignment.END,
+                    ),
+                ],
+                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                expand=True,
+                vertical_alignment=ft.CrossAxisAlignment.END,
+            )
+        )
 
         sub_header = ft.Text(
             """
-This should be the summary of the emails since the last login. It could for example be a hint for very important message from the supervisor, a summery of multiple client complains, a relationship between multiple mails (maybe even links to the threads) or a warning for a failed email sending. 
+This should be the summary of the emails since the last login. It could for example be a hint for very important message from the supervisor, a summery of multiple client complains, a relationship between multiple mails (maybe even links to the threads) or a warning for a failed email sending.
             """,
             size=16,
             color=ft.Colors.ON_SURFACE_VARIANT,

@@ -3,24 +3,19 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Iterable
 from datetime import datetime
-from email.header import decode_header
-from typing import TYPE_CHECKING, Iterable
 from email.header import decode_header
 from typing import TYPE_CHECKING
 
 from sqlalchemy import and_, func
 from sqlmodel import Session, col, desc, select
 
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
-from remail.controllers.dtos.threads import ThreadDTO
 from remail.database import engine
-from remail.interfaces.email.services.conversation_service import ConversationService
 from remail.interfaces.email.services.user_service import UserService
-from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
-from remail.utils.session_management import session
-from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO, ContactDTO
 from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
 
@@ -346,11 +341,8 @@ class ThreadService:
             total_count=total_count,
             unread_count=unread_count,
             last_message=latest_message.body if latest_message else "",
-            last_message_datetime=latest_message.sent_at
-            if latest_message
-            else datetime.min,
+            last_message_datetime=latest_message.sent_at if latest_message else datetime.min,
         )
-
 
     def _build_message_dto(self, session: Session, email: Email) -> MessageDTO:
         """
@@ -397,23 +389,30 @@ class ThreadService:
         )
 
     @session
-    def get_most_important_threads(self, session:Session, count:int = 5, ) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
+    def get_most_important_threads(
+        self,
+        session: Session,
+        count: int = 5,
+    ) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
         """
         Calculates the most urgent threads from the database for all accounts
         Currently by time, later by ai
 
         returns: (thread_id, ConversationDTO, UserDTO)
         """
-        #todo ai valuing of mails
+        # todo ai valuing of mails
         threads: Iterable[Thread] = session.exec(
             select(Thread)
             .order_by(
-                Thread.last_message_time.desc(),
+                Thread.last_message_time.desc(),  # type: ignore
             )
             .limit(count)
         )
-        return [(
-            ThreadDTO.from_model(t),
-            ConversationDTO.from_model(t.conversation, t.conversation.users[0]),
-            UserService.user_to_dto(t.conversation.users[0]))
-            for t in threads]
+        return [
+            (
+                ThreadDTO.from_model(t),
+                ConversationDTO.from_model(t.conversation, t.conversation.users[0]),
+                UserService.user_to_dto(t.conversation.users[0]),
+            )
+            for t in threads
+        ]

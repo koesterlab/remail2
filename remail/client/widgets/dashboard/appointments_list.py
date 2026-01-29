@@ -14,8 +14,8 @@ AppointmentDict = dict[str, Any]
 
 
 class AppointmentsList(ft.Container):
-    def __init__(self, state:MainAppState) -> None:
-        self.user:UserDTO = state.get(MainAppStateProperties.ACTIVE_USER)
+    def __init__(self, state: MainAppState) -> None:
+        self.user: UserDTO = state.get(MainAppStateProperties.ACTIVE_USER)
         self.appointments = DashboardService.get_recent_appointment_items_for_user(self.user.id)
 
         header_row = ft.Row(
@@ -42,7 +42,9 @@ class AppointmentsList(ft.Container):
 
         items_column = ft.Column(
             spacing=6,
-            controls=[AppointmentItem(thread, date, self.user) for thread, date in self.appointments],
+            controls=[
+                AppointmentItem(thread, date, self.user) for thread, date in self.appointments
+            ],
         )
 
         content_column = ft.Column(

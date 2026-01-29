@@ -34,6 +34,7 @@ def create_main_view(page: ft.Page, global_state: AppState):
             settings_view = global_state.router.load_view(MainView.SETTINGS)
             page.add(settings_view)
             page.update()
+
     main_state.navigate_to_settings = navigate_to_settings
 
     def on_thread_change(new: ThreadPreviewDTO | None) -> None:
@@ -111,8 +112,6 @@ def create_main_view(page: ft.Page, global_state: AppState):
     main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
     main_state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
 
-
-
     empty_accounts_view = ft.Container(
         ft.Column(
             [
@@ -133,14 +132,12 @@ def create_main_view(page: ft.Page, global_state: AppState):
         expand=True,
     )
 
-    dashboard = ft.Container(
-        content=DashboardPage(main_state),
-        padding=10
-    )
+    dashboard = ft.Container(content=DashboardPage(main_state), padding=10)
 
     right_view = ft.Container(
         DashboardPage(main_state) if main_state.account_controllers else empty_accounts_view,
-        col={"xs": 6, "md": 8, "lg": 9}, expand=True
+        col={"xs": 6, "md": 8, "lg": 9},
+        expand=True,
     )
 
     # Chatbot
