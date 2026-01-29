@@ -1,3 +1,5 @@
+from typing import cast
+
 from sqlmodel import Session, select
 
 from remail.database import engine
@@ -42,7 +44,7 @@ class ContactService:
         self,
         email: str,
         session: Session,
-        name: str = None,
+        name: str | None = None,
     ) -> Contact:
         contact = session.exec(select(Contact).where(Contact.email_address == email)).first()
         if contact:
@@ -52,4 +54,4 @@ class ContactService:
         return contact
 
     def get_user_contact(self, user: User) -> Contact:
-        return self.get_or_create_contact(user.email, name=user.name)
+        return cast(Contact, self.get_or_create_contact(user.email, name=user.name))

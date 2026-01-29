@@ -7,8 +7,8 @@ from datetime import datetime
 from email.header import decode_header
 from typing import TYPE_CHECKING
 
-from sqlalchemy import func
-from sqlmodel import Session, desc, select
+from sqlalchemy import and_, func
+from sqlmodel import Session, col, desc, select
 
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.database import engine
@@ -108,13 +108,17 @@ class ThreadService:
             email: Email to organize
             conversation: Conversation to search/create thread in
         """
+        if conversation.id is None:
+            return
         conversation_id = conversation.id
         try:
             subject = self.normalize_subject(subject)
             existing_thread = session.exec(
                 select(Thread).where(
-                    (Thread.conversation_id == conversation_id)
-                    & (func.lower(Thread.title) == subject.lower())
+                    and_(
+                        col(Thread.conversation_id) == conversation_id,
+                        func.lower(col(Thread.title)) == subject.lower(),
+                    )
                 )
             ).first()
 
@@ -123,9 +127,12 @@ class ThreadService:
                     email.thread = existing_thread
                     if not email.read:
                         existing_thread.unread_count = existing_thread.unread_count + 1
-                    existing_thread.last_message_time = max(
-                        existing_thread.last_message_time, email.sent_at
-                    )
+                    if existing_thread.last_message_time is None:
+                        existing_thread.last_message_time = email.sent_at
+                    else:
+                        existing_thread.last_message_time = max(
+                            existing_thread.last_message_time, email.sent_at
+                        )
             else:
                 new_thread = Thread(
                     title=subject,

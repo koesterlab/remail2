@@ -67,7 +67,9 @@ class SelectionBar(ft.Container):
             self._re_render()
             return
 
-        mails: list[ConversationDTO | Action] = self.__search_request(new_search_term)  # type: ignore
+        mails: list[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO] | Action] = (
+            self.__search_request(new_search_term)
+        )
         if new_search_term != "" and re.match(
             r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]", new_search_term
         ):  # option "mail hinzufügen
@@ -144,5 +146,5 @@ class SelectionBar(ft.Container):
 
     def __search_request(
         self, searchterm: str
-    ) -> list[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO]]:
+    ) -> list[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO] | Action]:
         return []  # todo request controller

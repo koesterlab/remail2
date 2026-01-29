@@ -74,6 +74,7 @@ class TestConversationDTO:
         )
 
         conversation = ConversationDTO(
+            id=1,
             custom_name="Meeting",
             contacts=[contact1, contact2],
             threads=[],
@@ -106,6 +107,7 @@ class TestConversationDTO:
         )
 
         conversation = ConversationDTO(
+            id=1,
             custom_name="Test Subject",
             contacts=[contact],
             threads=[thread],
@@ -121,6 +123,7 @@ class TestConversationDTO:
     def test_conversation_dto_empty_contacts(self):
         """Test ConversationDTO with empty contacts list."""
         conversation = ConversationDTO(
+            id=1,
             custom_name="Empty Contacts",
             contacts=[],
             threads=[],
@@ -142,6 +145,7 @@ class TestConversationDTO:
         )
 
         conversation = ConversationDTO(
+            id=1,
             custom_name=None,
             contacts=[contact],
             threads=[],

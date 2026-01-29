@@ -23,6 +23,7 @@ def mock_thread_service():
     """Create a mock ThreadService."""
     with patch("remail.controllers.conversations_controller.ThreadService") as mock:
         service_instance = MagicMock()
+        service_instance.get_thread_for_conversation.return_value = None
         mock.return_value = service_instance
         yield service_instance
 
@@ -67,6 +68,7 @@ class TestConversationsController:
         # Mock service response matching actual service output
         service_data = [
             {
+                "id": 1,
                 "custom_name": "Test Conversation",
                 "type": "conversation",
                 "is_favorite": True,
@@ -99,18 +101,21 @@ class TestConversationsController:
         # Mock service response with multiple conversations
         service_data = [
             {
+                "id": 1,
                 "custom_name": "First",
                 "type": "conversation",
                 "is_favorite": True,
                 "contacts": [],
             },
             {
+                "id": 2,
                 "custom_name": "Second",
                 "type": "group",
                 "is_favorite": False,
                 "contacts": [],
             },
             {
+                "id": 3,
                 "custom_name": "Third",
                 "type": "conversation",
                 "is_favorite": True,
@@ -134,6 +139,7 @@ class TestConversationsController:
         # Mock service response with contacts
         service_data = [
             {
+                "id": 1,
                 "custom_name": "Test",
                 "type": "conversation",
                 "is_favorite": False,
@@ -184,12 +190,14 @@ class TestConversationsController:
         """Test that conversation types are correctly converted."""
         service_data = [
             {
+                "id": 1,
                 "custom_name": "Regular",
                 "type": "conversation",
                 "is_favorite": False,
                 "contacts": [],
             },
             {
+                "id": 2,
                 "custom_name": "Group",
                 "type": "group",
                 "is_favorite": False,
@@ -210,12 +218,14 @@ class TestConversationsController:
         """Test that favorite status is preserved."""
         service_data = [
             {
+                "id": 1,
                 "custom_name": "Favorite",
                 "type": "conversation",
                 "is_favorite": True,
                 "contacts": [],
             },
             {
+                "id": 2,
                 "custom_name": "Not Favorite",
                 "type": "conversation",
                 "is_favorite": False,
@@ -233,6 +243,7 @@ class TestConversationsController:
         """Test get_conversations with a group conversation containing multiple contacts."""
         service_data = [
             {
+                "id": 1,
                 "custom_name": "Team Discussion",
                 "type": "group",
                 "is_favorite": True,

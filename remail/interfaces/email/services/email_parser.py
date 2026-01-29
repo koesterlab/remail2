@@ -2,6 +2,7 @@ from datetime import datetime
 from email.header import decode_header, make_header
 from email.message import Message
 from email.utils import getaddresses, parsedate_to_datetime
+from typing import cast
 
 from pytz import timezone
 from sqlmodel import Session, select
@@ -99,9 +100,11 @@ class EmailParser:
         Returns:
             Contact objects from the database that was found or new created
         """
-        raw = raw_email.get(key, None)
-        addr = getaddresses([raw])
-        if not raw or not addr:
+        raw_value = raw_email.get(key)
+        if not raw_value:
+            return []
+        addr = getaddresses([raw_value])
+        if not addr:
             return []
 
         return [
@@ -191,12 +194,13 @@ class EmailParser:
                 custom_name=None,
                 user=user,
             )
-        return conversation
+        return cast(Conversation, conversation)
 
     def _get_body(self, em: Message) -> str:
         body_text: str = ""
         html_parts: list[str] = []
         attachments: list[str] = []
+        message_id = em.get("Message-Id") or "unknown"
 
         if em.is_multipart():
             for part in em.walk():
@@ -208,15 +212,15 @@ class EmailParser:
                     filename = str(make_header(decode_header(part.get_filename() or "")))
                     payload = part.get_payload(decode=True)
 
-                    if payload:
-                        attachments.append(save_attachment(filename, payload, em.get("Message-Id")))
+                    if isinstance(payload, bytes):
+                        attachments.append(save_attachment(filename, payload, message_id))
 
                     continue
 
                 if ctype == "text/html":
                     payload = part.get_payload(decode=True)
 
-                    if payload:
+                    if isinstance(payload, bytes):
                         html_parts.append(payload.decode(charset, errors="replace"))
 
                     continue
@@ -224,7 +228,7 @@ class EmailParser:
                 if ctype == "text/plain" and dispo != "attachment" and not body_text:
                     payload = part.get_payload(decode=True)
 
-                    if payload:
+                    if isinstance(payload, bytes):
                         body_text = payload.decode(charset, errors="replace")
 
                     continue
@@ -233,15 +237,17 @@ class EmailParser:
             payload = em.get_payload(decode=True)
 
             if em.get_content_type() == "text/html":
-                if payload:
+                if isinstance(payload, bytes):
                     html_parts.append(payload.decode(charset, errors="replace"))
-
             else:
-                body_text = payload.decode(charset, errors="replace") if payload else ""
+                if isinstance(payload, bytes):
+                    body_text = payload.decode(charset, errors="replace")
+                else:
+                    body_text = ""
         return body_text
 
     @staticmethod
-    def extract_msg_date(em) -> datetime | None:
+    def extract_msg_date(em: Message) -> datetime | None:
         """
         Safely extract datetime from email message.
 
@@ -273,7 +279,7 @@ class EmailParser:
         to_recipients: list[Contact],
         cc_recipients: list[Contact],
         bcc_recipients: list[Contact],
-        session: Session = None,
+        session: Session,
     ) -> None:
         """
         Create EmailReception records for all recipients.
@@ -288,7 +294,7 @@ class EmailParser:
         for category, contacts in (
             (RecipientKind.TO, to_recipients),
             (RecipientKind.CC, cc_recipients),
-            (bcc_recipients, bcc_recipients),
+            (RecipientKind.BCC, bcc_recipients),
         ):
             for contact in contacts:
                 reception = EmailReception(

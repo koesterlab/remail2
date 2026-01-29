@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from datetime import datetime
+from email.message import Message
+from typing import TYPE_CHECKING
 
-from remail.models import Email
+if TYPE_CHECKING:
+    from remail.models import Email
 
 
 class EmailProtocol(ABC):
@@ -27,7 +30,7 @@ class EmailProtocol(ABC):
         pass
 
     @abstractmethod
-    def fetch_emails(self, since: datetime | None = None) -> list["Email"]:
+    def fetch_emails(self, since: datetime | None = None) -> list[tuple[int, Message]]:
         """
         Retrieve emails from server.
 
@@ -36,7 +39,7 @@ class EmailProtocol(ABC):
                   Must include timezone information.
 
         Returns:
-            List of Email objects
+            List of (uid, email message) tuples
         """
 
         pass

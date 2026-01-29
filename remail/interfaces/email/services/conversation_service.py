@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from sqlalchemy import func
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from remail.database import engine
 from remail.enums import ConversationType
@@ -137,13 +137,18 @@ class ConversationService:
     def get_conversation_by_members(
         self, members: list[Contact], session: Session
     ) -> Conversation | None:
-        ids = [member.id for member in members]
+        ids = [member.id for member in members if member.id is not None]
+        if not ids:
+            return None
         stmt = (  # get the conversation with the most common members.
-            select(Conversation, func.count(ConversationContact.contact_id).label("hit_count"))
+            select(
+                Conversation,
+                func.count(col(ConversationContact.contact_id)).label("hit_count"),
+            )
             .join(ConversationContact)
-            .where(ConversationContact.contact_id.in_(ids))
-            .group_by(Conversation.id)
-            .order_by(func.count(ConversationContact.contact_id).desc())
+            .where(col(ConversationContact.contact_id).in_(ids))
+            .group_by(col(Conversation.id))
+            .order_by(func.count(col(ConversationContact.contact_id)).desc())
             .limit(1)
         )
 

@@ -86,6 +86,7 @@ def create_test_data():  # chatgpt
 
         conversations.append(
             ConversationDTO(
+                id=i + 1,
                 contacts=contacts,
                 threads=threads,
                 is_favorite=random.choice([True, False]),
@@ -98,6 +99,7 @@ def create_test_data():  # chatgpt
 def create_search_result_test_data(term: str):
     return [
         ConversationDTO(
+            id=1,
             contacts=[
                 ContactDTO(
                     id=1,
@@ -122,6 +124,7 @@ def create_search_result_test_data(term: str):
             custom_name=None,
         ),
         ConversationDTO(
+            id=2,
             contacts=[
                 ContactDTO(
                     id=1,

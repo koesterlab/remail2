@@ -5,13 +5,13 @@ from __future__ import annotations
 import traceback
 from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, cast
 
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 import remail
 from remail.database import engine
-from remail.interfaces.email import EmailProtocol
+from remail.interfaces.email import EmailProtocol, ImapProtocol
 from remail.models import (
     Conversation,
     Email,
@@ -65,6 +65,12 @@ class EmailSyncService:
         """
 
         user = session.get(User, self.user_id)
+        if not user:
+            return {
+                "status": "error",
+                "message": f"User with id {self.user_id} not found",
+                "synced_count": 0,
+            }
         # Determine the cutoff date for fetching
         fetch_since = since or user.last_refresh
 
@@ -123,8 +129,11 @@ class EmailSyncService:
 
     async def wait_for_mail_changes_async(self) -> AsyncGenerator[None, None]:
         # clone protocol because connection will always be blocked
+        protocol = cast(ImapProtocol, self.protocol)
+        if protocol.user_username is None or protocol.user_password is None:
+            raise ValueError("Missing protocol credentials")
         protokol = remail.interfaces.email.protocols.imap.ImapProtocol(
-            self.protocol.user_username, self.protocol.user_password, self.protocol.host
+            protocol.user_username, protocol.user_password, protocol.host
         )
         protokol.login()
         protokol.IMAP.select_folder("INBOX")  # TODO: find inbox folder
@@ -152,12 +161,14 @@ class EmailSyncService:
         self.changed_mails.append(uid)
         with Session(engine) as session:
             mail = session.exec(select(Email).where(Email.imap_uid == uid)).first()
+            if mail is None:
+                return
             modifier(mail)
             session.commit()
             session.refresh(mail)
 
     @session
-    def _email_exists(self, message_id: str, session: Session = None) -> bool:
+    def _email_exists(self, message_id: str, session: Session) -> bool:
         """
         Check if an email with the given message_id already exists.
 
@@ -180,10 +191,10 @@ class EmailSyncService:
             result = session.exec(
                 select(Conversation)
                 .distinct()
-                .join(Thread, onclause=(Conversation.conversation_id == Thread.conversation_id))
-                .join(Email, onclause=(Thread.id == Email.thread_id))
-                .where(Email.imap_uid.in_(self.changed_mails))
+                .join(Thread, onclause=(col(Conversation.id) == col(Thread.conversation_id)))
+                .join(Email, onclause=(col(Thread.id) == col(Email.thread_id)))
+                .where(col(Email.imap_uid).in_(self.changed_mails))
             ).all()
 
         self.changed_mails = []
-        return result
+        return list(result)

@@ -82,6 +82,8 @@ class AccountController:
         return self.user
 
     def get_email_controller(self) -> EmailController:
+        if self.protocol.user_username is None or self.protocol.user_password is None:
+            raise ValueError("Missing protocol credentials")
         return EmailController(
             self.protocol.user_username, self.protocol.user_password, self.protocol.host
         )
@@ -101,7 +103,7 @@ class AccountController:
                 total_count += 1
             threads.append(
                 ThreadPreviewDTO(
-                    thread_id=thread.id,
+                    thread_id=thread.id if thread.id is not None else -1,
                     title=thread.title,
                     total_count=total_count,
                     unread_count=unread_count,
@@ -113,14 +115,14 @@ class AccountController:
             )
 
         return ConversationDTO(
-            id=conversation.id,
+            id=conversation.id if conversation.id is not None else -1,
             is_favorite=conversation.is_favorite,
             custom_name=conversation.custom_name,
             contacts=[
                 ContactDTO(
-                    id=c.id,
-                    first_name=c.first_name,
-                    last_name=c.last_name if c.last_name else c.name,
+                    id=c.id if c.id is not None else -1,
+                    first_name=c.first_name or "",
+                    last_name=c.last_name or c.name,
                     email=c.email_address,
                     is_known=c.is_known,
                     type=c.contact_type,

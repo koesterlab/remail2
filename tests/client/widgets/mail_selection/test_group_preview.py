@@ -29,6 +29,7 @@ class TestGroupPreview(unittest.TestCase):
 
     def test_group_preview_without_custom_name(self):
         conv = ConversationDTO(
+            id=1,
             contacts=[self.contact1, self.contact2],
             is_favorite=False,
             custom_name=None,
@@ -56,8 +57,8 @@ class TestGroupPreview(unittest.TestCase):
         self.assertIn("M. Mustermann", col.controls[0].controls[0].value)
         self.assertIn("J. Doe", col.controls[0].controls[0].value)
 
-        # Secondary Text = "2 Members"
-        self.assertEqual(col.controls[1].controls[0].value, "2 Members")
+        # Secondary Text shows last message when threads exist
+        self.assertEqual(col.controls[1].controls[0].value, "Message 1")
 
         # Favoriten Toggle
         self.assertFalse(conv.is_favorite)
@@ -68,6 +69,7 @@ class TestGroupPreview(unittest.TestCase):
 
     def test_group_preview_with_custom_name(self):
         conv = ConversationDTO(
+            id=2,
             contacts=[self.contact1, self.contact2],
             is_favorite=True,
             custom_name="My Group",
@@ -85,4 +87,4 @@ class TestGroupPreview(unittest.TestCase):
         preview = GroupPreview(MainAppState(), conv)
         col = preview.content.controls[1]
         self.assertEqual(col.controls[0].controls[0].value, "My Group")
-        self.assertEqual(col.controls[1].controls[0].value, "2 Members")
+        self.assertEqual(col.controls[1].controls[0].value, "Message 1")

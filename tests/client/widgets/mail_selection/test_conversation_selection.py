@@ -54,6 +54,7 @@ class TestConversationSelection(unittest.TestCase):
             is_known=True,
         )
         conv = ConversationDTO(
+            id=1,
             contacts=[contact],
             is_favorite=False,
             threads=[
@@ -93,6 +94,7 @@ class TestConversationSelection(unittest.TestCase):
             is_known=True,
         )
         conv = ConversationDTO(
+            id=2,
             contacts=[contact1, contact2],
             is_favorite=False,
             threads=[

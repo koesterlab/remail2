@@ -112,7 +112,7 @@ class ImapProtocol(EmailProtocol):
             since = max(since, datetime.now() - timedelta(days=365))
         boxes = [folder] if folder else self.folder_service.get_all_folders()
         criteria = FolderService.build_search_criteria(since, flags)
-        out: list[tuple[str, Message[str, str]]] = []
+        out: list[tuple[int, Message[str, str]]] = []
 
         for box in boxes:
             with self.folder_service.selected_folder(box):
@@ -151,7 +151,7 @@ class ImapProtocol(EmailProtocol):
                             except Exception:  # nosec B112
                                 continue
 
-                    out.append((uid, em))  # self.email_parser.parse_email_message(em, uid))
+                    out.append((int(uid), em))  # self.email_parser.parse_email_message(em, uid))
                 except Exception as e:
                     print(e)
 
