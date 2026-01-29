@@ -130,8 +130,10 @@ class EmailSyncService:
     async def wait_for_mail_changes_async(self) -> AsyncGenerator[None, None]:
         # clone protocol because connection will always be blocked
         protokol = self.protocol.clone()
+        if not isinstance(protokol, ImapProtocol):
+            return
         protokol.login()
-        IMAP = getattr(protokol, "IMAP")
+        IMAP = protokol.IMAP
         if not IMAP:
             return
         IMAP.select_folder("INBOX")  # TODO: find inbox folder

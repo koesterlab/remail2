@@ -6,18 +6,23 @@ import re
 from datetime import datetime
 from email.header import decode_header
 from typing import TYPE_CHECKING, Iterable
+from email.header import decode_header
+from typing import TYPE_CHECKING
 
 from sqlalchemy import and_, func
 from sqlmodel import Session, col, desc, select
 
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
+from remail.controllers.dtos.threads import ThreadDTO
 from remail.database import engine
 from remail.interfaces.email.services.conversation_service import ConversationService
 from remail.interfaces.email.services.user_service import UserService
 from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
 from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
+from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
+from remail.utils.session_management import session
 
 if TYPE_CHECKING:
     from remail.controllers.dtos.threads import (
@@ -242,7 +247,6 @@ class ThreadService:
 
     # chatgpt end
 
-    @session
     def _build_thread_dto(
         self, session: Session, thread: Thread, messages: list[Email]
     ) -> ThreadDTO:
