@@ -2,15 +2,18 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from datetime import datetime
 
 from sqlmodel import Session, col, select
 
+from remail.controllers.dtos.threads import ThreadDTO
 from remail.database.db import engine
 from remail.models.contact import Contact
 from remail.models.conversation import Conversation
 from remail.models.email import Email
 from remail.models.thread import Thread
 from remail.models.user_conversation import UserConversation
+from tests.client.state.test_main_app_state import ThreadPreviewDTO
 
 
 class DashboardService:
@@ -58,11 +61,11 @@ class DashboardService:
     def get_recent_appointment_items_for_user(
         user_id: int,
         limit: int = 3,
-    ) -> Sequence[tuple[Email, Contact]]:
+    ) -> Sequence[tuple[ThreadPreviewDTO, datetime]]:
         """
         Temporary appointments source for UI testing:
         Just reuse the most recent emails.
 
         Later, when a real appointments/calendar table exists, replace this logic.
         """
-        return DashboardService.get_recent_emails_for_user(user_id=user_id, limit=limit)
+        return []

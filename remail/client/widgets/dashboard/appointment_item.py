@@ -1,19 +1,23 @@
 # remail/client/widgets/dashboard/appointment_item.py
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 import flet as ft
+
+from remail.controllers.dtos.conversations import ThreadPreviewDTO
+from remail.controllers.dtos.user_dto import UserDTO
 
 AppointmentDict = dict[str, Any]
 
 
 class AppointmentItem(ft.Container):
-    def __init__(self, app: AppointmentDict) -> None:
-        title: str = app.get("title", "")
-        location: str = app.get("location", "")
-        account_email: str = app.get("account_email", "")
-        time_label: str = app.get("time_label", "")
+    def __init__(self, thread: ThreadPreviewDTO, date: datetime, user: UserDTO) -> None:
+        title: str = thread.title
+        location: str = "Uni Duisburg-Essen (Placeholder for AI)"
+        account_email: str = user.email
+        time_label: str = date.strftime("%d. %B %Y")
 
         left_column = ft.Column(
             spacing=2,

@@ -24,11 +24,11 @@ def create_main_view(page: ft.Page, global_state: AppState):
     selection_bar = SelectionBar(main_state)
 
     # Settings button
-    def navigate_to_settings(e):
+    def navigate_to(main_view:MainView):
         """Navigate to settings page."""
         if global_state.router:
             page.clean()
-            settings_view = global_state.router.load_view(MainView.SETTINGS)
+            settings_view = global_state.router.load_view(main_view)
             page.add(settings_view)
             page.update()
 

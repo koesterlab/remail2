@@ -6,6 +6,7 @@ from typing import Any
 
 import flet as ft
 
+from remail.client.state import MainAppStateProperties, MainAppState
 from remail.controllers.dtos.threads import MessageDTO, ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 
@@ -13,7 +14,7 @@ TodoDict = dict[str, Any]
 
 
 class TodoItem(ft.Container):
-    def __init__(self, thread: ThreadDTO, account:UserDTO) -> None:
+    def __init__(self, state: MainAppState, thread: ThreadDTO, account:UserDTO) -> None:
         todo = thread.messages[0]
         top_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,

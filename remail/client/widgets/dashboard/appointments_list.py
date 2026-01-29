@@ -5,14 +5,18 @@ from typing import Any
 
 import flet as ft
 
+from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.dashboard.appointment_item import AppointmentItem
+from remail.controllers.dtos.user_dto import UserDTO
+from remail.interfaces.email.services.dashboard_service import DashboardService
 
 AppointmentDict = dict[str, Any]
 
 
 class AppointmentsList(ft.Container):
-    def __init__(self, appointments: list[AppointmentDict]) -> None:
-        self.appointments = appointments
+    def __init__(self, state:MainAppState) -> None:
+        self.user:UserDTO = state.get(MainAppStateProperties.ACTIVE_USER)
+        self.appointments = DashboardService.get_recent_appointment_items_for_user(self.user.id)
 
         header_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -38,7 +42,7 @@ class AppointmentsList(ft.Container):
 
         items_column = ft.Column(
             spacing=6,
-            controls=[AppointmentItem(a) for a in self.appointments],
+            controls=[AppointmentItem(thread, date, self.user) for thread, date in self.appointments],
         )
 
         content_column = ft.Column(

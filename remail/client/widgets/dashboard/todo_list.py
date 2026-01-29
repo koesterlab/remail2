@@ -5,15 +5,15 @@ from typing import Any
 
 import flet as ft
 
+from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.dashboard.todo_item import TodoItem
 
 TodoDict = dict[str, Any]
 
 
 class TodoList(ft.Container):
-    def __init__(self, todos: list[TodoDict]) -> None:
-        self.todos = todos
-
+    def __init__(self, state:MainAppState) -> None:
+        self.todos = state.thread_controller.get_most_urgent_threads(5)
         header_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             controls=[
@@ -38,7 +38,11 @@ class TodoList(ft.Container):
 
         items_column = ft.Column(
             spacing=6,
-            controls=[TodoItem(t) for t in self.todos],
+            controls=[TodoItem(
+                state,
+                next((t for t in conversation.threads if t.id == t_id)),
+                user
+            ) for t_id, conversation, user in self.todos],
         )
 
         content_column = ft.Column(

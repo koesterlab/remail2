@@ -3,11 +3,15 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Union
 
+from flet.core.page import Page
+
 from remail.client.state.observable_state import ObservableState
+from remail.client.views.view_router import ViewRouter
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.controllers.thread_controller import ThreadController
+from remail.enums import MainView, SettingsSubView
 
 
 class MainAppStateProperties(Enum):
@@ -31,6 +35,17 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         self.thread_controller = ThreadController()
         self.account_controllers: dict[str, AccountController] = {}
         self.sync_threads: list[Future] = []
+
+    def set_router(self, router: ViewRouter, page: Page):
+        self._router = router
+        self._page = page
+
+    def go_to_settings(self, view:SettingsSubView):
+        if self._page and self._router:
+            self._page.clean()
+            settings_view = self._router.load_view(MainView.SETTINGS)
+            self._page.add(settings_view)
+            self._page.update()
 
     def get_active_email_account(self) -> AccountController:
         mail: UserDTO | None = self.get(MainAppStateProperties.ACTIVE_USER)

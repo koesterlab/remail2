@@ -61,18 +61,17 @@ class DashboardPage(ft.Column):
     def __init__(
         self,
         state: MainAppState,
-        todos: list[TodoDict],
-        appointments: list[AppointmentDict],
     ) -> None:
         super().__init__(expand=True, spacing=20)
         self.state = state
-        self.todos = todos
-        self.appointments = appointments
+        self.accounts = list(self.state.account_controllers.values())
         self._rebuild()
 
     def _rebuild(self) -> None:
         # Compute greeting + name dynamically
         greeting = _time_greeting()
+        if not self.accounts:
+            return #todo show message
         first_name = _display_name_from_account(self.accounts[0] if self.accounts else None)
 
         header = ft.Text(
@@ -93,7 +92,7 @@ class DashboardPage(ft.Column):
             padding=ft.padding.all(16),
             border_radius=24,
             content=ft.Row(
-                controls=[AccountCard(acc) for acc in self.state.acc], #todo account controllers
+                controls=[AccountCard(acc.user) for acc in self.accounts],
                 spacing=20,
             ),
         )
@@ -109,11 +108,11 @@ class DashboardPage(ft.Column):
                 vertical_alignment=ft.CrossAxisAlignment.START,
                 controls=[
                     ft.Container(
-                        TodoList(self.todos),
+                        TodoList(self.state),
                         expand=1,
                     ),
                     ft.Container(
-                        AppointmentsList(self.appointments),
+                        AppointmentsList(self.state),
                         expand=1,
                     ),
                 ],

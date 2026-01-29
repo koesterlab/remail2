@@ -5,15 +5,19 @@ from __future__ import annotations
 import re
 from datetime import datetime
 from email.header import decode_header
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Iterable
 
 from sqlalchemy import and_, func
 from sqlmodel import Session, col, desc, select
 
 from remail.controllers.dtos.threads import ThreadDTO
+from remail.controllers.dtos.user_dto import UserDTO
 from remail.database import engine
+from remail.interfaces.email.services.conversation_service import ConversationService
+from remail.interfaces.email.services.user_service import UserService
 from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
+from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
 
 if TYPE_CHECKING:
     from remail.controllers.dtos.threads import (
@@ -238,6 +242,7 @@ class ThreadService:
 
     # chatgpt end
 
+    @session
     def _build_thread_dto(
         self, session: Session, thread: Thread, messages: list[Email]
     ) -> ThreadDTO:
@@ -349,6 +354,30 @@ class ThreadService:
             "last_message_datetime": (last_message.sent_at if last_message else datetime.now()),
         }
 
+    @session
+    def _build_thread_preview_dto(self, thread: Thread):
+        unread_count = 0
+        total_count = 0
+        latest_message = None
+        for message in thread.messages:
+            if not message.read:
+                unread_count += 1
+            if not latest_message or message.sent_at > latest_message.sent_at:
+                latest_message = message
+            total_count += 1
+
+        return ThreadPreviewDTO(
+            thread_id=thread.id if thread.id is not None else -1,
+            title=thread.title,
+            total_count=total_count,
+            unread_count=unread_count,
+            last_message=latest_message.body if latest_message else "",
+            last_message_datetime=latest_message.sent_at
+            if latest_message
+            else datetime.min,
+        )
+
+
     def _build_message_dto(self, session: Session, email: Email) -> MessageDTO:
         """
         Build a message DTO for thread view.
@@ -392,3 +421,23 @@ class ThreadService:
             ),
             sent_at=email.sent_at,
         )
+
+    @session
+    def get_most_important_threads(self, session:Session, count:int = 5, ) -> list[tuple[int, ConversationDTO, UserDTO]]:
+        """
+        Calculates the most urgent threads from the database for all accounts
+        Currently by time, later by ai
+
+        returns: (thread_id, ConversationDTO, UserDTO)
+        """
+        #todo ai valuing of mails
+        threads: Iterable[Thread] = session.exec(
+            select(Thread)
+            .order_by(
+                Thread.last_message_time,
+                stmt = select(Thread)
+                    .order_by(desc(Thread.last_message_time))
+                    .limit(5)
+            )
+        )
+        return [(t.id, ConversationDTO.from_model(t.conversation), UserService.user_to_dto(t.conversation.users[0])) for t in threads]
