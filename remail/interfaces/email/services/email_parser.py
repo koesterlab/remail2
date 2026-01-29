@@ -58,7 +58,6 @@ class EmailParser:
 
         # Find or create conversation based on participants
         conversation = self._get_or_create_conversation(list(all_participants), user)
-        print(conversation.contacts)
         # Create the email record
         sent_at = self.extract_msg_date(raw_email)
         body = self._get_body(raw_email)

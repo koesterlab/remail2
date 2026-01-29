@@ -1,12 +1,14 @@
 # remail/client/widgets/dashboard/todo_item.py
 from __future__ import annotations
 
+import re
 from datetime import datetime
 from typing import Any
 
 import flet as ft
 
 from remail.client.state import MainAppStateProperties, MainAppState
+from remail.client.widgets.dashboard.croppable_email_adress import create_croppable_email_address
 from remail.controllers.dtos.threads import MessageDTO, ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 
@@ -19,55 +21,35 @@ class TodoItem(ft.Container):
         top_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             controls=[
-                ft.Column(
-                    spacing=2,
-                    controls=[
-                        ft.Text(
-                            todo.sender.first_name + " " + todo.sender.last_name,
-                            size=15,
-                            weight=ft.FontWeight.W_600,
-                            color=ft.Colors.ON_SURFACE,
-                        ),
-                        ft.Text(
-                            thread.title,
-                            size=13,
-                            color=ft.Colors.ON_SURFACE_VARIANT,
-                        ),
-                    ],
-                ),
                 ft.Text(
-                    self.fmt_badge(todo.sent_at),
-                    size=12,
-                    weight=ft.FontWeight.W_500,
-                    color=ft.Colors.ERROR,
+                    value=thread.title,
+                    size=15,
+                    weight=ft.FontWeight.W_600,
+                    color=ft.Colors.ON_SURFACE,
+                    overflow=ft.TextOverflow.ELLIPSIS,
+                    expand=True,
                 ),
+                ft.Container(
+                    bgcolor=ft.Colors.ERROR,
+                    border_radius=8,
+                    padding=ft.padding.all(2),
+                    content=ft.Text(
+                        self.fmt_badge(todo.sent_at),
+                        size=11,
+                        weight=ft.FontWeight.W_500,
+                        color=ft.Colors.WHITE,
+                    ),
+                )
             ],
         )
 
-        meta_row = ft.Row(
-            spacing=6,
-            controls=[
-                ft.Icon(
-                    ft.Icons.EMAIL_OUTLINED,
-                    size=14,
-                    color=ft.Colors.ON_SURFACE_VARIANT,
-                ),
-                ft.Text(
-                    account.email,
-                    size=12,
-                    color=ft.Colors.ON_SURFACE_VARIANT,
-                ),
-                ft.Text(
-                    "•",
-                    size=12,
-                    color=ft.Colors.ON_SURFACE_VARIANT,
-                ),
-                ft.Text(
-                    "time_label",
-                    size=12,
-                    color=ft.Colors.ON_SURFACE_VARIANT,
-                ),
-            ],
+        meta_row = ft.Text(
+            value=(todo.sender.first_name.strip() + " " + todo.sender.last_name.strip()
+                  if todo.sender.first_name or todo.sender.last_name else todo.sender.email) + ": "
+                  + re.sub(r"\s+", " ", todo.content.body).strip(),
+            max_lines=2,
+            overflow=ft.TextOverflow.ELLIPSIS,
+
         )
 
         quick_reply = ft.Container(
@@ -94,18 +76,23 @@ class TodoItem(ft.Container):
             ),
         )
 
+        bottom_row = ft.Row([
+            quick_reply,
+            create_croppable_email_address(account.email, 10, ft.Colors.ON_SURFACE_VARIANT)
+        ], vertical_alignment=ft.CrossAxisAlignment.CENTER)
+
         content_column = ft.Column(
             spacing=6,
             controls=[
                 top_row,
                 meta_row,
-                quick_reply,
+                bottom_row,
             ],
         )
 
         super().__init__(
             bgcolor=ft.Colors.SURFACE,
-            padding=ft.padding.all(14),
+            padding=ft.padding.all(15),
             border_radius=16,
             margin=ft.margin.only(bottom=12),
             content=content_column,

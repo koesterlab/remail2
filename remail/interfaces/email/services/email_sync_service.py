@@ -105,7 +105,6 @@ class EmailSyncService:
 
                 if message_id and self._email_exists(message_id):
                     skipped_count += 1
-
                     continue
 
                 # Process and save the email

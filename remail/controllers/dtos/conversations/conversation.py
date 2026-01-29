@@ -37,7 +37,7 @@ class ConversationDTO:
 
     @staticmethod
     @session
-    def from_model(conversation, own_mail:User):
+    def from_model(conversation, own_mail:User) -> "ConversationDTO":
         threads = []
         for thread in conversation.threads:
             unread_count = 0
@@ -67,16 +67,9 @@ class ConversationDTO:
             is_favorite=conversation.is_favorite,
             custom_name=conversation.custom_name,
             contacts=[
-                ContactDTO(
-                    id=c.id if c.id is not None else -1,
-                    first_name=c.first_name or "",
-                    last_name=c.last_name or c.name,
-                    email=c.email_address,
-                    is_known=c.is_known,
-                    type=c.contact_type,
-                )
+                ContactDTO.from_model(c)
                 for c in conversation.contacts
-                if c.email_address != own_mail.email
+                if c.email_address.casefold() != own_mail.email.casefold()
             ],
             threads=threads,
         )

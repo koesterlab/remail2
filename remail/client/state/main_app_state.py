@@ -36,6 +36,7 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         self.thread_controller = ThreadController()
         self.account_controllers: dict[str, AccountController] = {}
         self.sync_threads: list[Future] = []
+        self.navigate_to_settings: Callable[[SettingsSubView], None] = lambda _:None
 
     def get_active_email_account(self) -> AccountController:
         mail: UserDTO | None = self.get(MainAppStateProperties.ACTIVE_USER)
@@ -47,26 +48,6 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         return controller
         self.account_controllers: dict[str, AccountController] = {}
         self.sync_threads: list[Future] = []
-
-    def set_router(self, router: ViewRouter, page: Page):
-        self._router = router
-        self._page = page
-
-    def go_to_settings(self, view:SettingsSubView):
-        if self._page and self._router:
-            self._page.clean()
-            settings_view = self._router.load_view(MainView.SETTINGS)
-            self._page.add(settings_view)
-            self._page.update()
-
-    def get_active_email_account(self) -> AccountController:
-        mail: UserDTO | None = self.get(MainAppStateProperties.ACTIVE_USER)
-        if mail is None:
-            raise Exception("Account Controller was requested without active email account")
-        controller = self.account_controllers.get(mail.email)
-        if controller is None:
-            raise Exception("Account Controller was requested but not found for mail " + mail.email)
-        return controller
 
     def toggle_selection(self, item: Union["ConversationDTO", "ThreadPreviewDTO"]) -> None:
         already_selected = item in self.__selected

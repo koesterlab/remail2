@@ -31,6 +31,7 @@ class ContactService:
 
     @session
     def create_contact(self, name: str, email: str, session: Session) -> Contact:
+        self.get_contact_by_id()
         resolved_name = name or email
         new_contact = Contact(
             name=resolved_name,

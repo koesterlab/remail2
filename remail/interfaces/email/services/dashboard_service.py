@@ -13,8 +13,7 @@ from remail.models.conversation import Conversation
 from remail.models.email import Email
 from remail.models.thread import Thread
 from remail.models.user_conversation import UserConversation
-from tests.client.state.test_main_app_state import ThreadPreviewDTO
-
+from remail.controllers.dtos.conversations import ThreadPreviewDTO
 
 class DashboardService:
     """

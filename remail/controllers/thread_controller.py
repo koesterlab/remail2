@@ -27,5 +27,5 @@ class ThreadController:
 
         return result
 
-    def get_most_urgent_threads(self, count:int=5) -> list[tuple[int, ConversationDTO, UserDTO]]:
+    def get_most_urgent_threads(self, count:int=5) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
         return self.service.get_most_important_threads(count=count)

@@ -20,7 +20,7 @@ from remail.interfaces.email.services.conversation_service import ConversationSe
 from remail.interfaces.email.services.user_service import UserService
 from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
-from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO, ContactDTO
 from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
 
@@ -247,36 +247,6 @@ class ThreadService:
 
     # chatgpt end
 
-    def _build_thread_dto(
-        self, session: Session, thread: Thread, messages: list[Email]
-    ) -> ThreadDTO:
-        """
-        Build a complete thread DTO with all messages.
-
-        Args:
-            session: Database session
-            thread: Thread model instance
-            messages: List of Email model instances
-
-        Returns:
-            ThreadDTO with thread data and messages
-        """
-
-        from remail.controllers.dtos.threads import ThreadDTO
-
-        if thread.id is None:
-            raise ValueError("Thread ID cannot be None")
-
-        # Collect all contacts from the thread (senders + recipients)
-        contacts = self._collect_thread_contacts(session, messages)
-
-        return ThreadDTO(
-            id=thread.id,
-            title=thread.title,
-            messages=[self._build_message_dto(session, msg) for msg in messages],
-            contacts=contacts,
-        )
-
     def _collect_thread_contacts(self, session: Session, messages: list[Email]) -> list:
         """
         Collect all unique contacts involved in a thread.
@@ -427,7 +397,7 @@ class ThreadService:
         )
 
     @session
-    def get_most_important_threads(self, session:Session, count:int = 5, ) -> list[tuple[int, ConversationDTO, UserDTO]]:
+    def get_most_important_threads(self, session:Session, count:int = 5, ) -> list[tuple[ThreadDTO, ConversationDTO, UserDTO]]:
         """
         Calculates the most urgent threads from the database for all accounts
         Currently by time, later by ai
@@ -438,10 +408,12 @@ class ThreadService:
         threads: Iterable[Thread] = session.exec(
             select(Thread)
             .order_by(
-                Thread.last_message_time,
-                stmt = select(Thread)
-                    .order_by(desc(Thread.last_message_time))
-                    .limit(5)
+                Thread.last_message_time.desc(),
             )
+            .limit(count)
         )
-        return [(t.id, ConversationDTO.from_model(t.conversation), UserService.user_to_dto(t.conversation.users[0])) for t in threads]
+        return [(
+            ThreadDTO.from_model(t),
+            ConversationDTO.from_model(t.conversation, t.conversation.users[0]),
+            UserService.user_to_dto(t.conversation.users[0]))
+            for t in threads]
