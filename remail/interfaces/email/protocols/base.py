@@ -44,5 +44,9 @@ class EmailProtocol(ABC):
     @abstractmethod
     def send_email(self, email: "Email") -> None:
         """Send the given email."""
+        pass
 
+    @abstractmethod
+    def clone(self) -> "EmailProtocol":
+        """Clones the instance"""
         pass
