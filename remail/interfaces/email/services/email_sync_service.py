@@ -129,18 +129,16 @@ class EmailSyncService:
 
     async def wait_for_mail_changes_async(self) -> AsyncGenerator[None, None]:
         # clone protocol because connection will always be blocked
-        protocol = cast(ImapProtocol, self.protocol)
-        if protocol.user_username is None or protocol.user_password is None:
-            raise ValueError("Missing protocol credentials")
-        protokol = remail.interfaces.email.protocols.imap.ImapProtocol(
-            protocol.user_username, protocol.user_password, protocol.host
-        )
+        protokol = self.protocol.clone()
         protokol.login()
-        protokol.IMAP.select_folder("INBOX")  # TODO: find inbox folder
-        protokol.IMAP.idle()
+        IMAP = getattr(protokol, "IMAP")
+        if not IMAP:
+            return
+        IMAP.select_folder("INBOX")  # TODO: find inbox folder
+        IMAP.idle()
         last_refresh = datetime.now()
         while True:
-            for update in protokol.IMAP.idle_check():
+            for update in IMAP.idle_check():
                 if update[0] == b"EXISTS":
                     self.sync_emails(since=last_refresh)
                 elif update[0] == b"EXPUNGE":

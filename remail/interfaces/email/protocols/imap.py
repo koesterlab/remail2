@@ -180,3 +180,6 @@ class ImapProtocol(EmailProtocol):
         envelope = list(OrderedDict.fromkeys(ordered_recipients).keys())
 
         self.smtp_sender.send(msg, envelope)
+
+    def clone(self):
+        return ImapProtocol(self.user_username, self.user_password, self.host)
