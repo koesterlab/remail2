@@ -5,6 +5,7 @@ from typing import Any
 
 import flet as ft
 
+from remail.client.state import MainAppState
 from remail.client.widgets.dashboard.account_card import AccountCard
 from remail.client.widgets.dashboard.appointments_list import AppointmentsList
 from remail.client.widgets.dashboard.todo_list import TodoList
@@ -59,12 +60,12 @@ def _display_name_from_account(account: AccountDict | None) -> str:
 class DashboardPage(ft.Column):
     def __init__(
         self,
-        accounts: list[AccountDict],
+        state: MainAppState,
         todos: list[TodoDict],
         appointments: list[AppointmentDict],
     ) -> None:
         super().__init__(expand=True, spacing=20)
-        self.accounts = accounts
+        self.state = state
         self.todos = todos
         self.appointments = appointments
         self._rebuild()
@@ -92,7 +93,7 @@ class DashboardPage(ft.Column):
             padding=ft.padding.all(16),
             border_radius=24,
             content=ft.Row(
-                controls=[AccountCard(acc) for acc in self.accounts],
+                controls=[AccountCard(acc) for acc in self.state.acc], #todo account controllers
                 spacing=20,
             ),
         )

@@ -1,21 +1,20 @@
 # remail/client/widgets/dashboard/todo_item.py
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any
 
 import flet as ft
+
+from remail.controllers.dtos.threads import MessageDTO, ThreadDTO
+from remail.controllers.dtos.user_dto import UserDTO
 
 TodoDict = dict[str, Any]
 
 
 class TodoItem(ft.Container):
-    def __init__(self, todo: TodoDict) -> None:
-        sender: str = todo.get("sender", "")
-        subject: str = todo.get("subject", "")
-        account_email: str = todo.get("account_email", "")
-        time_label: str = todo.get("time_label", "")
-        badge: str = todo.get("badge", "")
-
+    def __init__(self, thread: ThreadDTO, account:UserDTO) -> None:
+        todo = thread.messages[0]
         top_row = ft.Row(
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
             controls=[
@@ -23,20 +22,20 @@ class TodoItem(ft.Container):
                     spacing=2,
                     controls=[
                         ft.Text(
-                            sender,
+                            todo.sender.first_name + " " + todo.sender.last_name,
                             size=15,
                             weight=ft.FontWeight.W_600,
                             color=ft.Colors.ON_SURFACE,
                         ),
                         ft.Text(
-                            subject,
+                            thread.title,
                             size=13,
                             color=ft.Colors.ON_SURFACE_VARIANT,
                         ),
                     ],
                 ),
                 ft.Text(
-                    badge,
+                    self.fmt_badge(todo.sent_at),
                     size=12,
                     weight=ft.FontWeight.W_500,
                     color=ft.Colors.ERROR,
@@ -53,7 +52,7 @@ class TodoItem(ft.Container):
                     color=ft.Colors.ON_SURFACE_VARIANT,
                 ),
                 ft.Text(
-                    account_email,
+                    account.email,
                     size=12,
                     color=ft.Colors.ON_SURFACE_VARIANT,
                 ),
@@ -63,7 +62,7 @@ class TodoItem(ft.Container):
                     color=ft.Colors.ON_SURFACE_VARIANT,
                 ),
                 ft.Text(
-                    time_label,
+                    "time_label",
                     size=12,
                     color=ft.Colors.ON_SURFACE_VARIANT,
                 ),
@@ -110,3 +109,27 @@ class TodoItem(ft.Container):
             margin=ft.margin.only(bottom=12),
             content=content_column,
         )
+
+    @staticmethod
+    def fmt_badge(dt: datetime) -> str:
+        """
+        Return compact badges like '2h', '1d', '5m', '30s' (always "time ago").
+        """
+        now = datetime.now()
+        delta = now - dt
+
+        seconds = int(delta.total_seconds())
+        if seconds < 60:
+            return "seconds ago"
+        minutes = seconds // 60
+        if minutes < 60:
+            return f"{minutes}m"
+        hours = minutes // 60
+        if hours < 24:
+            return f"{hours}h"
+        days = hours // 24
+        if days == 1:
+            return "yesterday"
+        return f"{days}d"
+
+

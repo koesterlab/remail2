@@ -10,6 +10,7 @@ import flet as ft
 
 from remail.client.state.app_state import AppState
 from remail.client.widgets.dashboard.dashboard_page import DashboardPage
+from remail.controllers.dtos.threads import MessageDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.interfaces.email.services.dashboard_service import DashboardService
 from remail.interfaces.email.services.user_service import UserService
@@ -36,29 +37,6 @@ def fmt_time_label(dt: datetime, now: datetime) -> str:
         prefix = WEEKDAYS_DE[dt.weekday()]
 
     return f"{prefix} {dt:%H:%M}"
-
-
-def fmt_badge(dt: datetime, now: datetime) -> str:
-    """
-    Return compact badges like '2h', '1d' (always "time ago").
-
-    Why:
-    - Seed/test data or clock skews can accidentally create future timestamps.
-    - For UI, it is nicer to always show "age" rather than negative values.
-    """
-    seconds = int((now - dt).total_seconds())
-    seconds = max(0, seconds)
-
-    minutes = seconds // 60
-    hours = minutes // 60
-    days = hours // 24
-
-    if days >= 1:
-        return f"{days}d"
-    if hours >= 1:
-        return f"{hours}h"
-    return f"{max(1, minutes)}m"
-
 
 # ------------------------------------------------------------------ #
 # DB → Dashboard data mappers
@@ -123,18 +101,17 @@ def _load_todos_for_user(user_id: int, now: datetime, limit: int = 6) -> list[To
     Current assumption for UI testing:
     - Recent emails are considered items that may need attention/reply.
     """
+
     rows = DashboardService.get_recent_emails_for_user(user_id=user_id, limit=limit)
     account_email = _get_user_email(user_id)
 
-    todos: list[TodoDict] = []
+    todos: list[MessageDTO] =
     for email, sender in rows:
         todos.append(
             {
                 "sender": sender.name,
                 "subject": email.subject,
                 "account_email": account_email,
-                "time_label": fmt_time_label(email.sent_at, now),
-                "badge": fmt_badge(email.sent_at, now),
             }
         )
 
@@ -190,7 +167,7 @@ def create_dashboard_view(
 
     dashboard = DashboardPage(
         accounts=accounts,
-        todos=todos,
+        todos=,
         appointments=appointments,
     )
 

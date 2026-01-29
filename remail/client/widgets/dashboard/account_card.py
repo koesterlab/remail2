@@ -5,19 +5,18 @@ from typing import Any
 
 import flet as ft
 
+from remail.controllers.dtos.user_dto import UserDTO
+
 AccountDict = dict[str, Any]
 
 
 class AccountCard(ft.Container):
-    def __init__(self, account: AccountDict) -> None:
-        email: str = account.get("email", "")
-        label: str = account.get("label", "Active")
-        color = account.get("color", ft.Colors.PRIMARY)
+    def __init__(self, account: UserDTO) -> None:
 
         icon_container = ft.Container(
             width=42,
             height=42,
-            bgcolor=color,
+            bgcolor=ft.Colors.PRIMARY,
             border_radius=21,
             alignment=ft.alignment.center,
             content=ft.Icon(
@@ -31,13 +30,13 @@ class AccountCard(ft.Container):
             spacing=4,
             controls=[
                 ft.Text(
-                    email,
+                    account.email,
                     size=16,
                     weight=ft.FontWeight.W_600,
                     color=ft.Colors.ON_SURFACE,
                 ),
                 ft.Text(
-                    label,
+                    str(account.unread_conversations),
                     size=13,
                     color=ft.Colors.ON_SURFACE_VARIANT,
                 ),
