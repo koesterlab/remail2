@@ -25,7 +25,7 @@ class ContactPreview(ConversationPreview):
         super().__init__(
             state,
             conversation,
-            full_name if (contact and contact.is_known) else full_name,
+            full_name,
             last_message,
             contact.is_known if contact else False,
             on_click,
