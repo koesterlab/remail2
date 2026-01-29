@@ -4,10 +4,9 @@
 import os
 from pathlib import Path
 
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import SQLModel, create_engine
 
 import remail.models  # noqa: F401
-from remail.fixtures import load_conversation_fixtures
 
 
 def init_database(db_path: str = "database.db", load_fixtures: bool = False) -> None:

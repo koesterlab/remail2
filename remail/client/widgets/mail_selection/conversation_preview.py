@@ -1,10 +1,9 @@
-from abc import abstractmethod, ABC
+from abc import ABC
 from collections.abc import Callable
 
 import flet as ft
 from flet.core.circle_avatar import CircleAvatar
 from flet.core.control_event import ControlEvent
-from flet.core.icon_button import IconButton
 
 from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.widgets.mail_selection.profile_picture import create_profile_picture
@@ -14,13 +13,13 @@ from remail.controllers.dtos.conversations import ConversationDTO
 class ConversationPreview(ft.Container, ABC):
     # component representing a single contact entry
     def __init__(
-            self,
-            state: MainAppState,
-            conversation: ConversationDTO,
-            primary_text: str,
-            secondary_text: str,
-            registered: bool,
-            on_click: Callable[[], None],
+        self,
+        state: MainAppState,
+        conversation: ConversationDTO,
+        primary_text: str,
+        secondary_text: str,
+        registered: bool,
+        on_click: Callable[[], None],
     ):
         def toggle_fav(e: ControlEvent):  # todo change in backend
             conversation.is_favorite = not conversation.is_favorite
@@ -30,41 +29,48 @@ class ConversationPreview(ft.Container, ABC):
                 fav_button.update()
 
         if not registered:
-            icon_btn = ft.Column([
+            icon_btn = ft.Column(
+                [
                     ft.IconButton(
                         icon=ft.Icons.ADD,
                         icon_color=ft.Colors.ON_SURFACE,
                         tooltip="Add to Contacts",
-                        #sizing
-                        icon_size=20,
-                        size_constraints=ft.BoxConstraints(max_width=20, max_height=20),
-                        padding=0,
-                        splash_radius=20
-                    ),
-                    ft.IconButton(
-                        icon=ft.Icons.DELETE, icon_color=ft.Colors.ON_SURFACE_VARIANT, tooltip="Delete Chats",
                         # sizing
                         icon_size=20,
                         size_constraints=ft.BoxConstraints(max_width=20, max_height=20),
                         padding=0,
-                        splash_radius=20                    ),
-                ], spacing=1, alignment=ft.MainAxisAlignment.CENTER
+                        splash_radius=20,
+                    ),
+                    ft.IconButton(
+                        icon=ft.Icons.DELETE,
+                        icon_color=ft.Colors.ON_SURFACE_VARIANT,
+                        tooltip="Delete Chats",
+                        # sizing
+                        icon_size=20,
+                        size_constraints=ft.BoxConstraints(max_width=20, max_height=20),
+                        padding=0,
+                        splash_radius=20,
+                    ),
+                ],
+                spacing=1,
+                alignment=ft.MainAxisAlignment.CENTER,
             )
 
             def on_hover(e):
                 pass
         else:
             fav_button = ft.IconButton(
-                    icon=ft.Icons.STAR if conversation.is_favorite else ft.Icons.STAR_OUTLINE,
-                    tooltip="Favorit",
-                    on_click=toggle_fav,
-                    icon_color=ft.Colors.ON_SURFACE_VARIANT,
-                    visible=conversation.is_favorite,
-                )
+                icon=ft.Icons.STAR if conversation.is_favorite else ft.Icons.STAR_OUTLINE,
+                tooltip="Favorit",
+                on_click=toggle_fav,
+                icon_color=ft.Colors.ON_SURFACE_VARIANT,
+                visible=conversation.is_favorite,
+            )
             icon_btn = ft.Row(
                 [fav_button],
                 alignment=ft.MainAxisAlignment.END,
-                vertical_alignment=ft.CrossAxisAlignment.CENTER)
+                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            )
 
             def on_hover(e):
                 fav_button.visible = conversation.is_favorite or e.data == "true"
@@ -113,10 +119,12 @@ class ConversationPreview(ft.Container, ABC):
                             ft.Row(
                                 [
                                     ft.Text(
-                                        secondary_text, size=12, color=ft.Colors.ON_SURFACE_VARIANT,
+                                        secondary_text,
+                                        size=12,
+                                        color=ft.Colors.ON_SURFACE_VARIANT,
                                         expand=True,
-                                        overflow = ft.TextOverflow.ELLIPSIS,
-                                        max_lines=1
+                                        overflow=ft.TextOverflow.ELLIPSIS,
+                                        max_lines=1,
                                     )
                                 ],
                                 alignment=ft.MainAxisAlignment.START,
@@ -126,7 +134,6 @@ class ConversationPreview(ft.Container, ABC):
                         spacing=3,
                         alignment=ft.MainAxisAlignment.START,
                         expand=True,
-
                     ),
                     icon_btn,
                 ],

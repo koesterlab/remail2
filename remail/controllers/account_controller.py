@@ -1,32 +1,39 @@
 import datetime
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 from remail.controllers import EmailController
-from remail.controllers.dtos.conversations import ConversationDTO, ContactDTO, ThreadPreviewDTO
-from remail.controllers.dtos.threads import ThreadDTO
+from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
-from remail.enums import ContactType, UserAccountCategory
-from remail.interfaces.email import ImapProtocol, EmailProtocol
-from remail.interfaces.email.services import EmailSyncService, EmailParser, ConversationService, ThreadService
+from remail.interfaces.email import ImapProtocol
+from remail.interfaces.email.services import (
+    ConversationService,
+    EmailParser,
+    EmailSyncService,
+    ThreadService,
+)
 from remail.interfaces.email.services.user_service import UserService
-from remail.models import User, Conversation
+from remail.models import Conversation
 from remail.utils.session_management import session
 
 
 class AccountController:
-    """ Class for base operations for existing users"""
+    """Class for base operations for existing users"""
 
     @staticmethod
     def all_client_accounts() -> list["AccountController"]:
         users = UserService().get_all_users()
-        return list(map(lambda dto: AccountController(dto.id), users))
+        return [AccountController(dto.id) for dto in users]
 
+    @session
     def __init__(self, account_id: int):
         self.user_id = account_id
-        self.user:User = UserService.get_user_by_id(account_id)
-        self.protocol: EmailProtocol = ImapProtocol(username=self.user.username, password=self.user.password,
-                                                    host=self.user.host)  # todo implement exchange option
-        self.sync_service = EmailSyncService(protocol=self.protocol, email_parser=EmailParser(), user=self.user)
+        self.user: UserDTO = UserService.get_user_by_id(account_id)
+        self.protocol: ImapProtocol = ImapProtocol(
+            username=self.user.username, password=self.user.password, host=self.user.host
+        )  # todo implement exchange option
+        self.sync_service = EmailSyncService(
+            protocol=self.protocol, email_parser=EmailParser(), user_id=self.user.id
+        )
         self.thread_service = ThreadService()
         self.user_service = UserService()
         self.conversation_service = ConversationService()
@@ -34,19 +41,21 @@ class AccountController:
 
     @session
     def get_conversations(self) -> Iterable[ConversationDTO]:
-        """ Returns all conversations from the users inbox """
-        #re-sync via imap
-        self.sync_service.sync_emails(since=self.user.last_refresh)
+        """Returns all conversations from the users inbox"""
+        # re-sync via imap
+        self.sync_service.sync_emails()
 
-        #notify callback if something has changed
+        # notify callback if something has changed
         self._notify_callback()
 
-        #return all conversation DTOs
+        # return all conversation DTOs
         conversations_data = self.conversation_service.get_all_conversations(self.user.id)
         return [self._conversation_to_dto(e) for e in conversations_data]
 
-    def set_callback_email_changes(self, callback: Callable[[Iterable[ConversationDTO]], None]) -> None:
-        """ Registers a callback that is called every time when a Conversation is updated or new with the conversation """
+    def set_callback_email_changes(
+        self, callback: Callable[[Iterable[ConversationDTO]], None]
+    ) -> None:
+        """Registers a callback that is called every time when a Conversation is updated or new with the conversation"""
         self.callback = callback
 
     def _notify_callback(self):
@@ -55,7 +64,7 @@ class AccountController:
             self.callback(changed)
 
     async def start_listening(self):
-        """ Starts background task to wait for email changes in imap idle mode. Calls callback if something changes"""
+        """Starts background task to wait for email changes in imap idle mode. Calls callback if something changes"""
         print("Starting sync service")
         self.callback(self.get_conversations())
         print("First sync over")
@@ -70,18 +79,12 @@ class AccountController:
         return self.user.name
 
     def get_user(self):
-        user = self.user_service.get_user_by_id(self.user_id)
-        return UserDTO(
-            id=user.id,
-            name=user.name,
-            email=user.email,
-            category=UserAccountCategory.NOT_SPECIFIED,
-            protocol=user.protocol,
-            unread_conversations=self.user_service.count_unread(self.user),
-        )
+        return self.user
 
     def get_email_controller(self) -> EmailController:
-        return EmailController(self.protocol)
+        return EmailController(
+            self.protocol.user_username, self.protocol.user_password, self.protocol.host
+        )
 
     @session
     def _conversation_to_dto(self, conversation: Conversation) -> ConversationDTO:
@@ -96,14 +99,18 @@ class AccountController:
                 if not latest_message or message.sent_at > latest_message.sent_at:
                     latest_message = message
                 total_count += 1
-            threads.append(ThreadPreviewDTO(
-                thread_id=thread.id,
-                title=thread.title,
-                total_count=total_count,
-                unread_count=unread_count,
-                last_message=latest_message.body if latest_message else "",
-                last_message_datetime=latest_message.sent_at if latest_message else datetime.datetime.min,
-            ))
+            threads.append(
+                ThreadPreviewDTO(
+                    thread_id=thread.id,
+                    title=thread.title,
+                    total_count=total_count,
+                    unread_count=unread_count,
+                    last_message=latest_message.body if latest_message else "",
+                    last_message_datetime=latest_message.sent_at
+                    if latest_message
+                    else datetime.datetime.min,
+                )
+            )
 
         return ConversationDTO(
             id=conversation.id,
@@ -121,6 +128,5 @@ class AccountController:
                 for c in conversation.contacts
                 if c.email_address != self.user.email
             ],
-            threads=threads
+            threads=threads,
         )
-

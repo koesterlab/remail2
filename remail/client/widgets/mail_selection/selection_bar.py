@@ -1,5 +1,4 @@
 import re
-from typing import Union
 
 import flet as ft
 
@@ -41,9 +40,11 @@ class SelectionBar(ft.Container):
         self.__state = state
         self.topic_selection_active = False
 
-        #state
-        self.selected_conversation: ConversationDTO|None = None
-        self.search_elements: list[Union[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO], Action]] = []
+        # state
+        self.selected_conversation: ConversationDTO | None = None
+        self.search_elements: list[
+            tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO] | Action
+        ] = []
 
         super().__init__(
             bgcolor=ft.Colors.SURFACE,
@@ -95,13 +96,14 @@ class SelectionBar(ft.Container):
         self._re_render()
 
     def _re_render(self):
-        if self.selected_conversation: #sub-navigation
+        if self.selected_conversation:  # sub-navigation
             self.__set_content_to_display([self.selected_conversation])
-        elif self.search_elements: #search todo: show sub-elements (thread, message)
-            self.__set_content_to_display([e[0] if isinstance(e, tuple) else e for e in self.search_elements])
-        else: #default: show inbox conversations
+        elif self.search_elements:  # search todo: show sub-elements (thread, message)
+            self.__set_content_to_display(
+                [e[0] if isinstance(e, tuple) else e for e in self.search_elements]
+            )
+        else:  # default: show inbox conversations
             self.__set_content_to_display(self.__state.get(MainAppStateProperties.DISPLAYED_MAILS))
-
 
     def __on_conversation_or_action_selected(self, selected: ConversationDTO | Action) -> None:
         print(selected)
@@ -113,9 +115,7 @@ class SelectionBar(ft.Container):
 
     def __on_topic_selected(self, selected: ThreadPreviewDTO) -> None:
         self.__state.set(MainAppStateProperties.ACTIVE_THREAD, selected)
-        self.__state.set(
-            MainAppStateProperties.ACTIVE_CONVERSATION, self.selected_conversation
-        )
+        self.__state.set(MainAppStateProperties.ACTIVE_CONVERSATION, self.selected_conversation)
 
     def __set_content_to_display(self, content_to_display: list[ConversationDTO | Action]) -> None:
         if len(content_to_display) == 1 and isinstance(content_to_display[0], ConversationDTO):
@@ -135,12 +135,14 @@ class SelectionBar(ft.Container):
                 self.update()
             except Exception as e:
                 print(e)
+
     def __show_conversation_selection(self, content: list[ConversationDTO | Action]) -> None:
         self.conversation_selection.set_content(content)
 
     def __show_topic_selection(self, conversation: ConversationDTO) -> None:
         self.topic_selection.set_content(conversation)
 
-    def __search_request(self, searchterm: str) -> list[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO]]:
-            return []  # todo request controller
-
+    def __search_request(
+        self, searchterm: str
+    ) -> list[tuple[ConversationDTO, ThreadPreviewDTO, MessageDTO]]:
+        return []  # todo request controller

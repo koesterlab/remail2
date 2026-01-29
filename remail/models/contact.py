@@ -37,8 +37,8 @@ class Contact(SQLModel, table=True):
         link_model=ConversationContact,
     )
 
-    def __eq__(self, other: "Contact") -> bool:
-        return other.email_address == self.email_address
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Contact) and other.email_address == self.email_address
 
     def __hash__(self) -> int:
         return hash(self.email_address)

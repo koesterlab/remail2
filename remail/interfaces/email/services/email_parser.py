@@ -6,11 +6,12 @@ from email.utils import getaddresses, parsedate_to_datetime
 from pytz import timezone
 from sqlmodel import Session, select
 
-from remail.enums import RecipientKind, ConversationType, ContactType
+from remail.enums import ContactType, ConversationType, RecipientKind
 from remail.interfaces.email.services.attachment_service import save_attachment
 from remail.interfaces.email.services.contact_service import ContactService
-from remail.models import Email, Contact, EmailReception, Conversation, User
+from remail.models import Contact, Conversation, Email, EmailReception, User
 from remail.utils.session_management import session
+
 from . import ConversationService
 from .thread_service import ThreadService
 
@@ -27,7 +28,7 @@ class EmailParser:
         self.thread_service = ThreadService()
 
     @session
-    def process_email(self, raw_email: Message, user: User, uid: int, session:Session = None) -> Email:
+    def process_email(self, raw_email: Message, user: User, uid: int, session: Session) -> Email:
         """
         Process a raw email and save to database.
 
@@ -53,10 +54,9 @@ class EmailParser:
 
         # Remove user's own email from participants if present
         all_participants.discard(self.contact_service.get_user_contact(user))
-        all_participants = list(all_participants)
 
         # Find or create conversation based on participants
-        conversation = self._get_or_create_conversation(all_participants, user)
+        conversation = self._get_or_create_conversation(list(all_participants), user)
         print(conversation.contacts)
         # Create the email record
         sent_at = self.extract_msg_date(raw_email)
@@ -68,17 +68,17 @@ class EmailParser:
             body=body,
             sent_at=sent_at,
             sender_id=sender_contact.id,  # type: ignore
-            thread = None,  # type: ignore
+            thread=None,  # type: ignore
             imap_uid=uid,
         )
         session.add(db_email)
 
-        self.thread_service.organize_email_into_thread(email=db_email, conversation=conversation, subject=raw_email.get("Subject", "unknown"))
+        self.thread_service.organize_email_into_thread(
+            email=db_email, conversation=conversation, subject=raw_email.get("Subject", "unknown")
+        )
 
         # Create EmailReception records for all recipients
-        self._create_email_receptions(
-            db_email, to_recipients, cc_recipients, bcc_recipients
-        )
+        self._create_email_receptions(db_email, to_recipients, cc_recipients, bcc_recipients)
 
         # Handle attachments if present
         attachments = getattr(raw_email, "attachments", []) or []
@@ -104,7 +104,9 @@ class EmailParser:
         if not raw or not addr:
             return []
 
-        return [self.contact_service.get_or_create_contact(e[1], e[0]) for e in addr]
+        return [
+            self.contact_service.get_or_create_contact(e[1], name=e[0] if e else None) for e in addr
+        ]
 
     def _get_or_create_contact(self, session: Session, contact_data: dict) -> Contact:
         """
@@ -168,9 +170,7 @@ class EmailParser:
         else:
             return parts[0], " ".join(parts[1:])
 
-    def _get_or_create_conversation(
-            self, contacts: list[Contact], user: User
-    ) -> Conversation:
+    def _get_or_create_conversation(self, contacts: list[Contact], user: User) -> Conversation:
         """
         Find existing conversation with the same contacts or create new one.
 
@@ -184,7 +184,9 @@ class EmailParser:
         conversation = self.conversation_service.get_conversation_by_members(contacts)
         if not conversation:
             conversation = self.conversation_service.create_conversation(
-                conversation_type=ConversationType.CONVERSATION if len(contacts) == 1 else ConversationType.GROUP,
+                conversation_type=ConversationType.CONVERSATION
+                if len(contacts) == 1
+                else ConversationType.GROUP,
                 contacts=contacts,
                 custom_name=None,
                 user=user,
@@ -256,7 +258,7 @@ class EmailParser:
             if hdr:
                 dt = parsedate_to_datetime(hdr)
                 dt = dt.astimezone(UTC)
-                dt = dt.replace(tzinfo=None) #isnt stored in the database
+                dt = dt.replace(tzinfo=None)  # isnt stored in the database
                 return dt
 
         except Exception:
@@ -266,12 +268,12 @@ class EmailParser:
 
     @session
     def _create_email_receptions(
-            self,
-            email: Email,
-            to_recipients: list[Contact],
-            cc_recipients: list[Contact],
-            bcc_recipients: list[Contact],
-            session: Session=None,
+        self,
+        email: Email,
+        to_recipients: list[Contact],
+        cc_recipients: list[Contact],
+        bcc_recipients: list[Contact],
+        session: Session = None,
     ) -> None:
         """
         Create EmailReception records for all recipients.
@@ -283,8 +285,11 @@ class EmailParser:
             cc_recipients: List of CC recipient (name, email) tuples
             bcc_recipients: List of BCC recipient (name, email) tuples
         """
-        for category, contacts in ((RecipientKind.TO, to_recipients), (RecipientKind.CC, cc_recipients),
-                                   (bcc_recipients, bcc_recipients)):
+        for category, contacts in (
+            (RecipientKind.TO, to_recipients),
+            (RecipientKind.CC, cc_recipients),
+            (bcc_recipients, bcc_recipients),
+        ):
             for contact in contacts:
                 reception = EmailReception(
                     kind=category,

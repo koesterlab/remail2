@@ -21,7 +21,8 @@ def create_contact_picture(contact: SenderDTO):
         initials = "?"
     elif contact.first_name and len(contact.first_name) >= 2:
         initials = (
-                contact.first_name[:1] + (contact.last_name[:1] if contact.last_name else contact.first_name[1])
+            contact.first_name[:1]
+            + (contact.last_name[:1] if contact.last_name else contact.first_name[1])
         ).upper()
     elif contact.last_name and len(contact.last_name) >= 2:
         initials = contact.last_name[:2].upper()
@@ -36,5 +37,9 @@ def create_contact_picture(contact: SenderDTO):
         content=image,
         bgcolor=ft.Colors.ON_SURFACE,
         radius=20,
-        tooltip=contact.first_name if contact.first_name else "" + " " + contact.last_name if contact.last_name else "",
+        tooltip=contact.first_name
+        if contact.first_name
+        else "" + " " + contact.last_name
+        if contact.last_name
+        else "",
     )

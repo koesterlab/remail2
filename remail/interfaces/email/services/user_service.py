@@ -8,7 +8,7 @@ from werkzeug.security import generate_password_hash
 
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.database.db import engine
-from remail.enums import Protocol, UserAccountCategory
+from remail.enums import Protocol
 from remail.models.user import User
 from remail.utils.session_management import session
 
@@ -58,16 +58,15 @@ class UserService:
         if user.id is None:
             raise ValueError("User must have an ID")
 
-        return UserDTO(
-            id=user.id,
-            name=user.name,
-            username=user.username,
-            host=user.host,
-            password=_REDACTED_VALUE,
-            category=UserAccountCategory.PRIVATE,  # User model doesn't have category
-            protocol=user.protocol,
-            unread_conversations=UserService.count_unread(user),
-        )
+        return UserDTO.get_from_model(user, UserService.count_unread(user))
+
+    @staticmethod
+    @session
+    def get_user_by_id(user_id: int, session: Session) -> UserDTO | None:
+        user = session.get(User, user_id)
+        if not user:
+            return None
+        return UserService.user_to_dto(user)
 
     @staticmethod
     def get_user_by_username(username: str) -> User | None:

@@ -1,6 +1,4 @@
 import asyncio
-import threading
-from collections import UserDict
 
 import flet as ft
 
@@ -8,7 +6,7 @@ from remail.client.state import AppState
 from remail.client.widgets.chatbot.chatbot import create_chatbot
 from remail.client.widgets.mail_selection import SelectionBar
 from remail.controllers.account_controller import AccountController
-from remail.controllers.dtos.conversations import ThreadPreviewDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import MainView
 
@@ -55,7 +53,9 @@ def create_main_view(page: ft.Page, global_state: AppState):
         ],
         expand=True,
     )
-    right_view = ft.Container(dashboard, col={"xs": 6, "md": 8, "lg": 9}, expand=True, bgcolor=ft.Colors.RED)
+    right_view = ft.Container(
+        dashboard, col={"xs": 6, "md": 8, "lg": 9}, expand=True, bgcolor=ft.Colors.RED
+    )
 
     # Chatbot
     chatbot = create_chatbot(main_state)
@@ -88,39 +88,58 @@ def create_main_view(page: ft.Page, global_state: AppState):
         container.update()
 
     def on_emails_synced(acting_account: UserDTO, updates: list[ConversationDTO]):
-        if acting_account == main_state.get(MainAppStateProperties.ACTIVE_USER): #if active account: show new mails
-            #todo: more efficient resync (maybe with observable conversation DTOs)
-            conversations:list[ConversationDTO] = main_state.get(MainAppStateProperties.DISPLAYED_MAILS)
+        if acting_account == main_state.get(
+            MainAppStateProperties.ACTIVE_USER
+        ):  # if active account: show new mails
+            # todo: more efficient resync (maybe with observable conversation DTOs)
+            conversations: list[ConversationDTO] = main_state.get(
+                MainAppStateProperties.DISPLAYED_MAILS
+            )
             for update in updates:
                 for i in range(len(conversations)):
                     if conversations[i].id == update.id:
                         conversations[i] = update
                         break
-                else: #conversation was not found in last state
+                else:  # conversation was not found in last state
                     conversations.append(update)
-            main_state.trigger(MainAppStateProperties.DISPLAYED_MAILS) #object (array) stays the same, no need to set it again
+            main_state.trigger(
+                MainAppStateProperties.DISPLAYED_MAILS
+            )  # object (array) stays the same, no need to set it again
             print(conversations)
         else:
-            pass #todo: set "news available on this account"-hint
+            pass  # todo: set "news available on this account"-hint
 
-    def on_email_sync_error(acting_account: UserDTO, msg:str):
-        snack_bar = ft.SnackBar(ft.Text("[" + acting_account.email + "] Error while syncing mails: " + msg, color=ft.Colors.ON_ERROR), bgcolor=ft.Colors.ERROR, duration=50000)
+    def on_email_sync_error(acting_account: UserDTO, msg: str):
+        snack_bar = ft.SnackBar(
+            ft.Text(
+                "[" + acting_account.email + "] Error while syncing mails: " + msg,
+                color=ft.Colors.ON_ERROR,
+            ),
+            bgcolor=ft.Colors.ERROR,
+            duration=50000,
+        )
         page.overlay.append(snack_bar)
         snack_bar.open = True
         page.update()
 
-    #stop old listeners
+    # stop old listeners
     for t in main_state.sync_threads:
         t.cancel()
 
-    #register new accounts and start listening
+    # register new accounts and start listening
     accounts = AccountController.all_client_accounts()
     for acc in accounts:
         main_state.account_controllers[acc.get_email_address()] = acc
-        acc.set_callback_email_changes(lambda updates: on_emails_synced(acc.get_user(), updates))
+        acc.set_callback_email_changes(
+            lambda updates, acc_=acc: on_emails_synced(acc_.get_user(), updates)
+        )
+
         async def x():
             print("Du Hurensohn")
-        page.run_thread(lambda: asyncio.run(acc.start_listening())) #running sync task in flets own async system
+
+        page.run_thread(
+            lambda acc_=acc: asyncio.run(acc_.start_listening())
+        )  # running sync task in flets own async system
 
     main_state.set(MainAppStateProperties.ACTIVE_USER, accounts[0].get_user())
     main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)

@@ -3,10 +3,7 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Union
 
-from flet.core.page import RetT
-
 from remail.client.state.observable_state import ObservableState
-from remail.controllers import ConversationsController, EmailController
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
@@ -32,11 +29,11 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         ] = {}
 
         self.thread_controller = ThreadController()
-        self.account_controllers:dict[str, AccountController] = dict()
-        self.sync_threads:list[Future]  = []
+        self.account_controllers: dict[str, AccountController] = {}
+        self.sync_threads: list[Future] = []
 
     def get_active_email_account(self) -> AccountController:
-        mail: UserDTO|None = self.get(MainAppStateProperties.ACTIVE_USER)
+        mail: UserDTO | None = self.get(MainAppStateProperties.ACTIVE_USER)
         if mail is None:
             raise Exception("Account Controller was requested without active email account")
         controller = self.account_controllers.get(mail.email)

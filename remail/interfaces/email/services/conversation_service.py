@@ -2,14 +2,12 @@
 
 from __future__ import annotations
 
-from sqlmodel import Session, col, select
 from sqlalchemy import func
 from sqlmodel import Session, select
 
 from remail.database import engine
 from remail.enums import ConversationType
-from remail.models import Contact, Conversation, ConversationContact, User, UserConversation
-from remail.models import Contact, Conversation, ConversationContact, UserConversation, User
+from remail.models import Contact, Conversation, ConversationContact, User
 from remail.utils.session_management import session
 
 
@@ -23,7 +21,8 @@ class ConversationService:
 
         self.engine = engine
 
-    def get_all_conversations(self, user_id: int) -> list[dict]:
+    @session
+    def get_all_conversations(self, user_id: int, session: Session) -> list[Conversation]:
         """
         Fetch all conversations with their contacts for a specific user.
 
@@ -33,41 +32,17 @@ class ConversationService:
         Returns:
             List of conversation dictionaries with contacts and favorite status
         """
+        user = session.get(User, user_id)  #
+        if not user:
+            return []
+        return user.conversations
 
-        with Session(self.engine) as session:
-            user_conversations = session.exec(
-                select(Conversation, UserConversation.is_favorite)
-                .join(
-                    UserConversation,
-                    Conversation.id == UserConversation.conversation_id,  # type: ignore[arg-type]
-                )
-                .where(UserConversation.user_id == user_id)
-            ).all()
-
-            result = []
-
-            for conversation, is_favorite in user_conversations:
-                contacts = session.exec(
-                    select(Contact)
-                    .join(
-                        ConversationContact,
-                        Contact.id == ConversationContact.contact_id,  # type: ignore[arg-type]
-                    )
-                    .where(ConversationContact.conversation_id == conversation.id)
-                ).all()
-
-                result.append(
-                    self._build_conversation_dict(
-                        conversation,
-                        list(contacts),
-                        is_favorite,
-                    )
-                )
-
-            return result
-
+    @session
     def get_conversation_by_id(
-        self, conversation_id: int, user_id: int | None = None
+        self,
+        conversation_id: int,
+        session: Session,
+        user_id: int | None = None,
     ) -> dict | None:
         """
         Fetch a single conversation with its contacts.
@@ -80,38 +55,19 @@ class ConversationService:
             Conversation dictionary with contacts and favorite status, or None if not found
         """
 
-        with Session(self.engine) as session:
-            conversation = session.get(Conversation, conversation_id)
-
-            if not conversation or conversation.id is None:
-                return None
-
-            contacts = session.exec(
-                select(Contact)
-                .join(
-                    ConversationContact,
-                    Contact.id == ConversationContact.contact_id,  # type: ignore[arg-type]
-                )
-                .where(ConversationContact.conversation_id == conversation.id)
-            ).all()
-
-            is_favorite = False
-
-            if user_id is not None:
-                user_conversation = session.exec(
-                    select(UserConversation)
-                    .where(UserConversation.user_id == user_id)
-                    .where(UserConversation.conversation_id == conversation.id)
-                ).first()
-
-                if user_conversation:
-                    is_favorite = user_conversation.is_favorite
-
-            return self._build_conversation_dict(conversation, list(contacts), is_favorite)
+        conversation = session.get(Conversation, conversation_id)
+        if not conversation:
+            raise ValueError(f"Conversation with id {conversation_id} not found")
+        return self._build_conversation_dict(conversation, conversation.contacts)
 
     @session
     def create_conversation(
-        self, conversation_type: ConversationType, contacts: list[Contact], custom_name: str|None, user: User, session:Session|None = None
+        self,
+        conversation_type: ConversationType,
+        contacts: list[Contact],
+        custom_name: str | None,
+        user: User,
+        session: Session,
     ) -> Conversation:
         """
         Create a new conversation.
@@ -127,22 +83,22 @@ class ConversationService:
         """
 
         new_conversation = Conversation(
-            type=conversation_type if conversation_type else ConversationType.GROUP, custom_name=custom_name, contacts=contacts, users=[user]
+            type=conversation_type if conversation_type else ConversationType.GROUP,
+            custom_name=custom_name,
+            contacts=contacts,
+            users=[user],
         )
         session.add(new_conversation)
 
         return new_conversation
 
-    def _build_conversation_dict(
-        self, conversation: Conversation, contacts: list[Contact], is_favorite: bool
-    ) -> dict:
+    def _build_conversation_dict(self, conversation: Conversation, contacts: list[Contact]) -> dict:
         """
         Build a conversation dictionary with all related data.
 
         Args:
             conversation: Conversation model instance
             contacts: List of Contact model instances
-            is_favorite: Whether the user marked this conversation as favorite
 
         Returns:
             Dictionary with conversation data including contacts and favorite status
@@ -154,7 +110,7 @@ class ConversationService:
             "contacts": contacts_data,
             "custom_name": conversation.custom_name,
             "type": conversation.type.value,
-            "is_favorite": is_favorite,
+            "is_favorite": conversation.is_favorite,
         }
 
     @staticmethod
@@ -178,13 +134,12 @@ class ConversationService:
         }
 
     @session
-    def get_conversation_by_members(self, members: list[Contact], session:Session = None) -> Conversation:
+    def get_conversation_by_members(
+        self, members: list[Contact], session: Session
+    ) -> Conversation | None:
         ids = [member.id for member in members]
-        stmt = ( #get the conversation with the most common members.
-            select(
-                Conversation,
-                func.count(ConversationContact.contact_id).label("hit_count")
-            )
+        stmt = (  # get the conversation with the most common members.
+            select(Conversation, func.count(ConversationContact.contact_id).label("hit_count"))
             .join(ConversationContact)
             .where(ConversationContact.contact_id.in_(ids))
             .group_by(Conversation.id)
@@ -195,10 +150,9 @@ class ConversationService:
         result = session.exec(stmt).first()
         if not result:
             return None
-        #if the number of common members equals the size of member list, it's the same conversation
+        # if the number of common members equals the size of member list, it's the same conversation
         (conversation, member_match_count) = result
         if conversation and member_match_count == len(members):
             return conversation
         else:
             return None
-

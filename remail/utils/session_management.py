@@ -1,6 +1,6 @@
+import contextvars
 from functools import wraps
 from inspect import signature
-import contextvars
 
 from sqlmodel import Session
 
@@ -10,6 +10,7 @@ from remail.database import engine
 _current_session: contextvars.ContextVar[Session | None] = contextvars.ContextVar(
     "current_session", default=None
 )
+
 
 def session(func):
     sig = signature(func)

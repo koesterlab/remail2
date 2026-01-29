@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING
 
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -17,4 +17,4 @@ class Thread(SQLModel, table=True):
     messages: list["Email"] = Relationship(back_populates="thread")
     conversation: "Conversation" = Relationship(back_populates="threads")
     unread_count: int = Field(default=0)
-    last_message_time: Optional[datetime] = Field(default=None)
+    last_message_time: datetime | None = Field(default=None)

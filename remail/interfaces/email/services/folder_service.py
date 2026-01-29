@@ -1,5 +1,5 @@
 from contextlib import contextmanager
-from datetime import datetime, timedelta
+from datetime import datetime
 
 from imapclient import IMAPClient
 
@@ -47,10 +47,7 @@ class FolderService:
             List of folder names
         """
 
-        return [
-            name
-            for flags, _, name in self.imap_client.list_folders()
-        ]
+        return [name for flags, _, name in self.imap_client.list_folders()]
 
     def get_trash_folder(self) -> str | None:
         """

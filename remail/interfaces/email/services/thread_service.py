@@ -8,10 +8,11 @@ from email.header import decode_header
 from typing import TYPE_CHECKING
 
 from sqlalchemy import func
-from sqlmodel import Session, col, desc, select
+from sqlmodel import Session, desc, select
 
+from remail.controllers.dtos.threads import ThreadDTO
 from remail.database import engine
-from remail.models import Attachment, Contact, Email, EmailReception, Thread, Conversation
+from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
 from remail.utils.session_management import session
 
 if TYPE_CHECKING:
@@ -28,7 +29,8 @@ class ThreadService:
         """Initialize thread service."""
         self.engine = engine
 
-    def get_thread_by_id(self, thread_id: int) -> ThreadDTO | None:
+    @session
+    def get_thread_by_id(self, thread_id: int, session: Session) -> ThreadDTO | None:
         """
         Fetch a thread with all its messages.
 
@@ -39,17 +41,10 @@ class ThreadService:
             ThreadDTO with thread data including messages, or None if not found
         """
 
-        with Session(self.engine) as session:
-            thread = session.get(Thread, thread_id)
-
-            if not thread:
-                return None
-
-            messages = session.exec(
-                select(Email).where(Email.thread_id == thread_id).order_by(col(Email.sent_at))
-            ).all()
-
-            return self._build_thread_dto(session, thread, list(messages))
+        thread = session.get(Thread, thread_id)
+        if not thread:
+            return None
+        return ThreadDTO.from_model(thread)
 
     def create_thread(self, title: str, conversation_id: int) -> Thread:
         """
@@ -101,7 +96,9 @@ class ThreadService:
             return self._build_thread_preview_dict(thread, list(messages))
 
     @session
-    def organize_email_into_thread(self, email: Email, subject:str, conversation: Conversation, session:Session=None) -> None:
+    def organize_email_into_thread(
+        self, email: Email, subject: str, conversation: Conversation, session: Session
+    ) -> None:
         """
         Organize emails into threads within a conversation.
 
@@ -116,7 +113,8 @@ class ThreadService:
             subject = self.normalize_subject(subject)
             existing_thread = session.exec(
                 select(Thread).where(
-                    (Thread.conversation_id == conversation_id) & (func.lower(Thread.title) == subject.lower())
+                    (Thread.conversation_id == conversation_id)
+                    & (func.lower(Thread.title) == subject.lower())
                 )
             ).first()
 
@@ -125,13 +123,15 @@ class ThreadService:
                     email.thread = existing_thread
                     if not email.read:
                         existing_thread.unread_count = existing_thread.unread_count + 1
-                    existing_thread.last_message_time = max(existing_thread.last_message_time, email.sent_at)
+                    existing_thread.last_message_time = max(
+                        existing_thread.last_message_time, email.sent_at
+                    )
             else:
                 new_thread = Thread(
                     title=subject,
                     conversation_id=conversation.id,
-                    unread_count= 0 if email.read else 1,
-                    last_message_time = email.sent_at,
+                    unread_count=0 if email.read else 1,
+                    last_message_time=email.sent_at,
                 )
 
                 session.add(new_thread)
@@ -139,39 +139,74 @@ class ThreadService:
         except Exception as e:
             print(e)
 
-    #from here with chatgpt
+    # from here with chatgpt
     _PREFIXES = [
-        "re", "fw", "fwd", "fwd:", "fwd", "rv", "tr", "antwort",
+        "re",
+        "fw",
+        "fwd",
+        "fwd:",
+        "fwd",
+        "rv",
+        "tr",
+        "antwort",
         # deutsch
         "aw",
         # französisch
-        "re", "tr", "r\u00E9",  # Ré:
+        "re",
+        "tr",
+        "r\u00e9",  # Ré:
         # spanisch / portugiesisch
-        "res", "rsp", "resposta", "res:", "res",
+        "res",
+        "rsp",
+        "resposta",
+        "res:",
+        "res",
         # italienisch
-        "ris", "rif",
+        "ris",
+        "rif",
         # niederländisch
-        "antw", "doorsturen", "dv",
+        "antw",
+        "doorsturen",
+        "dv",
         # skandinavisch (se/fi/no/dk)
-        "sv", "vs", "vedr", "ang", "svar", "vid", "bs", "vb",
+        "sv",
+        "vs",
+        "vedr",
+        "ang",
+        "svar",
+        "vid",
+        "bs",
+        "vb",
         # osteuropa
-        "odp", "odp:", "odp", "odpoveď", "odpověď", "ats", "atb",
+        "odp",
+        "odp:",
+        "odp",
+        "odpoveď",
+        "odpověď",
+        "ats",
+        "atb",
         # russisch
         "\u043e\u0442\u0432",  # Отв:
         "\u043f\u0435\u0440\u0435\u0441\u044b\u043b\u043a\u0430",  # Пересылка:
         # türkisch
-        "yn:", "cevap", "ilet", "ynt",
+        "yn:",
+        "cevap",
+        "ilet",
+        "ynt",
         # arabisch (vereinfachte latinisierte Varianten)
-        "rad", "twd",
+        "rad",
+        "twd",
         # chinesisch + japanisch (vereinfacht, translit.)
-        "huifu", "转发", "回复", "答复", "転送", "返信"
+        "huifu",
+        "转发",
+        "回复",
+        "答复",
+        "転送",
+        "返信",
     ]
 
     _PREFIX_REGEX = re.compile(
-        r"^(?:"
-        + r"|".join([re.escape(p) for p in _PREFIXES])
-        + r")\s*:\s*",
-        re.IGNORECASE
+        r"^(?:" + r"|".join([re.escape(p) for p in _PREFIXES]) + r")\s*:\s*", re.IGNORECASE
     )
 
     @classmethod
@@ -181,7 +216,7 @@ class ThreadService:
         """
         if not subject:
             return subject
-        subject = ''.join(
+        subject = "".join(
             part.decode(enc or "utf-8") if isinstance(part, bytes) else part
             for part, enc in decode_header(subject)
         )
@@ -193,7 +228,8 @@ class ThreadService:
             cleaned = new
 
         return cleaned.strip() or "Unparsable Subject"
-    #chatgpt end
+
+    # chatgpt end
 
     def _build_thread_dto(
         self, session: Session, thread: Thread, messages: list[Email]
@@ -334,7 +370,7 @@ class ThreadService:
                 last_name=sender.last_name or "" if sender else "",
                 email=sender.email_address if sender else "",
             ),
-            subject=email.subject,
+            subject=email.thread.title,
             content=MessageContentDTO(
                 body=email.body,
                 attachments=[

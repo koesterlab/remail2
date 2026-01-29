@@ -3,13 +3,15 @@
 from __future__ import annotations
 
 import traceback
+from collections.abc import AsyncGenerator, Callable
 from datetime import datetime
-from typing import TYPE_CHECKING, Callable, AsyncGenerator
+from typing import TYPE_CHECKING
 
 from sqlmodel import Session, select
 
 import remail
 from remail.database import engine
+from remail.interfaces.email import EmailProtocol
 from remail.models import (
     Conversation,
     Email,
@@ -19,7 +21,6 @@ from remail.models import (
 from remail.utils.session_management import session
 
 if TYPE_CHECKING:
-    from remail.interfaces.email.protocols.imap import ImapProtocol
     from remail.interfaces.email.services.email_parser import EmailParser
 
 
@@ -28,9 +29,9 @@ class EmailSyncService:
 
     def __init__(
         self,
-        protocol: "EmailProtocol",
+        protocol: EmailProtocol,
         email_parser: EmailParser,
-        user: User,
+        user_id: int,
     ):
         """
         Initialize email sync service.
@@ -41,13 +42,15 @@ class EmailSyncService:
         """
 
         self.engine = engine
-        self.user = user
+        self.user_id = user_id
         self.protocol = protocol
         self.email_parser = email_parser
-        self.changed_mails:list[int] = [] #list of mails(uid) that were changed after the frontend checked for the last time
+        self.changed_mails: list[
+            int
+        ] = []  # list of mails(uid) that were changed after the frontend checked for the last time
 
     @session
-    def sync_emails(self, since: datetime | None = None, session:Session = None) -> dict:
+    def sync_emails(self, session: Session, since: datetime | None = None) -> dict:
         """
         Sync emails from IMAP server to database.
 
@@ -61,14 +64,15 @@ class EmailSyncService:
             Dict with sync status and statistics
         """
 
+        user = session.get(User, self.user_id)
         # Determine the cutoff date for fetching
-        fetch_since = since or self.user.last_refresh
+        fetch_since = since or user.last_refresh
 
         # Fetch emails from IMAP
         try:
             if not self.protocol.logged_in:
                 self.protocol.login()
-            raw_emails = self.protocol.fetch_emails(since=fetch_since, folder="INBOX")
+            raw_emails = self.protocol.fetch_emails(since=fetch_since)
 
         except Exception as e:
             return {
@@ -78,7 +82,7 @@ class EmailSyncService:
             }
 
         if not raw_emails:
-            self.user.last_refresh = datetime.now()
+            user.last_refresh = datetime.now()
 
             return {
                 "status": "success",
@@ -99,7 +103,7 @@ class EmailSyncService:
                     continue
 
                 # Process and save the email
-                mail = self.email_parser.process_email(raw_email, self.user, uid)
+                self.email_parser.process_email(raw_email, user, uid)
                 synced_count += 1
 
             except Exception as e:
@@ -108,7 +112,7 @@ class EmailSyncService:
                 continue
 
         # Update user's last_refresh timestamp
-        self.user.last_refresh = datetime.now()
+        user.last_refresh = datetime.now()
 
         return {
             "status": "success",
@@ -120,9 +124,7 @@ class EmailSyncService:
     async def wait_for_mail_changes_async(self) -> AsyncGenerator[None, None]:
         # clone protocol because connection will always be blocked
         protokol = remail.interfaces.email.protocols.imap.ImapProtocol(
-            self.protocol.user_username,
-            self.protocol.user_password,
-            self.protocol.host
+            self.protocol.user_username, self.protocol.user_password, self.protocol.host
         )
         protokol.login()
         protokol.IMAP.select_folder("INBOX")  # TODO: find inbox folder
@@ -133,13 +135,14 @@ class EmailSyncService:
                 if update[0] == b"EXISTS":
                     self.sync_emails(since=last_refresh)
                 elif update[0] == b"EXPUNGE":
+
                     def delete(mail: Email) -> None:
                         mail.deleted = True
 
                     self._update_mail_data(update[1], delete)
                 elif update[0] == b"FLAGS":
-                    msgid = update[1][0]
-                    flags = update[1][1]
+                    # msgid = update[1][0]
+                    # flags = update[1][1]
                     # TODO: inspect FLAGS data
                     pass
                 # signal that something happened
@@ -148,9 +151,7 @@ class EmailSyncService:
     def _update_mail_data(self, uid: int, modifier: Callable[[Email], None]):
         self.changed_mails.append(uid)
         with Session(engine) as session:
-            mail = session.exec(
-                select(Email).where(Email.imap_uid == uid)
-            ).first()
+            mail = session.exec(select(Email).where(Email.imap_uid == uid)).first()
             modifier(mail)
             session.commit()
             session.refresh(mail)
@@ -177,10 +178,11 @@ class EmailSyncService:
             return []
         with Session(self.engine) as session:
             result = session.exec(
-                select(Conversation).distinct()
-                    .join(Thread, onclause=(Conversation.conversation_id == Thread.conversation_id))
-                    .join(Email, onclause=(Thread.id == Email.thread_id))
-                    .where(Email.imap_uid.in_(self.changed_mails))
+                select(Conversation)
+                .distinct()
+                .join(Thread, onclause=(Conversation.conversation_id == Thread.conversation_id))
+                .join(Email, onclause=(Thread.id == Email.thread_id))
+                .where(Email.imap_uid.in_(self.changed_mails))
             ).all()
 
         self.changed_mails = []

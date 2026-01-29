@@ -4,6 +4,7 @@ from remail.database import engine
 from remail.models import Contact, User
 from remail.utils.session_management import session
 
+
 class ContactService:
     """Service for managing contacts."""
 
@@ -13,7 +14,7 @@ class ContactService:
         self.engine = engine
 
     @session
-    def get_contact_by_id(self, contact_id: int, session:Session) -> Contact | None:
+    def get_contact_by_id(self, contact_id: int, session: Session) -> Contact | None:
         """
         Fetch a contact by ID.
 
@@ -27,7 +28,7 @@ class ContactService:
         return session.get(Contact, contact_id)
 
     @session
-    def create_contact(self, name: str, email: str, session:Session|None) -> Contact:
+    def create_contact(self, name: str, email: str, session: Session) -> Contact:
         new_contact = Contact(
             name=name,
             email_address=email,
@@ -37,8 +38,13 @@ class ContactService:
         return new_contact
 
     @session
-    def get_or_create_contact(self, email: str, name:str = None, session:Session = None) -> Contact:
-        contact = session.exec( select(Contact).where(Contact.email_address == email)).first()
+    def get_or_create_contact(
+        self,
+        email: str,
+        session: Session,
+        name: str = None,
+    ) -> Contact:
+        contact = session.exec(select(Contact).where(Contact.email_address == email)).first()
         if contact:
             return contact
         contact = Contact(name=name, email_address=email, is_known=False)
@@ -46,4 +52,4 @@ class ContactService:
         return contact
 
     def get_user_contact(self, user: User) -> Contact:
-        return self.get_or_create_contact(user.email, user.name)
+        return self.get_or_create_contact(user.email, name=user.name)

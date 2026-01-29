@@ -3,8 +3,7 @@ from __future__ import annotations
 import email as py_email
 from collections import OrderedDict
 from datetime import datetime, timedelta
-from mailbox import Message
-from typing import List
+from email.message import Message
 
 from imapclient import IMAPClient
 from imapclient.exceptions import LoginError
@@ -23,10 +22,13 @@ from remail.models import Email
 
 UTC = timezone("UTC")
 
+
 class ImapException(Exception):
     def __str__(self):
         return f"Unable to connect to IMAP server: {self.args[0]}"
+
     pass
+
 
 class ImapProtocol(EmailProtocol):
     """IMAP/SMTP email protocol implementation."""
@@ -52,7 +54,7 @@ class ImapProtocol(EmailProtocol):
         try:
             self.IMAP = IMAPClient(self.host, use_uid=True, ssl=True)
         except Exception as e:
-            raise ImapException(e)
+            raise ImapException(e) from e
 
         # Initialize services
         self.folder_service = FolderService(self.IMAP)
@@ -82,6 +84,11 @@ class ImapProtocol(EmailProtocol):
         except LoginError:
             raise ee.InvalidLoginData() from None
 
+    def logout(self) -> None:
+        if not self.logged_in:
+            return
+        self.IMAP.logout()
+
     @email_error_handler
     def fetch_emails(
         self,
@@ -105,7 +112,7 @@ class ImapProtocol(EmailProtocol):
             since = max(since, datetime.now() - timedelta(days=365))
         boxes = [folder] if folder else self.folder_service.get_all_folders()
         criteria = FolderService.build_search_criteria(since, flags)
-        out: list[tuple[int, Message]] = []
+        out: list[tuple[str, Message[str, str]]] = []
 
         for box in boxes:
             with self.folder_service.selected_folder(box):
@@ -118,7 +125,6 @@ class ImapProtocol(EmailProtocol):
 
             for uid, data in fetched.items():
                 try:
-
                     em = py_email.message_from_bytes(data[b"RFC822"])
 
                     if since:
@@ -145,7 +151,7 @@ class ImapProtocol(EmailProtocol):
                             except Exception:  # nosec B112
                                 continue
 
-                    out.append((uid, em))#self.email_parser.parse_email_message(em, uid))
+                    out.append((uid, em))  # self.email_parser.parse_email_message(em, uid))
                 except Exception as e:
                     print(e)
 
@@ -160,17 +166,17 @@ class ImapProtocol(EmailProtocol):
         recipients = conversation.contacts
 
         msg = MessageBuilder.build_message(
-            subject=mail.subject or "",
+            subject=mail.thread.title or "",
             body=mail.body or "",
             from_addr=self.user_username or "",
-            to=map(lambda c: f"{c.first_name} {c.last_name} <{c.email_address}>", recipients),
-            cc=[]
+            to=[f"{c.first_name} {c.last_name} <{c.email_address}>" for c in recipients],
+            cc=[],
         )
 
         if mail.attachments:
             MessageBuilder.attach_files(msg, (a.filename for a in mail.attachments))
 
-        ordered_recipients: List[str] = map(lambda c: c.email_address, recipients)
+        ordered_recipients: list[str] = [c.email_address for c in recipients]
         envelope = list(OrderedDict.fromkeys(ordered_recipients).keys())
 
         self.smtp_sender.send(msg, envelope)

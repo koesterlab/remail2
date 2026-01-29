@@ -4,8 +4,7 @@ from remail.controllers.dtos.conversations import (
     ThreadPreviewDTO,
 )
 from remail.enums import ContactType
-from remail.interfaces.email.services import ConversationService
-from remail.interfaces.email.services import ThreadService
+from remail.interfaces.email.services import ConversationService, ThreadService
 
 
 class ConversationsController:
@@ -43,6 +42,7 @@ class ConversationsController:
 
             result.append(
                 ConversationDTO(
+                    id=conv["id"],
                     contacts=[
                         ContactDTO(
                             id=c["id"],

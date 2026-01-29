@@ -2,12 +2,9 @@
 
 import flet as ft
 
-from remail.client.scheduler import Scheduler
 from remail.client.state.app_state import AppState
 from remail.controllers import SettingsController
-from remail.controllers.email_controller import EmailController
 from remail.enums import FontFamily, FontSize, Language, ThemeMode, Timezone
-from remail.interfaces.email.services.email_sync_service import EmailSyncService
 from remail.interfaces.email.services.user_service import UserService
 
 
