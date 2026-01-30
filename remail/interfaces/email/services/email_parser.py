@@ -67,7 +67,7 @@ class EmailParser:
             message_id=message_id,
             body=body,
             sent_at=sent_at,
-            sender_id=sender_contact.id,  # type: ignore
+            sender=sender_contact,
             thread=None,  # type: ignore
             imap_uid=uid,
         )
@@ -76,6 +76,9 @@ class EmailParser:
         self.thread_service.organize_email_into_thread(
             email=db_email, conversation=conversation, subject=raw_email.get("Subject", "unknown")
         )
+
+        # Ensure email has a primary key before creating dependent rows
+        session.flush()
 
         # Create EmailReception records for all recipients
         self._create_email_receptions(db_email, to_recipients, cc_recipients, bcc_recipients)
@@ -99,16 +102,35 @@ class EmailParser:
         Returns:
             Contact objects from the database that was found or new created
         """
-        raw_value = raw_email.get(key)
-        if not raw_value:
+        raw_values = raw_email.get_all(key, [])
+        if not raw_values:
             return []
-        addr = getaddresses([raw_value])
+        decoded_values = [self._decode_header_value(v) for v in raw_values]
+        addr = getaddresses(decoded_values)
         if not addr:
             return []
 
-        return [
-            self.contact_service.get_or_create_contact(e[1], name=e[0] if e else None) for e in addr
-        ]
+        participants: list[Contact] = []
+        for name, email in addr:
+            decoded_name = self._decode_header_value(name).strip() if name else ""
+            decoded_email = self._decode_header_value(email).strip() if email else ""
+            if not decoded_email and "@" in decoded_name:
+                decoded_email = decoded_name
+                decoded_name = ""
+            if not decoded_email or "@" not in decoded_email:
+                continue
+            participants.append(
+                self.contact_service.get_or_create_contact(decoded_email, name=decoded_name or None)
+            )
+
+        return participants
+
+    @staticmethod
+    def _decode_header_value(value: str) -> str:
+        try:
+            return str(make_header(decode_header(value)))
+        except Exception:
+            return value
 
     def _get_or_create_contact(self, session: Session, contact_data: dict) -> Contact:
         """
@@ -298,7 +320,7 @@ class EmailParser:
             for contact in contacts:
                 reception = EmailReception(
                     kind=category,
-                    email_id=email.id,  # type: ignore
-                    contact_id=contact.id,  # type: ignore
+                    email=email,
+                    contact=contact,
                 )
                 session.add(reception)
