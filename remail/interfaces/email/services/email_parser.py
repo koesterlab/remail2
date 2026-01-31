@@ -312,12 +312,17 @@ class EmailParser:
             cc_recipients: List of CC recipient (name, email) tuples
             bcc_recipients: List of BCC recipient (name, email) tuples
         """
+
+        already_added = set()
         for category, contacts in (
             (RecipientKind.TO, to_recipients),
             (RecipientKind.CC, cc_recipients),
             (RecipientKind.BCC, bcc_recipients),
         ):
             for contact in contacts:
+                if contact in already_added:
+                    continue
+                already_added.add(contact)
                 reception = EmailReception(
                     kind=category,
                     email=email,
