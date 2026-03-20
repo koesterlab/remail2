@@ -9,14 +9,15 @@ from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import MainView, SettingsSubView
+from ..view_router import ViewRouter
 
 from ...state.main_app_state import MainAppState, MainAppStateProperties
 from ...widgets.dashboard.dashboard_page import DashboardPage
 from ...widgets.thread.thread_list import ThreadList
 
 
-def create_main_view(page: ft.Page, global_state: AppState):
-    main_state = MainAppState(global_state)
+def create_main_view(page: ft.Page, router:ViewRouter) -> ft.Container:
+    main_state = MainAppState()
     main_state.set(MainAppStateProperties.DISPLAYED_MAILS, [])
     main_state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
     main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
@@ -146,7 +147,7 @@ def create_main_view(page: ft.Page, global_state: AppState):
     chatbot.height = 60
     chatbot.expand = False
 
-    container = ft.ResponsiveRow(
+    container = ft.Container(ft.ResponsiveRow(
         expand=True,
         controls=[
             ft.Column(
@@ -154,6 +155,6 @@ def create_main_view(page: ft.Page, global_state: AppState):
             ),
             right_view,
         ],
-    )
+    ))
 
     return container

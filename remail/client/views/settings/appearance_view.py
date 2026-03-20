@@ -1,8 +1,11 @@
 """Appearance settings view."""
+from abc import ABC
 
 import flet as ft
 
 from remail.client.state.app_state import AppState
+from remail.client.views.settings.settings_sub_view import SettingsSubView
+from remail.client.views.view_router import View
 from remail.client.widgets.settings.appearance import (
     create_font_family_selector,
     create_font_size_selector,
@@ -11,7 +14,31 @@ from remail.client.widgets.settings.appearance import (
 from remail.controllers import SettingsController
 from remail.controllers.dtos import SettingsDTO
 
+class AppearanceView(SettingsSubView, ABC):
+    def create_view(self) -> View:
+        controller = SettingsController()
+        settings_data: SettingsDTO = controller.get_settings()
 
+        theme_selector = create_theme_selector(self.page, app_state)
+        font_size_selector = create_font_size_selector(page, app_state)
+        font_family_selector = create_font_family_selector(page, app_state)
+
+        # Load saved settings into UI controls
+        # Set theme
+        if hasattr(theme_selector.controls[1], "value"):
+            theme_selector.controls[1].value = settings_data.theme_mode
+
+        # Set font size if available
+        if len(font_size_selector.controls) > 1 and hasattr(
+                font_size_selector.controls[1], "value"
+        ):
+            font_size_selector.controls[1].value = settings_data.font_size
+
+        # Set font family if available
+        if len(font_family_selector.controls) > 1 and hasattr(
+                font_family_selector.controls[1], "value"
+        ):
+            font_family_selector.controls[1].value = settings_data.font_family
 def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
     """Create the appearance settings view with all appearance customization options.
 
@@ -23,29 +50,7 @@ def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
         A Container with the appearance settings view
     """
 
-    controller = SettingsController()
-    settings_data: SettingsDTO = controller.get_settings()
 
-    theme_selector = create_theme_selector(page, app_state)
-    font_size_selector = create_font_size_selector(page, app_state)
-    font_family_selector = create_font_family_selector(page, app_state)
-
-    # Load saved settings into UI controls
-    # Set theme
-    if hasattr(theme_selector.controls[1], "value"):
-        theme_selector.controls[1].value = settings_data.theme_mode
-
-    # Set font size if available
-    if len(font_size_selector.controls) > 1 and hasattr(
-        font_size_selector.controls[1], "value"
-    ):
-        font_size_selector.controls[1].value = settings_data.font_size
-
-    # Set font family if available
-    if len(font_family_selector.controls) > 1 and hasattr(
-        font_family_selector.controls[1], "value"
-    ):
-        font_family_selector.controls[1].value = settings_data.font_family
 
     def apply_appearance_settings(e):
         """Apply the selected appearance settings."""

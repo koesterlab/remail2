@@ -25,7 +25,7 @@ class MainAppStateProperties(Enum):
 
 
 class MainAppState(ObservableState[MainAppStateProperties]):
-    def __init__(self, global_state: AppState):
+    def __init__(self):
         super().__init__()
         self.__selected: list[ConversationDTO | ThreadPreviewDTO] = []
         self.__selection_listeners: dict[
@@ -33,7 +33,6 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         ] = {}
 
         self.thread_controller = ThreadController()
-        self.llm_controller = LLMController(global_state.sett)
         self.account_controllers: dict[str, AccountController] = {}
         self.sync_threads: list[Future] = []
         self.navigate_to_settings: Callable[[SettingsSubView], None] = lambda _: None

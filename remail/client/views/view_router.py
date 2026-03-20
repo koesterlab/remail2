@@ -1,44 +1,63 @@
+from abc import ABC, abstractmethod
 from collections.abc import Callable
+from dataclasses import dataclass
 
 import flet as ft
 
-from remail.enums import MainView
+class View(ft.Container, ABC):
+    @abstractmethod
+    def create_view(self) -> ft.Control:
+        ...
 
+    @abstractmethod
+    def on_subroute_change(self, subview: "View|None") -> None:
+        ...
+
+    def __init__(self, route:str) -> None:
+        self.route: str = route
+        self.sub_route: str|None = None
+        self.router: ViewRouter|None = None
 
 class ViewRouter:
-    """Router for managing main application views."""
-
-    def __init__(self, page: ft.Page):  # type: ignore # noqa: F821   # sonst circular import
+    def __init__(self, page: ft.Page) -> None:
+        self.views: dict[str, "View"] = {}
+        self.route = "/"
+        self.current_view: ft.Control|None = None
+        self.callback: Callable[[ft.Control], None] = lambda c: None
         self.page = page
+        page.on_route_change = lambda: self._set_route(page.route)
+    
+    def get_overflowing_route(self) -> str:
+        return self.overflowing_route
+    
+    def _set_route(self, route:str) -> None:
+        self.route = route
+        found_routes = []
+        for r, _ in self.views:
+            if len(route) < len(r): #to short, cannot be the right page
+                continue
+            if route[:len(r)] == r:
+                found_routes.append(r)
 
-        self._view_registry: dict[MainView, Callable] = {}
+        found_routes.sort(reverse=True) #order so the most specific link comes first
+        view:View|None = None
+        for r in found_routes: #iterating every match and pass sub-view to view
+            v = self.views[r]
+            if not v.rendered_view:
+                v.rendered_view = v.create_view()
+                v.router = self
 
-    def load_view(self, view: MainView) -> ft.Container:
-        """Load and return the specified view.
+            sub_route = route[len(r):]
+            if v.sub_route != sub_route:
+                v.sub_route = sub_route
+                v.on_subroute_change(view)
 
-        Args:
-            view: The main view to load
+        self.page.clean()
+        self.page.add(view if view else ft.Text("URI: " + route + " not found"))
+        self.callback(self.current_view)
 
-        Returns:
-            The view container
-
-        Raises:
-            ValueError: If the view is not registered
-        """
-
-        if view not in self._view_registry:
-            raise ValueError(f"View {view} is not registered")
-
-        view_creator = self._view_registry[view]
-
-        return view_creator(self.page, self)
-
-    def register_view(self, view: MainView, view_creator: Callable[[ft.Page, ViewRouter], ft.Control]) -> None:
-        """Register a new view creator.
-
-        Args:
-            view: The main view enum
-            view_creator: Function that creates the view
-        """
-
-        self._view_registry[view] = view_creator
+    def register_view(self, view:View) -> None:
+        self.views[view.route] = view
+        
+    def set_on_change(self, callback: Callable[[ft.Control], None]) -> None:
+        self.callback = callback
