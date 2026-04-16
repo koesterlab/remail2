@@ -1,5 +1,4 @@
 import asyncio
-from abc import ABC
 
 import flet as ft
 
@@ -8,29 +7,19 @@ from remail.client.widgets.mail_selection import SelectionBar
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
-from ..view_router import View
+from remail.enums import SettingsSubView
 
 from ...state.main_app_state import MainAppState, MainAppStateProperties
 from ...widgets.dashboard.dashboard_page import DashboardPage
 from ...widgets.thread.thread_list import ThreadList
 
-class MainView(View, ABC):
-    def __init__(self) -> None:
-        super().__init__("/start")
-
-    def create_view(self) -> ft.Control:
-        main_state = MainAppState()
-        main_state.set(MainAppStateProperties.DISPLAYED_MAILS, [])
-        main_state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
-        main_state.set(MainAppStateProperties.ACTIVE_THREAD, None)
-        main_state.set(MainAppStateProperties.ACTIVE_CONVERSATION, None)
-        main_state.set(MainAppStateProperties.ACTIVE_THREAD_CONVERSATION, None)
-        main_state.set(MainAppStateProperties.SEARCH_TERM, "")
-        selection_bar = SelectionBar(main_state)
+class MainView(ft.Container):
+    def __init__(self, state:MainAppState) -> None:
+        selection_bar = SelectionBar(state)
 
         def on_thread_change(new: ThreadPreviewDTO | None) -> None:
             if new:
-                right_view.content = ThreadList(main_state)
+                right_view.content = ThreadList(state)
             else:
                 right_view.content = dashboard
             right_view.update()
@@ -41,14 +30,14 @@ class MainView(View, ABC):
             else:
                 chatbot.expand = False
                 chatbot.height = 60
-            container.update()
+            self.update()
 
         def on_emails_synced(acting_account: UserDTO, updates: list[ConversationDTO]):
-            if acting_account == main_state.get(
+            if acting_account == state.get(
                 MainAppStateProperties.ACTIVE_USER
             ):  # if active account: show new mails
                 # todo: more efficient resync (maybe with observable conversation DTOs)
-                conversations: list[ConversationDTO] = main_state.get(
+                conversations: list[ConversationDTO] = state.get(
                     MainAppStateProperties.DISPLAYED_MAILS
                 )
                 for update in updates:
@@ -58,7 +47,7 @@ class MainView(View, ABC):
                             break
                     else:  # conversation was not found in last state
                         conversations.append(update)
-                main_state.trigger(
+                state.trigger(
                     MainAppStateProperties.DISPLAYED_MAILS
                 )  # object (array) stays the same, no need to set it again
             else:
@@ -78,16 +67,16 @@ class MainView(View, ABC):
             self.page.update()
 
         # stop old listeners
-        for t in main_state.sync_threads:
+        for t in state.sync_threads:
             t.cancel()
 
         # register new accounts and start listening
         accounts = AccountController.all_client_accounts()
         if not accounts:
-            main_state.set(MainAppStateProperties.ACTIVE_USER, None)
+            state.set(MainAppStateProperties.ACTIVE_USER, None)
         else:
             for acc in accounts:
-                main_state.account_controllers[acc.get_email_address()] = acc
+                state.account_controllers[acc.get_email_address()] = acc
                 acc.set_callback_email_changes(
                     lambda updates, acc_= acc: on_emails_synced(acc_.get_user(), updates)
                 )
@@ -99,19 +88,19 @@ class MainView(View, ABC):
                     lambda acc_=acc: asyncio.run(acc_.start_listening())
                 )  # running sync task in flets own async system
 
-            main_state.set(MainAppStateProperties.ACTIVE_USER, accounts[0].get_user())
-        main_state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
-        main_state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
+            state.set(MainAppStateProperties.ACTIVE_USER, accounts[0].get_user())
+        state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
+        state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
 
         empty_accounts_view = ft.Container(
             ft.Column(
                 [
                     ft.Text("No email accounts connected yet", size=18, weight=ft.FontWeight.BOLD),
                     ft.Text("Add an account in Settings to start syncing your inbox."),
-                    ft.ElevatedButton(
+                    ft.Button(
                         "Open Settings",
                         icon=ft.Icons.SETTINGS,
-                        on_click=lambda _: self.page.go("/settings/email"),
+                        on_click=lambda _: state.set(MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubView.APPEARANCE),
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -123,20 +112,20 @@ class MainView(View, ABC):
             expand=True,
         )
 
-        dashboard = ft.Container(content=DashboardPage(main_state), padding=10)
+        dashboard = ft.Container(content=DashboardPage(state), padding=10)
 
         right_view = ft.Container(
-            DashboardPage(main_state) if main_state.account_controllers else empty_accounts_view,
+            DashboardPage(state) if state.account_controllers else empty_accounts_view,
             col={"xs": 6, "md": 8, "lg": 9},
             expand=True,
         )
 
         # Chatbot
-        chatbot = create_chatbot(main_state)
+        chatbot = create_chatbot(state)
         chatbot.height = 60
         chatbot.expand = False
 
-        container = ft.Container(ft.ResponsiveRow(
+        self.content = ft.ResponsiveRow(
             expand=True,
             controls=[
                 ft.Column(
@@ -144,8 +133,4 @@ class MainView(View, ABC):
                 ),
                 right_view,
             ],
-        ))
-
-        return container
-    def on_subroute_change(self, subview: "View|None") -> None:
-        ...
+        )

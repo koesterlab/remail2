@@ -12,7 +12,7 @@ class SettingsController:
         self.service = SettingsService()
 
     @session
-    def get_settings(self) -> SettingsDTO | None:
+    def get_settings(self) -> SettingsDTO:
         """
         Load current settings.
 

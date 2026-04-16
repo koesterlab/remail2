@@ -2,22 +2,20 @@
 from abc import ABC
 
 import flet as ft
+from setuptools.config import expand
 
-from remail.client.views.view_router import View
+from remail.client.state import MainAppState, MainAppStateProperties
+from remail.client.views.settings import AppearanceView, EmailAccountsView, LanguageView, NotificationsView
+from remail.enums import SettingsSubView
 
 
-class SettingsView(View):
-    def __init__(self):
+class SettingsView(ft.Container):
+    def __init__(self, state: MainAppState):
         super().__init__("/settings")
-        self.sub_view = ft.Container()
-
-    def create_view(self) -> ft.Control:
-        self.page.title = "Settings"
-
         back_button = ft.IconButton(
             icon=ft.Icons.ARROW_BACK,
             tooltip="Back to Dashboard",
-            on_click=lambda: self.page.go("/start/dashboard"),
+            on_click=lambda: state.set(MainAppStateProperties.ACTIVE_SETTINGS, None),
         )
 
         # Create header with back button
@@ -32,6 +30,7 @@ class SettingsView(View):
         )
 
         # Create main layout
+        sub_view = ft.Container(expand=True)
         main_row = ft.Row(
             controls=[
                 ft.Container(
@@ -39,11 +38,15 @@ class SettingsView(View):
                         controls=[
                             ft.TextButton(
                                 content=label,
-                                on_click=lambda: self.page.go(f"/settings/{link_name}"),
+                                on_click=lambda: state.set(MainAppStateProperties.ACTIVE_SETTINGS, link_name),
                                 style=ft.ButtonStyle(
                                     color= ft.Colors.ON_SURFACE,
                                 ),
-                            ) for label, link_name in [("Appearance", "appearance"), ("Email Accounts", "email"), ("Language", "language"), ("Notification", "notifications")]
+                            ) for label, link_name in [
+                                ("Appearance", SettingsSubView.APPEARANCE),
+                                ("Email Accounts", SettingsSubView.EMAIL_ACCOUNTS),
+                                ("Language", SettingsSubView.LANGUAGE),
+                                ("Notification", SettingsSubView.NOTIFICATIONS)]
                         ],
                         spacing=16,
                     ),
@@ -52,25 +55,31 @@ class SettingsView(View):
                 ),
 
                 ft.VerticalDivider(width=1),
-                self.sub_view,
+                sub_view,
             ],
             expand=True,
         )
 
-        return ft.Container(
-            content=ft.Column(
-                [
-                    header,
-                    ft.Divider(height=1),
-                    ft.Container(content=main_row, expand=True),
-                ],
-                expand=True,
-            ),
+        def update_subview():
+            sub_view.content = {
+                SettingsSubView.APPEARANCE: AppearanceView,
+                SettingsSubView.EMAIL_ACCOUNTS: EmailAccountsView,
+                SettingsSubView.LANGUAGE: LanguageView,
+                SettingsSubView.NOTIFICATIONS: NotificationsView
+            }[state.get(MainAppStateProperties.ACTIVE_SETTINGS)](state)
+            try:
+                sub_view.update()
+            except:
+                pass
+
+        update_subview()
+        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, lambda _: update_subview())
+
+        self.content=ft.Column(
+            [
+                header,
+                ft.Divider(height=1),
+                ft.Container(content=main_row, expand=True),
+            ],
             expand=True,
         )
-
-    def on_subroute_change(self, subview: "View|None") -> None:
-        """
-        Called when the sub-view (the specific settings page) changes.
-        """
-        self.sub_view = subview.get_view() if subview else ft.Container()

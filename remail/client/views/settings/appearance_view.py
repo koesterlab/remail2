@@ -6,6 +6,7 @@ import flet as ft
 from remail.client.state.app_state import AppState
 from remail.client.views.settings.settings_sub_view import SettingsSubView
 from remail.controllers import SettingsController
+from remail.controllers.dtos import SettingsDTO
 from remail.enums import FontFamily, FontSize, ThemeMode
 
 
@@ -17,8 +18,8 @@ class AppearanceView(SettingsSubView, ABC):
     def _apply_theme_mode(self, value: str) -> None:
         theme_mode = ThemeMode(value)
         self.app_state.theme_mode = theme_mode
-        if self._page_ref is not None:
-            self._page_ref.theme_mode = theme_mode
+        if self.page is not None:
+            self.page.theme_mode = theme_mode
         self.apply_settings("theme_mode", theme_mode)
 
     def _apply_font_size(self, value: str) -> None:
@@ -31,8 +32,7 @@ class AppearanceView(SettingsSubView, ABC):
         self.app_state.font_family = font_family
         self.apply_settings("font_family", font_family)
 
-    def create_view(self) -> ft.Control:
-        self.settings = self.controller.get_settings()
+    def create_page(self, settings:SettingsDTO) -> ft.Control:
         return ft.Container(
             ft.Column(
                 [
@@ -40,8 +40,7 @@ class AppearanceView(SettingsSubView, ABC):
                     ft.Text("Customize how the app looks and feels"),
                     ft.Divider(height=2, color=ft.Colors.BLACK),
                     ft.Text("Theme", weight=ft.FontWeight.BOLD),
-                    self.create_settings_depending(
-                        lambda: ft.RadioGroup(
+                    ft.RadioGroup(
                             content=ft.Row(
                                 [
                                     ft.Radio(value=ThemeMode.LIGHT.value, label="Light"),
@@ -51,25 +50,20 @@ class AppearanceView(SettingsSubView, ABC):
                             ),
                             value=self.settings.theme_mode.value,
                             on_change=lambda e: self._apply_theme_mode(e.control.value),
-                        )
                     ),
                     ft.Text("Font size", weight=ft.FontWeight.BOLD),
-                    self.create_settings_depending(
-                        lambda: ft.Dropdown(
+                    ft.Dropdown(
                             value=self.settings.font_size.value,
                             options=[ft.dropdown.Option(size.value) for size in FontSize],
                             width=200,
                             on_select=lambda e: self._apply_font_size(e.control.value),
-                        )
                     ),
                     ft.Text("Font family", weight=ft.FontWeight.BOLD),
-                    self.create_settings_depending(
-                        lambda: ft.Dropdown(
+                    ft.Dropdown(
                             value=self.settings.font_family.value,
                             options=[ft.dropdown.Option(family.value) for family in FontFamily],
                             width=200,
                             on_select=lambda e: self._apply_font_family(e.control.value),
-                        )
                     ),
                 ],
                 spacing=15,
@@ -80,9 +74,3 @@ class AppearanceView(SettingsSubView, ABC):
             alignment=ft.Alignment.CENTER_LEFT,
             expand=True,
         )
-
-
-def create_appearance_view(page: ft.Page, app_state: AppState) -> ft.Container:
-    view = AppearanceView(app_state)
-    view.set_page(page)
-    return view.create_view()
