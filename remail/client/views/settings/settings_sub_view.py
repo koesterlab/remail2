@@ -14,13 +14,24 @@ class SettingsSubView(View, ABC):
         self.controller = SettingsController()
         self.settings: SettingsDTO|None = None
         self._settings_change_handler: list[Callable[[], None]] = []
+        self._page_ref: ft.Page | None = None
+
+    def on_subroute_change(self, subview: View | None) -> None:
+        # Settings sub-views do not have nested routes.
+        return None
+
+    def set_page(self, page: ft.Page) -> None:
+        self._page_ref = page
 
     def create_settings_depending(self, creator: Callable[[], ft.Control]) -> ft.Control:
         """Creates a Container that re-renders the element when settings changed"""
         control = ft.Container()
         def render():
             control.content = creator()
-            control.update()
+            try:
+                control.update()
+            except RuntimeError:
+                pass
         self._settings_change_handler.append(render)
         render()
         return control
@@ -30,16 +41,19 @@ class SettingsSubView(View, ABC):
         setattr(self.settings, key, value)
         self.controller.update_settings(self.settings)
 
+        if self._page_ref is None:
+            raise RuntimeError("SettingsSubView requires a page reference before applying settings")
+
         # Show success message
         snack_bar = ft.SnackBar(
             content=ft.Text("Settings saved successfully"),
             bgcolor=ft.Colors.GREEN,
         )
-        self.page.overlay.append(snack_bar)
+        self._page_ref.overlay.append(snack_bar)
         snack_bar.open = True
 
         #update_listeners
         for l in self._settings_change_handler:
             l()
 
-        self.page.update()
+        self._page_ref.update()

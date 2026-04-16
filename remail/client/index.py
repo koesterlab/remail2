@@ -4,10 +4,10 @@ import flet as ft
 
 from remail.client.state import AppState
 from remail.client.state.settings_loader import load_settings_into_state
-from remail.client.views.main.main_view import create_main_view
-from remail.client.views.settings.settings_view import create_settings_view
+from remail.client.views.main import MainView
+from remail.client.views.settings import AppearanceView, LanguageView, NotificationsView, EmailAccountsView
+from remail.client.views.settings.settings_view import SettingsView
 from remail.client.views.view_router import ViewRouter
-from remail.enums import MainView
 from remail.interfaces.email.services.user_service import UserService
 
 
@@ -30,14 +30,14 @@ def main(page: ft.Page):
     # Create router and register views
     router = ViewRouter(page)
     app_state.router = router
-    router.register_view(MainView.SETTINGS, create_settings_view)
-    router.register_view(MainView.DASHBOARD, create_main_view)
+    router.register_view(SettingsView())
+    router.register_view(MainView())
+    router.register_view(AppearanceView())
+    router.register_view(EmailAccountsView())
+    router.register_view(LanguageView())
+    router.register_view(NotificationsView())
 
-    # Load initial view (Settings)
-    initial_view = router.load_view(MainView.DASHBOARD)
-
-    page.add(initial_view)
-
+    page.go("/start")
 
 if __name__ == "__main__":
     ft.context.disable_auto_update()

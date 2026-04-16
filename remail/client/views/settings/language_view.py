@@ -4,11 +4,13 @@ import flet as ft
 
 from remail.client.state.app_state import AppState
 from remail.client.views.settings.settings_sub_view import SettingsSubView
-from remail.client.views.view_router import View
 from remail.controllers import SettingsController
 from remail.enums import Language, Timezone
 
 class LanguageView(SettingsSubView, ABC):
+    def __init__(self):
+        super().__init__(route="language")
+
     def create_view(self) -> ft.Control:
         self.settings = self.controller.get_settings()
         return ft.Container(
@@ -40,3 +42,10 @@ class LanguageView(SettingsSubView, ABC):
             alignment=ft.Alignment.CENTER_LEFT,
             expand=True,
         )
+
+
+def create_language_view(page: ft.Page, app_state: AppState) -> ft.Container:
+    del app_state
+    view = LanguageView()
+    view.set_page(page)
+    return view.create_view()

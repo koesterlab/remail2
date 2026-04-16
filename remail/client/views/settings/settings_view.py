@@ -3,17 +3,10 @@ from abc import ABC
 
 import flet as ft
 
-from remail.client.state.app_state import AppState
-from remail.client.views.settings.appearance_view import create_appearance_view
-from remail.client.views.settings.email_accounts_view import create_email_accounts_view
-from remail.client.views.settings.language_view import create_language_view
-from remail.client.views.settings.notifications_view import create_notifications_view
-from remail.client.views.view_router import ViewRouter, View
-from remail.client.widgets.settings.navigation import create_settings_navigation
-from remail.enums import MainView, SettingsSubView
+from remail.client.views.view_router import View
 
 
-class SettingsView(View, ABC):
+class SettingsView(View):
     def __init__(self):
         super().__init__("/settings")
         self.sub_view = ft.Container()
@@ -80,4 +73,4 @@ class SettingsView(View, ABC):
         """
         Called when the sub-view (the specific settings page) changes.
         """
-        self.sub_view = subview.content if subview else ft.Container()
+        self.sub_view = subview.get_view() if subview else ft.Container()

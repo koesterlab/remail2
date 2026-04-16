@@ -4,6 +4,7 @@ import flet as ft
 
 from remail.client.state.app_state import AppState
 from remail.client.views.settings.settings_sub_view import SettingsSubView
+from remail.controllers import SettingsController
 
 class NotificationsView(SettingsSubView, ABC):
     def __init__(self):
@@ -53,3 +54,10 @@ class NotificationsView(SettingsSubView, ABC):
             alignment=ft.Alignment.CENTER_LEFT,
             expand=True,
         )
+
+
+def create_notifications_view(page: ft.Page, app_state: AppState) -> ft.Container:
+    del app_state
+    view = NotificationsView()
+    view.set_page(page)
+    return view.create_view()

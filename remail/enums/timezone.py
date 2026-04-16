@@ -2,7 +2,7 @@ from enum import Enum
 
 
 class Timezone(str, Enum):
-    EUROPE_BERLIN = "Europe/Berlin (UTC+01:00)"
+    EUROPE_BERLIN = "europe-berlin"
 
 
 __all__ = ["Timezone"]

@@ -113,9 +113,7 @@ class DashboardPage(ft.Column):
                             ft.IconButton(
                                 icon_color=ft.Colors.ON_SURFACE_VARIANT,
                                 icon=ft.Icons.SETTINGS,
-                                on_click=lambda _: self.state.navigate_to_settings(
-                                    SettingsSubView.APPEARANCE
-                                ),
+                                on_click=lambda _: self.page.go("/settings/appearance")
                             ),
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.END,

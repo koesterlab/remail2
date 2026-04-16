@@ -3,10 +3,12 @@ import flet as ft
 from remail.client.state.main_app_state import MainAppState, MainAppStateProperties
 from remail.controllers.dtos import LLMResponseDTO
 from remail.controllers.llm_controller import LLMController
+from remail.controllers.settings_controller import SettingsController
 
 
 def create_chatbot(app_state: MainAppState):
-    llm_controller = LLMController(app_state.)
+    settings = SettingsController().get_settings()
+    llm_controller = LLMController(settings.llm_url, settings.llm_key)
 
     # if score is above zero, the widget is "active" and expands
     _active_input = False

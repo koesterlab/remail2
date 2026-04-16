@@ -35,7 +35,6 @@ class MainAppState(ObservableState[MainAppStateProperties]):
         self.thread_controller = ThreadController()
         self.account_controllers: dict[str, AccountController] = {}
         self.sync_threads: list[Future] = []
-        self.navigate_to_settings: Callable[[SettingsSubView], None] = lambda _: None
 
     def get_active_email_account(self) -> AccountController:
         mail: UserDTO | None = self.get(MainAppStateProperties.ACTIVE_USER)
