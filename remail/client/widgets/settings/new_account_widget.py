@@ -1,11 +1,13 @@
-import flet as ft
-from typing import Dict, Callable, Any
+from collections.abc import Callable
+from typing import Any
 
-import remail
+import flet as ft
+
+from remail.client import show_snack_bar
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.controllers.email_controller import EmailController
-from remail.enums import ConnectionSecurity, AuthMethods, Protocol
+from remail.enums import AuthMethods, ConnectionSecurity, Protocol
 
 
 def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Container:
@@ -34,7 +36,7 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
         options=[
             ft.dropdown.Option(key=ConnectionSecurity.SSL_TLS.value, text="SSL_TLS"),
             ft.dropdown.Option(key=ConnectionSecurity.STARTTLS.value, text="STARTTLS"),
-            ft.dropdown.Option(key=ConnectionSecurity.PLAIN.value, text="Plain (Not recommend)")
+            ft.dropdown.Option(key=ConnectionSecurity.PLAIN.value, text="Plain (Not recommend)"),
         ],
     )
 
@@ -50,7 +52,7 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
         options=[
             ft.dropdown.Option(key=ConnectionSecurity.SSL_TLS.value, text="SSL_TLS"),
             ft.dropdown.Option(key=ConnectionSecurity.STARTTLS.value, text="STARTTLS"),
-            ft.dropdown.Option(key=ConnectionSecurity.PLAIN.value, text="Plain (Not recommend)")
+            ft.dropdown.Option(key=ConnectionSecurity.PLAIN.value, text="Plain (Not recommend)"),
         ],
     )
 
@@ -58,22 +60,38 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
     advanced_container = ft.Column(
         [
             ft.Text("IMAP / Eingehend", weight=ft.FontWeight.BOLD),
-            ft.Row([imap_host_tf, imap_host_port_tf, imap_user_tf, imap_password_tf, imap_password_type_dd], wrap=True),
+            ft.Row(
+                [
+                    imap_host_tf,
+                    imap_host_port_tf,
+                    imap_user_tf,
+                    imap_password_tf,
+                    imap_password_type_dd,
+                ],
+                wrap=True,
+            ),
             ft.Divider(),
             ft.Text("SMTP / Ausgehend", weight=ft.FontWeight.BOLD),
-            ft.Row([smtp_host_tf, smtp_host_port_tf, smtp_user_tf, smtp_password_tf, smtp_password_type_dd], wrap=True),
+            ft.Row(
+                [
+                    smtp_host_tf,
+                    smtp_host_port_tf,
+                    smtp_user_tf,
+                    smtp_password_tf,
+                    smtp_password_type_dd,
+                ],
+                wrap=True,
+            ),
         ],
         visible=False,
         tight=True,
     )
 
-    advanced_toggle_icon = ft.Icon(name=ft.Icons.ARROW_DROP_DOWN)
+    advanced_toggle_icon = ft.Icon(icon=ft.Icons.ARROW_DROP_DOWN)
 
     container = ft.Container()
 
-    # --- Hilfsfunktion: Email parsen und Defaults setzen ---
     def set_defaults_from_email(e=None):
-        # wird als Event-Handler aufgerufen (e ist ein Event), aber wir ignorieren e hier
         txt = email_tf.value or ""
         if "@" in txt:
             local, domain = txt.split("@", 1)
@@ -87,7 +105,7 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
                 imap_host_tf.value = f"imap.{domain}"
             if not smtp_host_tf.value:
                 smtp_host_tf.value = f"smtp.{domain}"
-        #password
+        # password
         if not imap_password_tf.value:
             imap_password_tf.value = password_tf.value
         if not smtp_password_tf.value:
@@ -100,9 +118,9 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
     email_tf.on_change = set_defaults_from_email
 
     # --- Advanced ein/ausklappen ---
-    def toggle_advanced(e: ft.ControlEvent):
+    def toggle_advanced(e: ft.Event[ft.Button]):
         advanced_container.visible = not advanced_container.visible
-        advanced_toggle_icon.name = (
+        advanced_toggle_icon.icon = (
             ft.Icons.ARROW_DROP_UP if advanced_container.visible else ft.Icons.ARROW_DROP_DOWN
         )
         # wenn advanced gerade aufgeklappt wurde, setze Defaults aus Email
@@ -110,51 +128,55 @@ def create_add_email_widget(on_created: Callable[[UserDTO], Any]) -> ft.Containe
             set_defaults_from_email()
         e.page.update()
 
-    advanced_btn = ft.ElevatedButton(
-        content=ft.Row([ft.Text("Advanced settings"), advanced_toggle_icon], alignment=ft.MainAxisAlignment.CENTER),
+    advanced_btn = ft.Button(
+        content=ft.Row(
+            [ft.Text("Advanced settings"), advanced_toggle_icon],
+            alignment=ft.MainAxisAlignment.CENTER,
+        ),
+        elevation=2,
         on_click=toggle_advanced,
     )
 
     # --- Passwort Dialog & Prüf-Workflow ---
-    def on_add_click(e: ft.ControlEvent):
+    def on_add_click():
         if not email_tf.value or "@" not in email_tf.value:
-            e.page.snack_bar = ft.SnackBar(ft.Text("Bitte zuerst eine gültige E-Mail-Adresse eingeben."))
-            e.page.snack_bar.open = True
-            e.page.update()
+            show_snack_bar(ft.Text("Bitte zuerst eine gültige E-Mail-Adresse eingeben."))
             return
         username, host = email_tf.value.split("@")[:2]
         protocol = EmailController().check_credentials(
             imap_username=imap_user_tf.value or username,
-            imap_host=imap_host_tf or host,
+            imap_host=imap_host_tf.value or host,
             imap_port=int(imap_host_port_tf.value or 993),
-            imap_password=imap_password_tf.value or password_tf,
-            imap_security=ConnectionSecurity[imap_password_type_dd.value],
+            imap_password=imap_password_tf.value or password_tf.value,
+            imap_security=ConnectionSecurity[imap_password_type_dd.value or "ssl_tls"],
             imap_method=AuthMethods.PASSWORD,
             smtp_username=smtp_user_tf.value or username,
             smtp_host=smtp_host_tf.value or host,
             smtp_port=int(smtp_host_tf.value or 587),
-            smtp_password=smtp_password_tf.value or password_tf,
-            smtp_security=ConnectionSecurity[smtp_password_type_dd.value],
+            smtp_password=smtp_password_tf.value or password_tf.value,
+            smtp_security=ConnectionSecurity[smtp_password_type_dd.value or "ssl_tls"],
             smtp_method=AuthMethods.PASSWORD,
         )
 
         if protocol:
-            acc = AccountController.create_new_account(name_tf.value, email_tf.value, protocol, Protocol.IMAP)
+            acc = AccountController.create_new_account(
+                name_tf.value, email_tf.value, protocol, Protocol.IMAP
+            )
             on_created(acc)
             ft.SnackBar(ft.Text("Account Connected"))
         else:
             ft.SnackBar(ft.Text("Connection failed"))
 
-    add_btn = ft.ElevatedButton("Hinzufügen", on_click=on_add_click)
+    add_btn = ft.Button("Hinzufügen", on_click=on_add_click)
 
     # Layout zusammenbauen
     main_col = ft.Column(
         [
             ft.Row([name_tf]),
             ft.Row([email_tf, password_tf]),
-            ft.Row([advanced_btn], alignment="start"),
+            ft.Row([advanced_btn], alignment=ft.MainAxisAlignment.START),
             advanced_container,
-            ft.Row([add_btn], alignment="end"),
+            ft.Row([add_btn], alignment=ft.MainAxisAlignment.END),
         ],
         tight=True,
     )

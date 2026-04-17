@@ -50,7 +50,7 @@ class SearchHeader(ft.Container):
             style=ft.ButtonStyle(padding=0, bgcolor="transparent"),
         )
 
-        def create_bottom_option(text: str, icon: ft.Icons, callback: Callable[[], None]):
+        def create_bottom_option(text: str, icon: ft.IconData, callback: Callable[[], None]):
             return ft.Container(
                 ft.Row(
                     [

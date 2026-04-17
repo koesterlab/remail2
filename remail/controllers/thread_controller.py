@@ -70,5 +70,5 @@ class ThreadController:
             sender=(user.name, user.email),
             recipients=[(c.first_name + " " + c.last_name, c.email) for c in thread.contacts],
             subject=("Re: " if thread.messages else "") + thread.title,
-            msg=message
+            msg=message,
         )

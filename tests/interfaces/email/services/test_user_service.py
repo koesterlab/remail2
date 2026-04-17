@@ -7,7 +7,7 @@ from sqlmodel import Session
 
 from remail.enums import Protocol
 from remail.interfaces.email.services.user_service import UserService
-from remail.models import User, Conversation, Thread
+from remail.models import Conversation, Thread, User
 
 
 class TestUserService:

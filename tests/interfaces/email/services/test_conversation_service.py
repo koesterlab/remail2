@@ -80,7 +80,9 @@ class TestConversationService:
         with Session(test_engine) as session:
             user = _create_user(session, "user@example.com")
             contact = _create_contact(session, "contact@example.com")
-            conversation = Conversation(custom_name="Single", type=ConversationType.CONVERSATION, user=user)
+            conversation = Conversation(
+                custom_name="Single", type=ConversationType.CONVERSATION, user=user
+            )
             session.add(conversation)
             session.flush()
             conversation.contacts.append(contact)

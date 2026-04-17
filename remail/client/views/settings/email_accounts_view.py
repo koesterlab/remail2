@@ -1,4 +1,3 @@
-
 import flet as ft
 
 from remail.client.views.settings.settings_sub_view import SettingsSubView
@@ -14,12 +13,20 @@ class EmailAccountsView(SettingsSubView):
         """Create the email accounts settings view."""
 
         smtp_user_input = ft.TextField(label="Username", hint_text="Enter SMTP username")
-        smtp_pass_input = ft.TextField(label="Password", hint_text="Enter SMTP password", password=True,
-                                       can_reveal_password=True)
+        smtp_pass_input = ft.TextField(
+            label="Password",
+            hint_text="Enter SMTP password",
+            password=True,
+            can_reveal_password=True,
+        )
         smtp_port_input = ft.TextField(label="Port", hint_text="587")
         imap_user_input = ft.TextField(label="Username", hint_text="Enter IMAP username")
-        imap_pass_input = ft.TextField(label="Password", hint_text="Enter IMAP password", password=True,
-                                       can_reveal_password=True)
+        imap_pass_input = ft.TextField(
+            label="Password",
+            hint_text="Enter IMAP password",
+            password=True,
+            can_reveal_password=True,
+        )
         imap_port_input = ft.TextField(label="Port", hint_text="993")
 
         # ---------------- Snackbar ----------------
@@ -83,23 +90,35 @@ class EmailAccountsView(SettingsSubView):
 
         # ---------------- UI Inputs ----------------
         name_input = ft.TextField(label="Display Name", hint_text="Your Name", width=300)
-        email_input = ft.TextField(label="Email address", hint_text="Enter your email address", width=300)
-        password_input = ft.TextField(label="Password", hint_text="Enter your password", password=True,
-                                      can_reveal_password=True, width=300)
+        email_input = ft.TextField(
+            label="Email address", hint_text="Enter your email address", width=300
+        )
+        password_input = ft.TextField(
+            label="Password",
+            hint_text="Enter your password",
+            password=True,
+            can_reveal_password=True,
+            width=300,
+        )
         imap_host_input = ft.TextField(
             label="IMAP Host",
             hint_text="Enter your IMAP host name",
             width=300,
-            suffix=ft.IconButton(icon=ft.Icons.SETTINGS, tooltip="Settings", on_click=on_imap_settings),
+            suffix=ft.IconButton(
+                icon=ft.Icons.SETTINGS, tooltip="Settings", on_click=on_imap_settings
+            ),
         )
         smtp_host_input = ft.TextField(
             label="SMTP Host",
             hint_text="Enter your SMTP host name",
             width=300,
-            suffix=ft.IconButton(icon=ft.Icons.SETTINGS, tooltip="Settings", on_click=on_smtp_settings),
+            suffix=ft.IconButton(
+                icon=ft.Icons.SETTINGS, tooltip="Settings", on_click=on_smtp_settings
+            ),
         )
 
         input_panel = ft.Container()
+
         # ---------------- Add Account ----------------
         def add_account_click(e):
             input_panel.content = ft.Column(
@@ -112,7 +131,9 @@ class EmailAccountsView(SettingsSubView):
                     smtp_host_input,
                     ft.Row(
                         [
-                            ft.OutlinedButton("Connect", icon=ft.Icons.CHECK, on_click=connect_account),
+                            ft.OutlinedButton(
+                                "Connect", icon=ft.Icons.CHECK, on_click=connect_account
+                            ),
                             ft.OutlinedButton("Cancel", icon=ft.Icons.CLOSE, on_click=cancel_add),
                         ],
                         spacing=10,
@@ -125,7 +146,12 @@ class EmailAccountsView(SettingsSubView):
 
         # ---------------- Connect Account ----------------
         def connect_account(e):
-            if not email_input.value or not password_input.value or not imap_host_input.value or not smtp_host_input.value:
+            if (
+                not email_input.value
+                or not password_input.value
+                or not imap_host_input.value
+                or not smtp_host_input.value
+            ):
                 show_snackbar("Please fill in all fields", ft.Colors.RED_400)
                 return
 
@@ -153,8 +179,12 @@ class EmailAccountsView(SettingsSubView):
                 )
 
                 if conn:
-                    AccountController.create_new_account(name_input.value.strip(), email_input.value.strip().lower(),
-                                                         conn, Protocol.IMAP)
+                    AccountController.create_new_account(
+                        name_input.value.strip(),
+                        email_input.value.strip().lower(),
+                        conn,
+                        Protocol.IMAP,
+                    )
                     show_snackbar("Account added", ft.Colors.PRIMARY_CONTAINER)
                 else:
                     show_snackbar("Connection failed", ft.Colors.ERROR)
@@ -206,22 +236,31 @@ class EmailAccountsView(SettingsSubView):
                         ft.Text("Email Accounts", size=18, weight=ft.FontWeight.BOLD),
                         ft.Text("Manage your email accounts"),
                         ft.Divider(height=2, color=ft.Colors.GREY_400),
-                        ft.Text(f"{c if c > 0 else "No"} accounts connected", size=12),
-                        ft.Column([
-                            ft.Text("No accounts connected", size=12) if not accounts else ft.Container(
-                                ft.Row(
-                                    [
-                                        ft.Icon(ft.Icons.EMAIL, color=ft.Colors.BLUE),
-                                        ft.Text(user.name, expand=True),
-                                        ft.IconButton(icon=ft.Icons.DELETE, icon_color=ft.Colors.RED,
-                                                      tooltip="Remove account", on_click=remove_account(user)),
-                                    ]
-                                ),
-                                border=ft.border.all(1, ft.Colors.GREY_400),
-                                border_radius=5,
-                                padding=10,
-                            ) for user in [acc.get_user() for acc in accounts]
-                        ]),
+                        ft.Text(f"{c if c > 0 else 'No'} accounts connected", size=12),
+                        ft.Column(
+                            [
+                                ft.Text("No accounts connected", size=12)
+                                if not accounts
+                                else ft.Container(
+                                    ft.Row(
+                                        [
+                                            ft.Icon(ft.Icons.EMAIL, color=ft.Colors.BLUE),
+                                            ft.Text(user.name, expand=True),
+                                            ft.IconButton(
+                                                icon=ft.Icons.DELETE,
+                                                icon_color=ft.Colors.RED,
+                                                tooltip="Remove account",
+                                                on_click=remove_account(user),
+                                            ),
+                                        ]
+                                    ),
+                                    border=ft.border.all(1, ft.Colors.GREY_400),
+                                    border_radius=5,
+                                    padding=10,
+                                )
+                                for user in [acc.get_user() for acc in accounts]
+                            ]
+                        ),
                         add_button,
                         input_panel,
                     ],
@@ -236,7 +275,7 @@ class EmailAccountsView(SettingsSubView):
             base.content = accounts_list
             try:
                 base.update()
-            except:
+            except RuntimeError as _:
                 pass
 
         update_account_view()

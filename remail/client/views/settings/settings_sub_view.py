@@ -1,9 +1,8 @@
-from abc import ABC
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 import flet as ft
 
-from remail.client.state import MainAppState
 from remail.controllers.dtos import SettingsDTO
 from remail.controllers.settings_controller import SettingsController
 
@@ -18,7 +17,7 @@ class SettingsSubView(ft.Container):
     def create_page(self, settings: SettingsDTO) -> ft.Container:
         return ft.Container()
 
-    def apply_settings(self, key:str, value:Any):
+    def apply_settings(self, key: str, value: Any):
         # Save all notification settings to database
         setattr(self.settings, key, value)
         self.controller.update_settings(self.settings)
@@ -32,4 +31,3 @@ class SettingsSubView(ft.Container):
         snack_bar.open = True
         self.content = self.create_page(self.settings)
         self.update()
-

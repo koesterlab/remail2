@@ -1,4 +1,4 @@
-from remail.client.state import MainAppState, MainAppStateProperties
+from remail.client.state import MainAppState
 from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
 from remail.controllers.dtos.conversations import ConversationDTO
 

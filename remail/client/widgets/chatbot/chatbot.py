@@ -84,7 +84,10 @@ def create_chatbot(app_state: MainAppState):
 
         loading_indicator = ft.ProgressRing()
         loading_container = ft.Row(
-            controls=[loading_indicator, ft.Text("AIfred is thinking...", color=ft.Colors.YELLOW_500)],
+            controls=[
+                loading_indicator,
+                ft.Text("AIfred is thinking...", color=ft.Colors.YELLOW_500),
+            ],
             spacing=10,
         )
 
@@ -103,7 +106,9 @@ def create_chatbot(app_state: MainAppState):
             )
 
         else:
-            chat_display.controls.append(ft.Text(f"AI: {response_dto.content}", color=ft.Colors.GREEN))
+            chat_display.controls.append(
+                ft.Text(f"AI: {response_dto.content}", color=ft.Colors.GREEN)
+            )
 
         chat_display.update()
 

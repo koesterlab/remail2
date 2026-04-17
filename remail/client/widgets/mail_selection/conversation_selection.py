@@ -1,7 +1,6 @@
 import asyncio
 import datetime
 import re
-from typing import Union
 
 import flet as ft
 from flet import Control
@@ -10,17 +9,20 @@ from remail.client.state.main_app_state import MainAppState, MainAppStatePropert
 from remail.client.widgets.mail_selection.action import Action
 from remail.client.widgets.mail_selection.action_preview import ActionPreview
 from remail.client.widgets.mail_selection.contact_preview import ContactPreview
+from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
 from remail.client.widgets.mail_selection.group_preview import GroupPreview
 from remail.controllers.dtos.conversations import ConversationDTO
 
 """
 Subwidget of selectionBar to choose between different contacts (+groups) and actions
 """
+
+
 class ConversationSelection(ft.Container):
     def __init__(self, state: MainAppState):
         self.state = state
-        self.content = ft.Column(spacing=0)
-        self.elements: dict[int, Control] = dict()
+        self.inner_content = ft.Column(spacing=0)
+        self.elements: dict[int, Control] = {}
         self.active_search_cache = None
         state.register_observer(MainAppStateProperties.SEARCH_TERM, self._on_search_change)
         state.register_observer(MainAppStateProperties.DISPLAYED_MAILS, self._on_search_change)
@@ -31,7 +33,7 @@ class ConversationSelection(ft.Container):
                 scroll=ft.ScrollMode.AUTO,
                 alignment=ft.MainAxisAlignment.START,
                 spacing=0,
-                controls=[self.content],
+                controls=[self.inner_content],
             ),
         )
 
@@ -41,11 +43,13 @@ class ConversationSelection(ft.Container):
             content = self.state.get(MainAppStateProperties.DISPLAYED_MAILS)
         else:
             if search == self.active_search_cache:
-                return #same search -> no change needed
-            content: list[Union[ConversationDTO|Action]] = self.state.get_active_email_account().search(search)
-            #special search actions: #todo: more
-            if  re.match(
-                    r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]", search
+                return  # same search -> no change needed
+            content: list[ConversationDTO | Action] = self.state.get_active_email_account().search(
+                search
+            )
+            # special search actions: #todo: more
+            if re.match(
+                r"[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]", search
             ):  # option "mail hinzufügen
                 content.insert(
                     0,
@@ -67,11 +71,14 @@ class ConversationSelection(ft.Container):
                         ft.Icons.MAIL,
                     ),
                 )
-        async def u(): await self.set_content(content)
+
+        async def u():
+            await self.set_content(content)
+
         self.page.run_task(u)
 
     async def set_content(self, content: list[ConversationDTO | Action]):
-        #sort
+        # sort
         def compute_order_value(elem: ConversationDTO | Action):
             time = datetime.datetime.min
             if isinstance(elem, Action):
@@ -83,9 +90,10 @@ class ConversationSelection(ft.Container):
                     time = max([t.last_message_datetime for t in elem.threads])
                 category = "B" if elem.is_favorite else "A"
             return category, time
+
         content.sort(key=compute_order_value, reverse=True)
 
-        #check if it is the initial call, then skip check for existing elements
+        # check if it is the initial call, then skip check for existing elements
         updating = not len(self.elements) <= 0
         element_list = []
         counter = 0
@@ -98,18 +106,17 @@ class ConversationSelection(ft.Container):
                     continue
             counter += 1
             element_list.append(self.create_list_item(elem))
-            if counter == update_bound: #showing the list after every
-                self.content.controls = element_list
+            if counter == update_bound:  # showing the list after every
+                self.inner_content.controls = element_list
                 self.update()
                 await asyncio.sleep(0.000001)
-                update_bound <<= 1 #updates after 2,4,8,16,32,... elements
+                update_bound <<= 1  # updates after 2,4,8,16,32,... elements
 
-        self.content.controls = element_list
-
+        self.inner_content.controls = element_list
 
     def create_list_item(self, elem: Action | ConversationDTO):
         if isinstance(elem, Action):
-            item = ActionPreview(elem)
+            item: ActionPreview | ConversationPreview = ActionPreview(elem)
         elif len(elem.contacts) == 1:
             item = ContactPreview(self.state, elem)
             self.elements[elem.id] = item
@@ -118,4 +125,3 @@ class ConversationSelection(ft.Container):
             self.elements[elem.id] = item
 
         return item
-

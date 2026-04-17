@@ -7,7 +7,7 @@ from remail.interfaces.llm.llm_service import LLMService
 class LLMController:
     """Controller for LLM operations."""
 
-    def __init__(self, base_url:str, api_key:str) -> None:
+    def __init__(self, base_url: str, api_key: str) -> None:
         """Initialize LLM controller."""
 
         self.service = LLMService(base_url, api_key)

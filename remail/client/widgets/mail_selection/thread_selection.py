@@ -1,9 +1,7 @@
 import datetime
-from collections.abc import Callable
 from typing import Any
 
 import flet as ft
-from openai import conversations
 
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 
@@ -38,7 +36,9 @@ class ThreadSelection(ft.Container):
                             [
                                 ft.IconButton(
                                     icon=ft.Icons.ARROW_BACK,
-                                    on_click=lambda _: state.set(MainAppStateProperties.ACTIVE_CONVERSATION, None),
+                                    on_click=lambda _: state.set(
+                                        MainAppStateProperties.ACTIVE_CONVERSATION, None
+                                    ),
                                     icon_color=ft.Colors.ON_SURFACE_VARIANT,
                                     icon_size=30,
                                 ),

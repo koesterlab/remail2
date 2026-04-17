@@ -3,8 +3,8 @@
 from unittest.mock import Mock, patch
 
 import flet as ft
-
 from remail.client.state.app_state import AppState
+
 from remail.client.state.settings_loader import load_settings_into_state
 from remail.controllers.dtos.settings_dto import SettingsDTO
 from remail.enums import FontFamily, FontSize, Language, ThemeMode, Timezone

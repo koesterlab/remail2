@@ -1,7 +1,6 @@
 import flet as ft
 
 from remail.client.state import MainAppState, MainAppStateProperties
-from remail.controllers import EmailController
 
 
 def create_new_message_dialog(state: MainAppState) -> ft.Container:
@@ -76,7 +75,9 @@ def create_new_message_dialog(state: MainAppState) -> ft.Container:
 
         # send
         if conversation.id < 0:  # creating new conversation
-            conversation = state.get_active_email_account().create_conversation(conversation.contacts)
+            conversation = state.get_active_email_account().create_conversation(
+                conversation.contacts
+            )
             thread = state.thread_controller.create_thread(conversation, thread.title)
         elif thread.id < 0:
             thread = state.thread_controller.create_thread(conversation, thread.title)

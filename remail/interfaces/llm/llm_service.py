@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from typing import Any
 
 from openai import OpenAI
@@ -17,7 +16,7 @@ from remail.interfaces.llm.response import LLMCompletionResponse
 class LLMService(LLMBase):
     """LLM service implementation using OpenAI client."""
 
-    def __init__(self, base_url:str, api_key:str):
+    def __init__(self, base_url: str, api_key: str):
         """Initialize LLM service."""
 
         self.api_key = api_key
@@ -92,7 +91,7 @@ class LLMService(LLMBase):
         try:
             response = self.client.chat.completions.create(
                 model=self.model.value,
-                messages=[msg.to_dict() for msg in messages],
+                messages=[msg.to_dict() for msg in messages],  # type:ignore
                 max_tokens=max_tokens or self.default_max_tokens,
                 temperature=temperature or self.default_temperature,
                 top_p=kwargs.get("top_p", self.default_top_p),

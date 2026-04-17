@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class FontSize(str, Enum):
+class FontSize(Enum):
     SMALL = "small"
     MEDIUM = "medium"
     LARGE = "large"

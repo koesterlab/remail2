@@ -3,14 +3,12 @@ import logging
 from collections.abc import Callable, Iterable
 
 from remail import errors as ee
-from remail.controllers import EmailController
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import ConversationType, Protocol
 from remail.interfaces.email import EmailProtocol
 from remail.interfaces.email.services import (
     ConversationService,
-    EmailParser,
     EmailSyncService,
     ThreadService,
 )
@@ -31,7 +29,7 @@ class AccountController:
         return [AccountController(dto.id) for dto in users]
 
     @staticmethod
-    def create_new_account(clearname:str, email:str, connection:EmailProtocol, method: Protocol):
+    def create_new_account(clearname: str, email: str, connection: EmailProtocol, method: Protocol):
         if not connection.test_connection():
             raise ValueError("Creating account with invalid credentials")
         UserService().add_user(email, clearname, method, connection)
@@ -59,7 +57,10 @@ class AccountController:
         self._notify_callback()
 
         # return all conversation DTOs
-        return [self._conversation_to_dto(e) for e in self.user_service.get_user_by_id(self.user_id).conversations]
+        return [
+            self._conversation_to_dto(e)
+            for e in self.user_service.get_user_by_id(self.user_id).conversations
+        ]
 
     def set_callback_email_changes(
         self, callback: Callable[[Iterable[ConversationDTO]], None]
@@ -103,13 +104,6 @@ class AccountController:
 
     def get_user(self):
         return self.user
-
-    def get_email_controller(self) -> EmailController:
-        if self.protocol.user_username is None or self.protocol.user_password is None:
-            raise ValueError("Missing protocol credentials")
-        return EmailController(
-            self.protocol.user_username, self.protocol.user_password, self.protocol.host
-        )
 
     @session
     def create_conversation(self, contacts: list[ContactDTO]):
@@ -171,4 +165,4 @@ class AccountController:
         )
 
     def search(self, search_string: str) -> list[ConversationDTO]:
-        return []#todo
+        return []  # todo

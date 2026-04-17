@@ -44,10 +44,7 @@ class TestContactService:
     def test_get_or_create_contact_creates_new(self, test_engine):
         """Test get_or_create_contact creates new contact when not exists."""
         service = ContactService()
-        result = service.get_or_create_contact(
-            email="new@example.com",
-            name="New User"
-        )
+        result = service.get_or_create_contact(email="new@example.com", name="New User")
 
         assert result is not None
         assert result.email_address == "new@example.com"
@@ -57,6 +54,7 @@ class TestContactService:
         # Verify contact was saved
         with Session(test_engine) as session:
             from sqlmodel import select
+
             saved = session.exec(
                 select(Contact).where(Contact.email_address == "new@example.com")
             ).first()
@@ -77,10 +75,7 @@ class TestContactService:
             existing_id = existing.id
 
         service = ContactService()
-        result = service.get_or_create_contact(
-            email="existing@example.com",
-            name="Different Name"
-        )
+        result = service.get_or_create_contact(email="existing@example.com", name="Different Name")
 
         # Should return existing contact, not create new one
         assert result.id == existing_id
@@ -154,14 +149,8 @@ class TestContactService:
         """Test get_or_create_contact treats emails case-sensitively."""
         service = ContactService()
 
-        contact1 = service.get_or_create_contact(
-            email="test@example.com",
-            name="Lowercase"
-        )
-        contact2 = service.get_or_create_contact(
-            email="TEST@example.com",
-            name="Uppercase"
-        )
+        contact1 = service.get_or_create_contact(email="test@example.com", name="Lowercase")
+        contact2 = service.get_or_create_contact(email="TEST@example.com", name="Uppercase")
 
         # Depending on DB collation, these might be same or different
         # Most email systems treat emails as case-insensitive
@@ -176,8 +165,7 @@ class TestContactService:
         # This documents current behavior - service doesn't trim
         # If this test fails, it means trimming was added
         result = service.get_or_create_contact(
-            email=" whitespace@example.com ",
-            name="Whitespace Test"
+            email=" whitespace@example.com ", name="Whitespace Test"
         )
 
         # Current behavior: whitespace preserved

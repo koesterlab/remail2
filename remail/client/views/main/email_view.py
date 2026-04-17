@@ -13,8 +13,9 @@ from ...state.main_app_state import MainAppState, MainAppStateProperties
 from ...widgets.dashboard.dashboard_page import DashboardPage
 from ...widgets.thread.thread_list import ThreadList
 
+
 class EmailView(ft.Container):
-    def __init__(self, state:MainAppState) -> None:
+    def __init__(self, state: MainAppState) -> None:
         super().__init__()
 
         def on_thread_change(new: ThreadPreviewDTO | None) -> None:
@@ -78,10 +79,10 @@ class EmailView(ft.Container):
             for acc in self.accounts:
                 state.account_controllers[acc.get_email_address()] = acc
                 acc.set_callback_email_changes(
-                    lambda updates, acc_= acc: on_emails_synced(acc_.get_user(), updates)
+                    lambda updates, acc_=acc: on_emails_synced(acc_.get_user(), updates)  # type:ignore
                 )
                 acc.set_callback_email_errors(
-                    lambda msg, acc_=acc: on_email_sync_error(acc_.get_user(), msg)
+                    lambda msg, acc_=acc: on_email_sync_error(acc_.get_user(), msg)  # type:ignore
                 )
             state.set(MainAppStateProperties.ACTIVE_USER, self.accounts[0].get_user())
         state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
@@ -95,7 +96,9 @@ class EmailView(ft.Container):
                     ft.Button(
                         "Open Settings",
                         icon=ft.Icons.SETTINGS,
-                        on_click=lambda _: state.set(MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubView.EMAIL_ACCOUNTS),
+                        on_click=lambda _: state.set(
+                            MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubView.EMAIL_ACCOUNTS
+                        ),
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -124,14 +127,15 @@ class EmailView(ft.Container):
             expand=True,
             controls=[
                 ft.Container(
-                    content = ft.Column(
+                    content=ft.Column(
                         [
                             ft.Container(SelectionBar(state), expand=1, bgcolor=ft.Colors.RED),
                             ft.Container(chatbot, bgcolor=ft.Colors.GREEN),
-                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        ],
+                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                         expand=True,
                     ),
-                    col = {"xs": 6, "md": 4, "lg": 3},
+                    col={"xs": 6, "md": 4, "lg": 3},
                     expand=True,
                 ),
                 right_view,

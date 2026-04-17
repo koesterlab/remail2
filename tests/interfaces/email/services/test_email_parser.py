@@ -23,8 +23,9 @@ def patch_save_attachment(monkeypatch):
 def test_user(test_engine):
     """Create a test user in the database."""
     from sqlmodel import Session
-    from remail.models import User
+
     from remail.enums import Protocol
+    from remail.models import User
 
     with Session(test_engine) as session:
         user = User(

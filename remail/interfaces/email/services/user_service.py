@@ -2,16 +2,12 @@
 
 import logging
 
-import keyring
-from sqlalchemy.sql.functions import func
 from sqlmodel import Session, select
-from werkzeug.security import generate_password_hash
 
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.database.db import engine
 from remail.enums import Protocol
 from remail.interfaces.email import EmailProtocol
-from remail.models import UserConversation, Thread
 from remail.models.user import User
 from remail.utils.session_management import session
 
@@ -25,7 +21,7 @@ class UserService:
 
     @staticmethod
     @session
-    def count_unread(user: User, session:Session) -> int:
+    def count_unread(user: User, session: Session) -> int:
         """
         Count unread conversations for a user.
 
@@ -35,8 +31,10 @@ class UserService:
         Returns:
             Number of unread conversations (placeholder, implement later)
         """
-        user = session.get(User, user.id)
-        return len([t for c in user.conversations for t in c.threads if t.unread_count > 0])
+        u = session.get(User, user.id)
+        if not u:
+            return 0
+        return len([t for c in u.conversations for t in c.threads if t.unread_count > 0])
 
     @staticmethod
     def user_to_dto(user: User) -> UserDTO:
@@ -60,7 +58,7 @@ class UserService:
 
     @staticmethod
     @session
-    def get_user_by_email(email: str, session:Session) -> User | None:
+    def get_user_by_email(email: str, session: Session) -> User | None:
         """Backward-compatible alias for username lookup."""
         return session.exec(select(User).where(User.email == email)).first()
 
@@ -71,7 +69,7 @@ class UserService:
         name: str,
         protocol: Protocol,
         connection: EmailProtocol,
-        session:Session,
+        session: Session,
     ) -> UserDTO:
         """
         Add a new user to the database.
@@ -91,12 +89,7 @@ class UserService:
         if existing:
             raise ValueError("User already exists.")
 
-        user = User(
-            name=name,
-            email=email,
-            protocol=protocol,
-            connection=connection.serialize()
-        )
+        user = User(name=name, email=email, protocol=protocol, connection=connection.serialize())
         session.add(user)
         session.commit()
         session.flush()
@@ -105,7 +98,7 @@ class UserService:
 
     @staticmethod
     @session
-    def delete_user(user_id: int, session:Session) -> None:
+    def delete_user(user_id: int, session: Session) -> None:
         """
         Delete a user from the database by username.
 
@@ -113,7 +106,7 @@ class UserService:
             user_id: Id of the user to delete
         """
         session.delete(session.get(User, user_id))
-        #todo: handle keyring
+        # todo: handle keyring
 
     @staticmethod
     def get_all_users() -> list[UserDTO]:
@@ -129,8 +122,9 @@ class UserService:
             return [UserService.user_to_dto(user) for user in results]
 
     @session
-    def reload_all_user_mails(self, user_id:int, session:Session) -> None:
-        for conversation in session.get(User, user_id).conversations:
+    def reload_all_user_mails(self, user_id: int, session: Session) -> None:
+        user = session.get(User, user_id)
+        if not user:
+            return
+        for conversation in user.conversations:
             session.delete(conversation)
-
-

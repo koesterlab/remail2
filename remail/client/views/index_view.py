@@ -2,6 +2,7 @@ import flet as ft
 
 from remail.client.state import MainAppState, MainAppStateProperties
 from remail.client.views.main import EmailView
+
 from .settings import SettingsView
 
 
@@ -26,9 +27,11 @@ class IndexView(ft.Container):
             self.content = settings_view if settings else emails_view
             try:
                 self.update()
-            except Exception as e:
+            except Exception:
                 pass
 
-        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, lambda s: show_content(s is not None))
+        state.register_observer(
+            MainAppStateProperties.ACTIVE_SETTINGS, lambda s: show_content(s is not None)
+        )
         show_content(False)
         emails_view.run_sync_threads()

@@ -1,6 +1,6 @@
 """Tests for EmailSyncService."""
 
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 from sqlmodel import Session
@@ -42,7 +42,9 @@ class TestEmailSyncService:
 
     def test_sync_emails_no_new_emails(self, test_engine, test_user):
         """Test sync when there are no new emails."""
-        with patch("remail.interfaces.email.services.email_sync_service.ImapProtocol") as mock_imap_cls:
+        with patch(
+            "remail.interfaces.email.services.email_sync_service.ImapProtocol"
+        ) as mock_imap_cls:
             mock_protocol = MagicMock()
             mock_protocol.fetch_emails.return_value = {}
             mock_protocol.serialize.return_value = '{"host": "imap.example.com"}'
@@ -57,7 +59,9 @@ class TestEmailSyncService:
 
     def test_sync_emails_processes_new_emails(self, test_engine, test_user):
         """Test sync processes new emails from protocol."""
-        with patch("remail.interfaces.email.services.email_sync_service.ImapProtocol") as mock_imap_cls:
+        with patch(
+            "remail.interfaces.email.services.email_sync_service.ImapProtocol"
+        ) as mock_imap_cls:
             mock_protocol = MagicMock()
             mock_protocol.fetch_emails.return_value = {
                 1: {b"BODY[]": b"test1", b"FLAGS": []},
@@ -66,7 +70,9 @@ class TestEmailSyncService:
             mock_protocol.serialize.return_value = '{"host": "imap.example.com"}'
             mock_imap_cls.return_value = mock_protocol
 
-            with patch("remail.interfaces.email.services.email_sync_service.EmailParser") as mock_parser_cls:
+            with patch(
+                "remail.interfaces.email.services.email_sync_service.EmailParser"
+            ) as mock_parser_cls:
                 mock_parser = MagicMock()
                 mock_parser.parse_mail.side_effect = [
                     (True, 101),  # Changed, mail_id 101
@@ -83,7 +89,9 @@ class TestEmailSyncService:
 
     def test_sync_emails_handles_parser_errors(self, test_engine, test_user):
         """Test sync continues when parser raises exception."""
-        with patch("remail.interfaces.email.services.email_sync_service.ImapProtocol") as mock_imap_cls:
+        with patch(
+            "remail.interfaces.email.services.email_sync_service.ImapProtocol"
+        ) as mock_imap_cls:
             mock_protocol = MagicMock()
             mock_protocol.fetch_emails.return_value = {
                 1: {b"BODY[]": b"bad_email", b"FLAGS": []},
@@ -91,7 +99,9 @@ class TestEmailSyncService:
             mock_protocol.serialize.return_value = '{"host": "imap.example.com"}'
             mock_imap_cls.return_value = mock_protocol
 
-            with patch("remail.interfaces.email.services.email_sync_service.EmailParser") as mock_parser_cls:
+            with patch(
+                "remail.interfaces.email.services.email_sync_service.EmailParser"
+            ) as mock_parser_cls:
                 mock_parser = MagicMock()
                 mock_parser.parse_mail.side_effect = ValueError("Invalid email")
                 mock_parser_cls.return_value = mock_parser
@@ -103,7 +113,9 @@ class TestEmailSyncService:
 
     def test_sync_emails_saves_connection_data(self, test_engine, test_user):
         """Test that sync saves updated connection data back to user."""
-        with patch("remail.interfaces.email.services.email_sync_service.ImapProtocol") as mock_imap_cls:
+        with patch(
+            "remail.interfaces.email.services.email_sync_service.ImapProtocol"
+        ) as mock_imap_cls:
             mock_protocol = MagicMock()
             mock_protocol.fetch_emails.return_value = {}
             mock_protocol.serialize.return_value = '{"host": "updated.example.com", "port": 993}'
@@ -166,7 +178,9 @@ class TestEmailSyncService:
     @pytest.mark.asyncio
     async def test_wait_for_mail_changes_async(self, test_engine, test_user):
         """Test async waiting for mail changes."""
-        with patch("remail.interfaces.email.services.email_sync_service.ImapProtocol") as mock_imap_cls:
+        with patch(
+            "remail.interfaces.email.services.email_sync_service.ImapProtocol"
+        ) as mock_imap_cls:
             mock_protocol = MagicMock()
 
             async def mock_wait():
@@ -176,7 +190,9 @@ class TestEmailSyncService:
             mock_protocol.serialize.return_value = '{"host": "imap.example.com"}'
             mock_imap_cls.return_value = mock_protocol
 
-            with patch("remail.interfaces.email.services.email_sync_service.EmailParser") as mock_parser_cls:
+            with patch(
+                "remail.interfaces.email.services.email_sync_service.EmailParser"
+            ) as mock_parser_cls:
                 mock_parser = MagicMock()
                 mock_parser.parse_mail.return_value = (True, 200)
                 mock_parser_cls.return_value = mock_parser

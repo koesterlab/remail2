@@ -1,20 +1,14 @@
-import asyncio
-import re
-
 import flet as ft
-from sympy.parsing.sympy_parser import lambda_notation
 
 from remail.client.state.main_app_state import MainAppState, MainAppStateProperties
-from remail.client.widgets.mail_selection.action import Action
 from remail.client.widgets.mail_selection.conversation_selection import ConversationSelection
 from remail.client.widgets.mail_selection.search_header import SearchHeader
 from remail.client.widgets.mail_selection.thread_selection import ThreadSelection
-from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
-from remail.controllers.dtos.threads import MessageDTO
+from remail.controllers.dtos.conversations import ConversationDTO
 
 """
 Overall Widget to combine searchbar and selection widgets
-Switches with scroll animation when 
+Switches with scroll animation between conversations and threads
 """
 
 
@@ -36,7 +30,9 @@ class SelectionBar(ft.Container):
         self.__state = state
         self.topic_selection_active = False
 
-        state.register_observer(MainAppStateProperties.ACTIVE_CONVERSATION, self._on_selected_conversation_change)
+        state.register_observer(
+            MainAppStateProperties.ACTIVE_CONVERSATION, self._on_selected_conversation_change
+        )
         super().__init__(
             bgcolor=ft.Colors.SURFACE,
             content=ft.Stack(controls=[self.main_content, self.topic_selection], expand=True),

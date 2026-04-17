@@ -3,7 +3,6 @@
 from dataclasses import fields
 
 import pytest
-
 from remail.client.state.app_state import AppState
 
 

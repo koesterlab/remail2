@@ -27,5 +27,5 @@ __all__ = [
     "Timezone",
     "UserAccountCategory",
     "ConnectionSecurity",
-    "AuthMethods"
+    "AuthMethods",
 ]

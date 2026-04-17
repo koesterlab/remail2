@@ -1,5 +1,4 @@
 from abc import ABC
-from collections.abc import Callable
 
 import flet as ft
 
@@ -26,7 +25,7 @@ class ConversationPreview(ft.Container, ABC):
                 fav_button.update()
 
         if not registered:
-            icon_btn = ft.Column(
+            icon_btn: ft.Control = ft.Column(
                 [
                     ft.IconButton(
                         icon=ft.Icons.ADD,

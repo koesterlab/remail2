@@ -1,17 +1,20 @@
 """Settings view with navigation and sub-views."""
-from abc import ABC
 
 import flet as ft
-from setuptools.config import expand
 
 from remail.client.state import MainAppState, MainAppStateProperties
-from remail.client.views.settings import AppearanceView, EmailAccountsView, LanguageView, NotificationsView
+from remail.client.views.settings import (
+    AppearanceView,
+    EmailAccountsView,
+    LanguageView,
+    NotificationsView,
+)
 from remail.enums import SettingsSubView
 
 
 class SettingsView(ft.Container):
     def __init__(self, state: MainAppState):
-        super().__init__("/settings")
+        super().__init__()
         back_button = ft.IconButton(
             icon=ft.Icons.ARROW_BACK,
             tooltip="Back to Dashboard",
@@ -38,23 +41,25 @@ class SettingsView(ft.Container):
                         controls=[
                             ft.TextButton(
                                 content=label,
-                                on_click=lambda _, v=link_name: state.set(MainAppStateProperties.ACTIVE_SETTINGS, v),
-                                style=ft.ButtonStyle(
-                                    color= ft.Colors.ON_SURFACE,
+                                on_click=lambda _, v=link_name: state.set(
+                                    MainAppStateProperties.ACTIVE_SETTINGS, v
                                 ),
-                            ) for label, link_name in [
+                                style=ft.ButtonStyle(
+                                    color=ft.Colors.ON_SURFACE,
+                                ),
+                            )
+                            for label, link_name in [
                                 ("Appearance", SettingsSubView.APPEARANCE),
                                 ("Email Accounts", SettingsSubView.EMAIL_ACCOUNTS),
                                 ("Notification", SettingsSubView.NOTIFICATIONS),
                                 ("Language", SettingsSubView.LANGUAGE),
-                                ]
+                            ]
                         ],
                         spacing=16,
                     ),
                     width=200,
                     padding=10,
                 ),
-
                 ft.VerticalDivider(width=1),
                 sub_view,
             ],
@@ -68,17 +73,17 @@ class SettingsView(ft.Container):
                 SettingsSubView.APPEARANCE: AppearanceView,
                 SettingsSubView.EMAIL_ACCOUNTS: EmailAccountsView,
                 SettingsSubView.LANGUAGE: LanguageView,
-                SettingsSubView.NOTIFICATIONS: NotificationsView
+                SettingsSubView.NOTIFICATIONS: NotificationsView,
             }[view]()
             try:
                 sub_view.update()
-            except:
+            except RuntimeError as _:
                 pass
 
         update_subview(state.get(MainAppStateProperties.ACTIVE_SETTINGS))
         state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, update_subview)
 
-        self.content=ft.Column(
+        self.content = ft.Column(
             [
                 header,
                 ft.Divider(height=1),

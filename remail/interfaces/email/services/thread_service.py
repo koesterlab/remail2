@@ -4,24 +4,22 @@ from __future__ import annotations
 
 import re
 from collections.abc import Iterable
-from datetime import datetime
 from email.header import decode_header
 from typing import TYPE_CHECKING
 
 from sqlalchemy import and_, func
-from sqlmodel import Session, col, desc, select
+from sqlmodel import Session, col, select
 
-from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO, ThreadPreviewDTO
+from remail.controllers.dtos.conversations import ConversationDTO
 from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.database import engine
 from remail.interfaces.email.services.user_service import UserService
-from remail.models import Attachment, Contact, Conversation, Email, EmailReception, Thread
+from remail.models import Conversation, Email, Thread
 from remail.utils.session_management import session
 
 if TYPE_CHECKING:
     from remail.controllers.dtos.threads import (
-        MessageDTO,
         ThreadDTO,
     )
 

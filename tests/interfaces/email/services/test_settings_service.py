@@ -198,5 +198,6 @@ class TestSettingsService:
         # Verify no duplicate records
         with Session(test_engine) as session:
             from sqlmodel import select
+
             all_settings = session.exec(select(Settings)).all()
             assert len(all_settings) == 1

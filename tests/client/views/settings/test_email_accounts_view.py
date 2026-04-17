@@ -4,8 +4,8 @@ import unittest
 from unittest.mock import Mock, patch
 
 import flet as ft
-
 from remail.client.state.app_state import AppState
+
 from remail.client.views.settings.email_accounts_view import create_email_accounts_view
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.enums import Protocol, UserAccountCategory

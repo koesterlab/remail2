@@ -1,5 +1,3 @@
-from collections.abc import Callable
-
 import flet as ft
 
 from remail.client.widgets.mail_selection.action import Action

@@ -1,15 +1,15 @@
 """Tests for AccountController."""
 
 from collections.abc import Iterable
-from unittest.mock import AsyncMock, MagicMock, Mock, patch
+from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO
 from remail.controllers.dtos.user_dto import UserDTO
-from remail.enums import ConversationType, Protocol
-from remail.models import Conversation, Contact, User
+from remail.enums import Protocol
+from remail.models import Contact, Conversation, User
 
 
 @pytest.fixture
@@ -71,15 +71,12 @@ class TestAccountControllerStaticMethods:
                 clearname="John Doe",
                 email="john@example.com",
                 connection=mock_protocol,
-                method=Protocol.IMAP
+                method=Protocol.IMAP,
             )
 
             mock_protocol.test_connection.assert_called_once()
             mock_service.return_value.add_user.assert_called_once_with(
-                "john@example.com",
-                "John Doe",
-                Protocol.IMAP,
-                mock_protocol
+                "john@example.com", "John Doe", Protocol.IMAP, mock_protocol
             )
 
     def test_create_new_account_invalid_credentials(self):
@@ -92,7 +89,7 @@ class TestAccountControllerStaticMethods:
                 clearname="John Doe",
                 email="john@example.com",
                 connection=mock_protocol,
-                method=Protocol.IMAP
+                method=Protocol.IMAP,
             )
 
 
@@ -144,7 +141,14 @@ class TestAccountControllerConversations:
         mock_services["contact_service"].get_contact_by_id.return_value = mock_contact
 
         controller = AccountController(account_id=1)
-        contact_dto = ContactDTO(id=1, first_name="Jane", last_name="Doe", email="jane@example.com", is_known=True, type="TO")
+        contact_dto = ContactDTO(
+            id=1,
+            first_name="Jane",
+            last_name="Doe",
+            email="jane@example.com",
+            is_known=True,
+            type="TO",
+        )
 
         result = controller.create_conversation(contacts=[contact_dto])
 
@@ -235,7 +239,9 @@ class TestAccountControllerAsync:
         """Test start_listening calls sync service and triggers callback."""
         mock_services["sync_service"].wait_for_mail_changes_async = AsyncMock()
         mock_services["sync_service"].wait_for_mail_changes_async.return_value = AsyncMock()
-        mock_services["sync_service"].wait_for_mail_changes_async.return_value.__aiter__.return_value = []
+        mock_services[
+            "sync_service"
+        ].wait_for_mail_changes_async.return_value.__aiter__.return_value = []
 
         controller = AccountController(account_id=1)
         callback_called = False

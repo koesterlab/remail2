@@ -8,8 +8,8 @@ from typing import TYPE_CHECKING
 from sqlmodel import Session, col, select
 
 from remail.enums import Protocol
-from remail.interfaces.email.services import EmailParser
 from remail.interfaces.email import EmailProtocol, ImapProtocol
+from remail.interfaces.email.services import EmailParser
 from remail.models import (
     Email,
     Thread,
@@ -35,22 +35,26 @@ class EmailSyncService:
             user_id: Database user id (preferred if available)
         """
 
-        self.changed_mails = []
+        self.changed_mails: list[int] = []
         self.user_id = user_id
         self.email_parser = EmailParser(user_id)
         self.protocol = self._create_protocol()
-        self.changed_threads: list[int] = []  # list of mails(uid) that were changed after the frontend checked for the last time
+        self.changed_threads: list[
+            int
+        ] = []  # list of mails(uid) that were changed after the frontend checked for the last time
 
     @session
-    def _create_protocol(self, session:Session) -> EmailProtocol:
+    def _create_protocol(self, session: Session) -> EmailProtocol:
         user = session.get(User, self.user_id)
+        if not user:
+            raise RuntimeError("User not found for sync process")
         if user.protocol == Protocol.IMAP:
             return ImapProtocol(serialized=user.connection)
         else:
             raise NotImplementedError("Fetching with exchange accounts not implemented")
 
     @session
-    def sync_emails(self, session: Session, new_only = True) -> None:
+    def sync_emails(self, session: Session, new_only=True) -> None:
         """
         Sync emails from IMAP server to database.
 
@@ -74,12 +78,12 @@ class EmailSyncService:
                     synced_count += 1
                 else:
                     skipped_count += 1
-            except Exception as v:
+            except Exception:
                 pass
         self._save_connection_data()
 
     @session
-    async def wait_for_mail_changes_async(self, session:Session) -> AsyncGenerator[None, None]:
+    async def wait_for_mail_changes_async(self, session: Session) -> AsyncGenerator[None, None]:
         async for mails in self.protocol.wait_for_changes():
             changed = False
             for uid, data in mails.items():
@@ -91,8 +95,10 @@ class EmailSyncService:
                 yield None
 
     @session
-    def _save_connection_data(self, session:Session):
-        session.get(User, self.user_id).connection = self.protocol.serialize()
+    def _save_connection_data(self, session: Session):
+        user = session.get(User, self.user_id)
+        if user:
+            user.connection = self.protocol.serialize()
 
     @session
     def _email_exists(self, message_id: str, session: Session) -> bool:
@@ -112,7 +118,7 @@ class EmailSyncService:
         return session.exec(select(Email).where(Email.message_id == message_id)).first() is not None
 
     @session
-    def check_for_changed_threads(self, session:Session) -> list[Thread]:
+    def check_for_changed_threads(self, session: Session) -> list[Thread]:
         if self.changed_mails == []:
             return []
 

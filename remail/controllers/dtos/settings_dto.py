@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from remail.enums import ThemeMode, FontSize, FontFamily, Language, Timezone
+from remail.enums import FontFamily, FontSize, Language, ThemeMode, Timezone
 from remail.models import Settings
 from remail.utils.session_management import session
 
@@ -27,7 +27,7 @@ class SettingsDTO:
 
     @classmethod
     @session
-    def from_model(cls, settings:Settings) -> SettingsDTO:
+    def from_model(cls, settings: Settings) -> SettingsDTO:
         """
         Create DTO from Settings model.
 

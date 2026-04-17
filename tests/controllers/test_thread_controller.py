@@ -1,21 +1,16 @@
 """Tests for ThreadController."""
 
-from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
 
-from remail.controllers.dtos.conversations import ConversationDTO, ContactDTO
+from remail.controllers.dtos.conversations import ConversationDTO
 from remail.controllers.dtos.threads import (
-    MessageDTO,
-    SenderDTO,
     ThreadDTO,
 )
-from remail.controllers.dtos.threads.message import MessageContentDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.controllers.thread_controller import ThreadController
-from remail.enums import ConversationType
-from remail.models import Thread, Conversation, Contact, User, Email
+from remail.models import Contact, Conversation, Email, Thread, User
 
 
 @pytest.fixture
@@ -75,7 +70,9 @@ class TestThreadController:
         assert result is None
         mock_thread_service.get_thread_by_id.assert_called_once_with(999)
 
-    def test_get_thread_calls_service_with_correct_id(self, controller, mock_thread_service, mock_thread_model):
+    def test_get_thread_calls_service_with_correct_id(
+        self, controller, mock_thread_service, mock_thread_model
+    ):
         """Test that get_thread calls service with correct thread_id."""
         mock_thread_service.get_thread_by_id.return_value = mock_thread_model
 
@@ -87,13 +84,7 @@ class TestThreadController:
 
     def test_get_most_urgent_threads(self, controller, mock_thread_service):
         """Test get_most_urgent_threads returns correct data."""
-        mock_results = [
-            (
-                Mock(spec=ThreadDTO),
-                Mock(spec=ConversationDTO),
-                Mock(spec=UserDTO)
-            )
-        ]
+        mock_results = [(Mock(spec=ThreadDTO), Mock(spec=ConversationDTO), Mock(spec=UserDTO))]
         mock_thread_service.get_most_important_threads.return_value = mock_results
 
         result = controller.get_most_urgent_threads(count=5)
@@ -153,9 +144,7 @@ class TestThreadController:
             mock_protocol_cls.return_value = mock_protocol
 
             controller.send_message(
-                thread_id=1,
-                message="Hello, this is a test message",
-                attachment=[]
+                thread_id=1, message="Hello, this is a test message", attachment=[]
             )
 
             mock_thread_service.get_thread_by_id.assert_called_once_with(1)
@@ -164,7 +153,7 @@ class TestThreadController:
                 sender=("John Doe", "john@example.com"),
                 recipients=[("Jane Smith", "jane@example.com")],
                 subject="Test Thread",
-                msg="Hello, this is a test message"
+                msg="Hello, this is a test message",
             )
 
     def test_send_message_reply_subject(self, controller, mock_thread_service):

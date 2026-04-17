@@ -128,10 +128,11 @@ class TestThreadService:
         assert service.normalize_subject("Test Subject") == "Test Subject"
         assert service.normalize_subject("Meeting Tomorrow") == "Meeting Tomorrow"
 
-    def test_organize_email_into_thread_creates_new_thread(self, test_engine, test_conversation, test_user):
+    def test_organize_email_into_thread_creates_new_thread(
+        self, test_engine, test_conversation, test_user
+    ):
         """Test organize_email_into_thread creates new thread for new subject."""
         with Session(test_engine) as session:
-            user = session.get(User, test_user)
             conv = session.get(Conversation, test_conversation)
 
             email = Email(
@@ -154,7 +155,9 @@ class TestThreadService:
             assert threads[0].title == "New Subject"
             assert email.thread == threads[0]
 
-    def test_organize_email_into_thread_uses_existing_thread(self, test_engine, test_conversation, test_user):
+    def test_organize_email_into_thread_uses_existing_thread(
+        self, test_engine, test_conversation, test_user
+    ):
         """Test organize_email_into_thread uses existing thread for same subject."""
         with Session(test_engine) as session:
             conv = session.get(Conversation, test_conversation)
@@ -242,6 +245,7 @@ class TestThreadService:
             conv = session.get(Conversation, test_conversation)
 
             from datetime import datetime
+
             thread1 = Thread(
                 title="Old Thread",
                 conversation=conv,

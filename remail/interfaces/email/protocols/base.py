@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
-from datetime import datetime
-from email.message import Message
-from typing import TYPE_CHECKING, AsyncGenerator, Any
+from collections.abc import AsyncGenerator
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from remail.models import Email
@@ -17,7 +16,7 @@ class EmailProtocol(ABC):
         pass
 
     @abstractmethod
-    def fetch_emails(self, new_only:bool = True) -> dict:
+    def fetch_emails(self, new_only: bool = True) -> dict:
         """
         Retrieve emails from server.
 

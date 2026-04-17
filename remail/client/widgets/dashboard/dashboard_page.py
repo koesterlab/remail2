@@ -71,7 +71,7 @@ class DashboardPage(ft.Column):
         self._rebuild()
 
     def on_user_change(self, acc: UserDTO):
-        self.dropdown.value = acc.id
+        self.dropdown.value = str(acc.id)
 
     def _rebuild(self) -> None:
         # Compute greeting + name dynamically
@@ -91,7 +91,6 @@ class DashboardPage(ft.Column):
                 )
                 for acc in [c.get_user() for c in self.accounts]
             ],
-
             on_select=lambda user_id: self.state.set(
                 MainAppStateProperties.ACTIVE_USER,
                 [a for a in self.accounts if a.user_id == user_id][0],
@@ -113,7 +112,10 @@ class DashboardPage(ft.Column):
                             ft.IconButton(
                                 icon_color=ft.Colors.ON_SURFACE_VARIANT,
                                 icon=ft.Icons.SETTINGS,
-                                on_click=lambda _: self.page.go("/settings/appearance")
+                                on_click=lambda _: self.state.set(
+                                    MainAppStateProperties.ACTIVE_SETTINGS,
+                                    SettingsSubView.APPEARANCE,
+                                ),
                             ),
                         ],
                         horizontal_alignment=ft.CrossAxisAlignment.END,

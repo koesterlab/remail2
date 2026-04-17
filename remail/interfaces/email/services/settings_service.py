@@ -1,6 +1,5 @@
 from sqlmodel import Session, select
 
-from remail.database.db import engine
 from remail.models.settings import Settings
 from remail.utils.session_management import session
 
@@ -22,7 +21,7 @@ class SettingsService:
         return default_settings
 
     @session
-    def load_settings(self, session:Session) -> Settings:
+    def load_settings(self, session: Session) -> Settings:
         """
         Load settings with lowest id.
 
@@ -30,7 +29,7 @@ class SettingsService:
             Settings object (new or existing)
         """
         while True:
-            settings = session.exec(select(Settings).order_by(Settings.id)).first()
+            settings = session.exec(select(Settings).order_by(Settings.id)).first()  # type:ignore
             if settings:
                 return settings
             self.__init_settings(session)
@@ -49,7 +48,7 @@ class SettingsService:
             session: Database session
         """
         settings.id = 1
-        db_obj = session.get(Settings, session.get(Settings, 1).id)
+        db_obj = self.load_settings()
         if db_obj:
             session.merge(settings)
         else:

@@ -3,7 +3,7 @@ from email import message_from_bytes
 from email.header import decode_header, make_header
 from email.message import Message
 from email.utils import getaddresses, parsedate_to_datetime
-from typing import cast, Any
+from typing import Any, cast
 
 from pytz import timezone
 from sqlmodel import Session, select
@@ -14,15 +14,15 @@ from remail.interfaces.email.services.contact_service import ContactService
 from remail.models import Contact, Conversation, Email, EmailReception, User
 from remail.utils.session_management import session
 
-from . import ConversationService
-from . import ThreadService
+from . import ConversationService, ThreadService
+
 UTC = timezone("UTC")
 
 
 class EmailParser:
-
     """Service for parsing email messages."""
-    def __init__(self, user_id:int):
+
+    def __init__(self, user_id: int):
         """Initialize email parser."""
         self.user_id = user_id
         self.contact_service = ContactService()
@@ -30,7 +30,7 @@ class EmailParser:
         self.thread_service = ThreadService()
 
     @session
-    def parse_mail(self, mail_data:dict, imap_uid: int, session:Session) -> tuple[bool, int]:
+    def parse_mail(self, mail_data: dict, imap_uid: int, session: Session) -> tuple[bool, int]:
         """
         Parses the mail from raw imap data. Updates an existing entry or creates a new one (with thread and conversation if necessary)
 
@@ -51,7 +51,7 @@ class EmailParser:
             return True, self.process_new_email(mail_data, imap_uid).id
 
     @session
-    def _update_mail_data(self, existing:Email, mail_data:dict) -> tuple[bool,Email]:
+    def _update_mail_data(self, existing: Email, mail_data: dict) -> tuple[bool, Email]:
         """
         Updates an existing Mail in the Database. AtM, only seen and deleted state are watched
 
@@ -59,7 +59,7 @@ class EmailParser:
             existing: The db email model (active session)
             mail_data: the corresponding raw imap data with FLAGS
         """
-        #msg = message_from_bytes(mail_data[b"BODY[]"])
+        # msg = message_from_bytes(mail_data[b"BODY[]"])
         flags = mail_data[b"FLAGS"]
         read = b"\\Seen" in flags
         deleted = b"\\Deleted" in flags
@@ -67,7 +67,6 @@ class EmailParser:
         existing.read = read
         existing.deleted = deleted
         return changed, existing
-
 
     @session
     def process_new_email(self, mail_data: dict[bytes, Any], uid: int, session: Session) -> Email:
@@ -81,10 +80,9 @@ class EmailParser:
         Returns:
             Saved Email instance
         """
-        user:User = session.get(User, self.user_id) #type:ignore
+        user: User = session.get(User, self.user_id)  # type:ignore
         raw_email = message_from_bytes(mail_data[b"BODY[]"])
         flags = mail_data[b"FLAGS"]
-
 
         # Extract sender info
         [sender_contact] = self._extract_participant(raw_email, "From")
@@ -105,7 +103,7 @@ class EmailParser:
         # Create the email record
         sent_at = self.extract_msg_date(raw_email)
         body = self._get_body(raw_email)
-        message_id = raw_email.get("Message-ID").strip().lower()
+        message_id = (raw_email.get("Message-ID") or "").strip().lower()
 
         db_email = Email(
             imap_uid=uid,
@@ -122,7 +120,9 @@ class EmailParser:
         session.commit()
 
         self.thread_service.organize_email_into_thread(
-            email=db_email, conversation=conversation, subject=self.sanitize(raw_email.get("Subject", "unknown"))
+            email=db_email,
+            conversation=conversation,
+            subject=self.sanitize(raw_email.get("Subject", "unknown")),
         )
 
         # Create EmailReception records for all recipients
@@ -260,7 +260,7 @@ class EmailParser:
         body_text: str = ""
         html_parts: list[str] = []
         attachments: list[str] = []
-        message_id = em.get("Message-ID").strip().lower() or "unknown"
+        message_id = (em.get("Message-ID") or "").strip().lower() or "unknown"
 
         if em.is_multipart():
             for part in em.walk():
@@ -334,12 +334,12 @@ class EmailParser:
 
     @session
     def _create_email_receptions(
-            self,
-            email: Email,
-            to_recipients: list[Contact],
-            cc_recipients: list[Contact],
-            bcc_recipients: list[Contact],
-            session: Session,
+        self,
+        email: Email,
+        to_recipients: list[Contact],
+        cc_recipients: list[Contact],
+        bcc_recipients: list[Contact],
+        session: Session,
     ) -> None:
         """
         Create EmailReception records for all recipients.
@@ -354,9 +354,9 @@ class EmailParser:
 
         already_added = set()
         for category, contacts in (
-                (RecipientKind.TO, to_recipients),
-                (RecipientKind.CC, cc_recipients),
-                (RecipientKind.BCC, bcc_recipients),
+            (RecipientKind.TO, to_recipients),
+            (RecipientKind.CC, cc_recipients),
+            (RecipientKind.BCC, bcc_recipients),
         ):
             for contact in contacts:
                 if contact in already_added:

@@ -26,7 +26,9 @@ def save_attachment(filename: str, content: bytes, message: Email, session: Sess
     """
 
     attachments_dir = os.path.abspath(os.path.join("remail", "database", "attachments"))
-    message_dir = os.path.join(attachments_dir, secure_filename(message.message_id).replace(".", "_"))
+    message_dir = os.path.join(
+        attachments_dir, secure_filename(message.message_id or "").replace(".", "_")
+    )
     max_size = 200 * 1024 * 1024  # 200 MB limit
 
     if len(content) > max_size:

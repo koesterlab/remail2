@@ -17,8 +17,7 @@ class UserDTO:
         return self.id == other.id
 
     @staticmethod
-    def get_from_model(user: User, unread_count: int) -> "UserDTO|None":
-        if not user: return None
+    def get_from_model(user: User, unread_count: int) -> "UserDTO":
         return UserDTO(
             email=user.email,
             id=user.id if user.id else -1,
