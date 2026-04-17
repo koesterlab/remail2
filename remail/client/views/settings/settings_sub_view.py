@@ -13,7 +13,7 @@ class SettingsSubView(ft.Container):
         self.controller = SettingsController()
         self.settings: SettingsDTO = self.controller.get_settings()
         self._settings_change_handler: list[Callable[[], None]] = []
-        self.content = self.create_page(self.settings)
+        super().__init__(content=self.create_page(self.settings))
 
     def create_page(self, settings: SettingsDTO) -> ft.Container:
         return ft.Container()
@@ -31,4 +31,5 @@ class SettingsSubView(ft.Container):
         )
         snack_bar.open = True
         self.content = self.create_page(self.settings)
+        self.update()
 

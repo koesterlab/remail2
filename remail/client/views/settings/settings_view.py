@@ -38,15 +38,16 @@ class SettingsView(ft.Container):
                         controls=[
                             ft.TextButton(
                                 content=label,
-                                on_click=lambda: state.set(MainAppStateProperties.ACTIVE_SETTINGS, link_name),
+                                on_click=lambda _, v=link_name: state.set(MainAppStateProperties.ACTIVE_SETTINGS, v),
                                 style=ft.ButtonStyle(
                                     color= ft.Colors.ON_SURFACE,
                                 ),
                             ) for label, link_name in [
                                 ("Appearance", SettingsSubView.APPEARANCE),
                                 ("Email Accounts", SettingsSubView.EMAIL_ACCOUNTS),
+                                ("Notification", SettingsSubView.NOTIFICATIONS),
                                 ("Language", SettingsSubView.LANGUAGE),
-                                ("Notification", SettingsSubView.NOTIFICATIONS)]
+                                ]
                         ],
                         spacing=16,
                     ),
@@ -60,20 +61,22 @@ class SettingsView(ft.Container):
             expand=True,
         )
 
-        def update_subview():
+        def update_subview(view: SettingsSubView):
+            if not view:
+                return
             sub_view.content = {
                 SettingsSubView.APPEARANCE: AppearanceView,
                 SettingsSubView.EMAIL_ACCOUNTS: EmailAccountsView,
                 SettingsSubView.LANGUAGE: LanguageView,
                 SettingsSubView.NOTIFICATIONS: NotificationsView
-            }[state.get(MainAppStateProperties.ACTIVE_SETTINGS)](state)
+            }[view]()
             try:
                 sub_view.update()
             except:
                 pass
 
-        update_subview()
-        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, lambda _: update_subview())
+        update_subview(state.get(MainAppStateProperties.ACTIVE_SETTINGS))
+        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, update_subview)
 
         self.content=ft.Column(
             [

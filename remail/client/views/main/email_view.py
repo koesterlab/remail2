@@ -13,9 +13,9 @@ from ...state.main_app_state import MainAppState, MainAppStateProperties
 from ...widgets.dashboard.dashboard_page import DashboardPage
 from ...widgets.thread.thread_list import ThreadList
 
-class MainView(ft.Container):
+class EmailView(ft.Container):
     def __init__(self, state:MainAppState) -> None:
-        selection_bar = SelectionBar(state)
+        super().__init__()
 
         def on_thread_change(new: ThreadPreviewDTO | None) -> None:
             if new:
@@ -71,11 +71,11 @@ class MainView(ft.Container):
             t.cancel()
 
         # register new accounts and start listening
-        accounts = AccountController.all_client_accounts()
-        if not accounts:
+        self.accounts = AccountController.all_client_accounts()
+        if not self.accounts:
             state.set(MainAppStateProperties.ACTIVE_USER, None)
         else:
-            for acc in accounts:
+            for acc in self.accounts:
                 state.account_controllers[acc.get_email_address()] = acc
                 acc.set_callback_email_changes(
                     lambda updates, acc_= acc: on_emails_synced(acc_.get_user(), updates)
@@ -83,12 +83,7 @@ class MainView(ft.Container):
                 acc.set_callback_email_errors(
                     lambda msg, acc_=acc: on_email_sync_error(acc_.get_user(), msg)
                 )
-
-                self.page.run_thread(
-                    lambda acc_=acc: asyncio.run(acc_.start_listening())
-                )  # running sync task in flets own async system
-
-            state.set(MainAppStateProperties.ACTIVE_USER, accounts[0].get_user())
+            state.set(MainAppStateProperties.ACTIVE_USER, self.accounts[0].get_user())
         state.register_observer(MainAppStateProperties.ACTIVE_CHATBOT, on_chatbot_state_change)
         state.register_observer(MainAppStateProperties.ACTIVE_THREAD, on_thread_change)
 
@@ -100,7 +95,7 @@ class MainView(ft.Container):
                     ft.Button(
                         "Open Settings",
                         icon=ft.Icons.SETTINGS,
-                        on_click=lambda _: state.set(MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubView.APPEARANCE),
+                        on_click=lambda _: state.set(MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubView.EMAIL_ACCOUNTS),
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -128,9 +123,23 @@ class MainView(ft.Container):
         self.content = ft.ResponsiveRow(
             expand=True,
             controls=[
-                ft.Column(
-                    [ft.Container(selection_bar, expand=1), chatbot], col={"xs": 6, "md": 4, "lg": 3}
+                ft.Container(
+                    content = ft.Column(
+                        [
+                            ft.Container(SelectionBar(state), expand=1, bgcolor=ft.Colors.RED),
+                            ft.Container(chatbot, bgcolor=ft.Colors.GREEN),
+                        ], alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                        expand=True,
+                    ),
+                    col = {"xs": 6, "md": 4, "lg": 3},
+                    expand=True,
                 ),
                 right_view,
             ],
         )
+
+    def run_sync_threads(self):
+        for acc in self.accounts:
+            self.page.run_thread(
+                lambda acc_=acc: asyncio.run(acc_.start_listening())
+            )  # running sync task in flets own async system

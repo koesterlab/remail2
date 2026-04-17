@@ -1,4 +1,4 @@
 
-from .main_view import MainView
+from .email_view import EmailView
 
-__all__ = ["MainView"]
+__all__ = ["EmailView"]

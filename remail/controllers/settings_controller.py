@@ -25,7 +25,7 @@ class SettingsController:
     def update_settings(
             self,
             settings: SettingsDTO,
-    ) -> SettingsDTO:
+    ) -> None:
         """
         Update application settings.
 
@@ -35,15 +35,14 @@ class SettingsController:
         Returns:
             Updated SettingsDTO
         """
-        db_obj = Settings(
-            id=settings.id,
-            theme_mode=settings.theme_mode,
-            font_size=settings.font_size,
-            font_family=settings.font_family,
-            language=settings.language,
-            timezone=settings.timezone,
-            desktop_notifications=settings.desktop_notifications,
-            email_notifications=settings.email_notifications,
-            quiet_hours=settings.quiet_hours,
-        )
-        return SettingsDTO.from_model(self.service.save_settings(db_obj))
+
+        settings_obj = self.service.load_settings()
+
+        settings_obj.theme_mode=settings.theme_mode
+        settings_obj.font_size=settings.font_size
+        settings_obj.font_family=settings.font_family
+        settings_obj.language=settings.language
+        settings_obj.timezone=settings.timezone
+        settings_obj.desktop_notifications=settings.desktop_notifications
+        settings_obj.email_notifications=settings.email_notifications
+        settings_obj.quiet_hours=settings.quiet_hours

@@ -1,17 +1,11 @@
-from abc import ABC
-
 import flet as ft
 
-from remail.client.state.app_state import AppState
 from remail.client.views.settings.settings_sub_view import SettingsSubView
-from remail.controllers import SettingsController
+from remail.controllers.dtos import SettingsDTO
 
-class NotificationsView(SettingsSubView, ABC):
-    def __init__(self):
-        super().__init__(route="notifications")
 
-    def create_view(self) -> ft.Control:
-        self.settings = self.controller.get_settings()
+class NotificationsView(SettingsSubView):
+    def create_page(self, settings: SettingsDTO) -> ft.Control:
         return ft.Container(
             ft.Column(
                 [
@@ -21,28 +15,28 @@ class NotificationsView(SettingsSubView, ABC):
                     ft.Row(
                         [
                             ft.Text("Get notified on your desktop", expand=True),
-                            self.create_settings_depending(lambda: ft.Switch(
-                                value=self.settings.desktop_notifications,
+                            ft.Switch(
+                                value=settings.desktop_notifications,
                                 on_change=lambda e: self.apply_settings("desktop_notifications", e.control.value),
-                            )),
+                            ),
                         ]
                     ),
                     ft.Row(
                         [
                             ft.Text("Get notified about new emails", expand=True),
-                            self.create_settings_depending(lambda: ft.Switch(
-                                value=self.settings.email_notifications,
+                            ft.Switch(
+                                value=settings.email_notifications,
                                 on_change=lambda e: self.apply_settings("email_notifications", e.control.value)
-                            )),
+                            ),
                         ]
                     ),
                     ft.Row(
                         [
                             ft.Text("No notifications between 10 PM and 8 AM", expand=True),
-                            self.create_settings_depending(lambda: ft.Switch(
-                                value=self.settings.quiet_hours,
+                            ft.Switch(
+                                value=settings.quiet_hours,
                                 on_change=lambda e: self.apply_settings("quiet_hours", e.control.value),
-                            )),
+                            ),
                         ]
                     ),
                 ],
@@ -54,10 +48,3 @@ class NotificationsView(SettingsSubView, ABC):
             alignment=ft.Alignment.CENTER_LEFT,
             expand=True,
         )
-
-
-def create_notifications_view(page: ft.Page, app_state: AppState) -> ft.Container:
-    del app_state
-    view = NotificationsView()
-    view.set_page(page)
-    return view.create_view()

@@ -1,17 +1,15 @@
 import flet as ft
 
 from remail.client.state import MainAppState, MainAppStateProperties
-from remail.client.views.main import MainView
-from remail.client.views.settings import SettingsView
+from remail.client.views.main import EmailView
+from .settings import SettingsView
 
 
 class IndexView(ft.Container):
-    def __init__(self, **kwargs):
-        super().__init__(
-            content=None,
-            **kwargs
-        )
+    def __init__(self) -> None:
+        super().__init__(expand=True)
 
+    def start(self) -> None:
         state = MainAppState()
         state.set(MainAppStateProperties.DISPLAYED_MAILS, [])
         state.set(MainAppStateProperties.ACTIVE_CHATBOT, False)
@@ -21,11 +19,16 @@ class IndexView(ft.Container):
         state.set(MainAppStateProperties.SEARCH_TERM, "")
         state.set(MainAppStateProperties.ACTIVE_SETTINGS, None)
 
-        def show_content(settings: bool) -> None:
-            if settings:
-                self.content = SettingsView(state)
-            else:
-                self.content = MainView(state)
-            self.update()
+        settings_view = SettingsView(state)
+        emails_view = EmailView(state)
 
-        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, lambda s: )
+        def show_content(settings: bool) -> None:
+            self.content = settings_view if settings else emails_view
+            try:
+                self.update()
+            except Exception as e:
+                pass
+
+        state.register_observer(MainAppStateProperties.ACTIVE_SETTINGS, lambda s: show_content(s is not None))
+        show_content(False)
+        emails_view.run_sync_threads()

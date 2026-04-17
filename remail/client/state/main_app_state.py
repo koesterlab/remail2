@@ -3,14 +3,11 @@ from collections.abc import Callable
 from enum import Enum
 from typing import Union
 
-from remail.client.state import AppState
 from remail.client.state.observable_state import ObservableState
 from remail.controllers.account_controller import AccountController
 from remail.controllers.dtos.conversations import ConversationDTO, ThreadPreviewDTO
 from remail.controllers.dtos.user_dto import UserDTO
-from remail.controllers.llm_controller import LLMController
 from remail.controllers.thread_controller import ThreadController
-from remail.enums import SettingsSubView
 
 
 class MainAppStateProperties(Enum):
