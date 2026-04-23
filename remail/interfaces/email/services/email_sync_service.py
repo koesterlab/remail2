@@ -49,7 +49,10 @@ class EmailSyncService:
         if not user:
             raise RuntimeError("User not found for sync process")
         if user.protocol == Protocol.IMAP:
-            return ImapProtocol(serialized=user.connection)
+            try:
+                return ImapProtocol(serialized=user.connection)
+            except Exception as e:
+                raise RuntimeError(f"User (id={user.id}) has invalid protocol string: {str(e)}")
         else:
             raise NotImplementedError("Fetching with exchange accounts not implemented")
 

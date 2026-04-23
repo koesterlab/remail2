@@ -42,9 +42,6 @@ types-requests = ">=2.32.0.20241016"
 [tool.pixi.environments]
 default = ["dev"]
 
-[tool.pixi.activation]
-scripts = ["scripts/load_env.sh"]
-
 [tool.pixi.tasks]
 # 1) Ruff lint + format
 format-lint = "ruff check --fix ."
