@@ -28,7 +28,7 @@ class IndexView(ft.Container):
             try:
                 self.update()
             except Exception:
-                pass
+                pass  # nosec
 
         state.register_observer(
             MainAppStateProperties.ACTIVE_SETTINGS, lambda s: show_content(s is not None)

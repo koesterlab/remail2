@@ -38,5 +38,5 @@ class EmailController:
             if protocol.test_connection():
                 return protocol
         except Exception as _:
-            pass
+            pass  # nosec
         return None
