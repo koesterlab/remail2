@@ -1,25 +1,22 @@
 from __future__ import annotations
 
-import asyncio
-import importlib
-import json
 from datetime import datetime
-from email.message import EmailMessage
+from smtplib import SMTPRecipientsRefused, SMTPServerDisconnected
 from types import SimpleNamespace
 from unittest.mock import AsyncMock, Mock
 
 import pytest
 from imapclient.exceptions import CapabilityError, LoginError
-from smtplib import SMTPRecipientsRefused, SMTPServerDisconnected
 from sqlalchemy.exc import InvalidRequestError
 from sqlmodel import Session
 
 from remail import fixtures
-from remail.controllers import SettingsController, __dir__ as controllers_dir, __getattr__ as controllers_getattr
+from remail.controllers import SettingsController
+from remail.controllers import __dir__ as controllers_dir
+from remail.controllers import __getattr__ as controllers_getattr
 from remail.controllers.account_controller import AccountController
-from remail.controllers.dtos.conversations import ContactDTO, ConversationDTO
+from remail.controllers.dtos.conversations import ContactDTO
 from remail.controllers.dtos.settings_dto import SettingsDTO
-from remail.controllers.dtos.threads import ThreadDTO
 from remail.controllers.dtos.user_dto import UserDTO
 from remail.controllers.llm_controller import LLMController
 from remail.enums import (
@@ -35,20 +32,20 @@ from remail.enums import (
 )
 from remail.errors import InvalidLoginData, RecipientsFail, ServerConnectionFail, UnknownError
 from remail.errors.handlers.email_handler import email_error_handler
-from remail.interfaces.email import __dir__ as email_dir, __getattr__ as email_getattr
-from remail.interfaces.email.protocols import __dir__ as protocols_dir, __getattr__ as protocols_getattr
+from remail.interfaces.email import __dir__ as email_dir
+from remail.interfaces.email import __getattr__ as email_getattr
+from remail.interfaces.email.protocols import __dir__ as protocols_dir
+from remail.interfaces.email.protocols import __getattr__ as protocols_getattr
 from remail.interfaces.email.protocols.base import EmailProtocol
 from remail.interfaces.email.protocols.exchange import ExchangeProtocol
 from remail.interfaces.email.protocols.imap import ImapProtocol
-from remail.interfaces.email.services.attachment_service import save_attachment
 from remail.interfaces.email.services.contact_service import ContactService
 from remail.interfaces.email.services.conversation_service import ConversationService
-from remail.interfaces.email.services.email_sync_service import EmailSyncService
 from remail.interfaces.email.services.settings_service import SettingsService
 from remail.interfaces.email.services.thread_service import ThreadService
 from remail.interfaces.email.services.user_service import UserService
 from remail.interfaces.llm.llm_service import LLMService
-from remail.models import Contact, Conversation, ConversationContact, Email, Settings, Thread, User
+from remail.models import Contact, Conversation, Email, Settings, Thread, User
 
 
 def make_user_model(email: str = "user@example.com") -> User:
@@ -181,7 +178,9 @@ def test_contact_conversation_thread_and_user_services(test_engine):
         by_members = None
 
         thread_service = ThreadService()
-        db_conversation = Conversation(type=ConversationType.GROUP, user=user, custom_name="DB Group")
+        db_conversation = Conversation(
+            type=ConversationType.GROUP, user=user, custom_name="DB Group"
+        )
         db_conversation.contacts = [contact]
         session.add(db_conversation)
         session.commit()
@@ -219,7 +218,7 @@ def test_contact_conversation_thread_and_user_services(test_engine):
         assert ThreadService.normalize_subject("Aw: Re: Subject") == "Subject"
         assert isinstance(user_dto, UserDTO)
         assert len(all_users) > 0
-        with pytest.raises(Exception):
+        with pytest.raises(Exception):  # noqa:B017
             UserService.delete_user(user.id)
         UserService().reload_all_user_mails(user_dto.id)
 
@@ -235,11 +234,25 @@ def test_account_controller_smoke(monkeypatch):
         protocol=Protocol.IMAP,
         unread_conversations=0,
     )
-    contact = Contact(id=1, name="Ada", email_address="ada@example.com", contact_type=ContactType.PRIVATE, is_known=True)
+    contact = Contact(
+        id=1,
+        name="Ada",
+        email_address="ada@example.com",
+        contact_type=ContactType.PRIVATE,
+        is_known=True,
+    )
     conversation = Conversation(id=1, type=ConversationType.GROUP, custom_name="Group")
     conversation.contacts = [contact]
     thread = Thread(id=1, title="Subject", unread_count=1)
-    email = Email(id=1, body="Latest", message_id="<id>", sent_at=datetime.now(), sender=contact, read=False, imap_uid=12)
+    email = Email(
+        id=1,
+        body="Latest",
+        message_id="<id>",
+        sent_at=datetime.now(),
+        sender=contact,
+        read=False,
+        imap_uid=12,
+    )
     thread.messages = [email]
     conversation.threads = [thread]
 
@@ -261,12 +274,28 @@ def test_account_controller_smoke(monkeypatch):
         def get_all_users(self):
             return [user_dto]
 
-    monkeypatch.setattr("remail.controllers.account_controller.UserDTO.get_from_model", lambda user, unread: user_dto)
-    monkeypatch.setattr("remail.controllers.account_controller.EmailSyncService", lambda user_id: Mock(sync_emails=Mock(), check_for_changed_threads=lambda: [thread], wait_for_mail_changes_async=AsyncMock()))
+    monkeypatch.setattr(
+        "remail.controllers.account_controller.UserDTO.get_from_model",
+        lambda user, unread: user_dto,
+    )
+    monkeypatch.setattr(
+        "remail.controllers.account_controller.EmailSyncService",
+        lambda user_id: Mock(
+            sync_emails=Mock(),
+            check_for_changed_threads=lambda: [thread],
+            wait_for_mail_changes_async=AsyncMock(),
+        ),
+    )
     monkeypatch.setattr("remail.controllers.account_controller.ThreadService", lambda: Mock())
     monkeypatch.setattr("remail.controllers.account_controller.UserService", FakeUserService)
-    monkeypatch.setattr("remail.controllers.account_controller.ConversationService", lambda: Mock(create_conversation=lambda **kwargs: conversation))
-    monkeypatch.setattr("remail.controllers.account_controller.ContactService", lambda: Mock(get_contact_by_id=lambda contact_id: contact))
+    monkeypatch.setattr(
+        "remail.controllers.account_controller.ConversationService",
+        lambda: Mock(create_conversation=lambda **kwargs: conversation),
+    )
+    monkeypatch.setattr(
+        "remail.controllers.account_controller.ContactService",
+        lambda: Mock(get_contact_by_id=lambda contact_id: contact),
+    )
 
     controller = AccountController(7)
     controller.set_callback_email_changes(lambda updates: None)
@@ -284,7 +313,9 @@ def test_llm_controller_and_service_smoke(monkeypatch):
     service_mock.default_max_tokens = 150
     service_mock.default_temperature = 0.7
     service_mock.generate_completion_with_history.return_value = completion
-    monkeypatch.setattr("remail.controllers.llm_controller.LLMService", lambda base_url, api_key: service_mock)
+    monkeypatch.setattr(
+        "remail.controllers.llm_controller.LLMService", lambda base_url, api_key: service_mock
+    )
 
     controller = LLMController("http://llm", "key")
     response = controller.chat("Hi")
@@ -306,12 +337,15 @@ def test_llm_controller_and_service_smoke(monkeypatch):
             "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2},
         }
     )
-    client = SimpleNamespace(chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **kwargs: fake_response)))
+    client = SimpleNamespace(
+        chat=SimpleNamespace(completions=SimpleNamespace(create=lambda **kwargs: fake_response))
+    )
     monkeypatch.setattr("remail.interfaces.llm.llm_service.OpenAI", lambda **kwargs: client)
 
     service = LLMService("http://llm", "key")
     llm_response = service.generate_completion_with_history("Hello", [])
     assert llm_response.completion_text == "Hi"
+
 
 def test_exchange_protocol_smoke(monkeypatch):
     class FakeInbox:
@@ -327,8 +361,12 @@ def test_exchange_protocol_smoke(monkeypatch):
         def __init__(self, *args, **kwargs):
             self.inbox = FakeInbox()
 
-    monkeypatch.setattr("remail.interfaces.email.protocols.exchange.Credentials", lambda **kwargs: object())
-    monkeypatch.setattr("remail.interfaces.email.protocols.exchange.Configuration", lambda **kwargs: object())
+    monkeypatch.setattr(
+        "remail.interfaces.email.protocols.exchange.Credentials", lambda **kwargs: object()
+    )
+    monkeypatch.setattr(
+        "remail.interfaces.email.protocols.exchange.Configuration", lambda **kwargs: object()
+    )
     monkeypatch.setattr("remail.interfaces.email.protocols.exchange.Account", FakeAccount)
     monkeypatch.setattr(
         "remail.interfaces.email.protocols.exchange.EWSTimeZone",
@@ -386,8 +424,12 @@ def test_conversation_fixtures_smoke(monkeypatch):
     monkeypatch.setattr("remail.fixtures.conversation_fixtures.User", FakeUser)
     monkeypatch.setattr("remail.fixtures.conversation_fixtures.Contact", FakeContact)
     monkeypatch.setattr("remail.fixtures.conversation_fixtures.Conversation", FakeConversation)
-    monkeypatch.setattr("remail.fixtures.conversation_fixtures.ConversationContact", FakeConversationContact)
-    monkeypatch.setattr("remail.fixtures.conversation_fixtures.UserConversation", FakeUserConversation)
+    monkeypatch.setattr(
+        "remail.fixtures.conversation_fixtures.ConversationContact", FakeConversationContact
+    )
+    monkeypatch.setattr(
+        "remail.fixtures.conversation_fixtures.UserConversation", FakeUserConversation
+    )
 
     from remail.fixtures.conversation_fixtures import load_conversation_fixtures
 

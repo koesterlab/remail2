@@ -2,7 +2,6 @@ import pytest
 from sqlalchemy.pool import StaticPool
 from sqlmodel import Session, SQLModel, create_engine
 
-
 # These test modules still target removed modules and a superseded settings UI API.
 # They are kept out of collection until equivalent coverage is rewritten against the
 # current implementation.

@@ -52,7 +52,9 @@ class EmailSyncService:
             try:
                 return ImapProtocol(serialized=user.connection)
             except Exception as e:
-                raise RuntimeError(f"User (id={user.id}) has invalid protocol string: {str(e)}")
+                raise RuntimeError(
+                    f"User (id={user.id}) has invalid protocol string: {str(e)}"
+                ) from e
         else:
             raise NotImplementedError("Fetching with exchange accounts not implemented")
 

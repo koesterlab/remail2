@@ -30,8 +30,6 @@ from remail.client.widgets.dashboard.dashboard_page import (
 )
 from remail.client.widgets.dashboard.todo_item import TodoItem
 from remail.client.widgets.dashboard.todo_list import TodoList
-from remail.client.widgets.mail_selection.action import Action
-from remail.client.widgets.mail_selection.action_preview import ActionPreview
 from remail.client.widgets.mail_selection.contact_preview import ContactPreview
 from remail.client.widgets.mail_selection.conversation_preview import ConversationPreview
 from remail.client.widgets.mail_selection.conversation_selection import ConversationSelection
@@ -55,10 +53,12 @@ from remail.enums import (
     FontSize,
     Language,
     Protocol,
-    SettingsSubView as SettingsSubViewEnum,
     ThemeMode,
     Timezone,
     UserAccountCategory,
+)
+from remail.enums import (
+    SettingsSubView as SettingsSubViewEnum,
 )
 
 
@@ -108,7 +108,9 @@ def make_thread_preview(thread_id: int = 1, title: str = "Subject") -> ThreadPre
     )
 
 
-def make_conversation(conv_id: int = 1, contacts: list[ContactDTO] | None = None) -> ConversationDTO:
+def make_conversation(
+    conv_id: int = 1, contacts: list[ContactDTO] | None = None
+) -> ConversationDTO:
     return ConversationDTO(
         id=conv_id,
         contacts=contacts or [make_contact(conv_id)],
@@ -175,7 +177,9 @@ def test_settings_loader_smoke(monkeypatch):
     app_state = StubAppState()
     page = Mock(spec=ft.Page)
 
-    monkeypatch.setattr(settings_loader, "SettingsController", lambda: Mock(get_settings=lambda: settings))
+    monkeypatch.setattr(
+        settings_loader, "SettingsController", lambda: Mock(get_settings=lambda: settings)
+    )
     monkeypatch.setattr(settings_loader.UserService, "get_all_users", lambda: [make_user()])
 
     settings_loader.load_settings_into_state(app_state, page)
@@ -220,10 +224,18 @@ def test_email_view_smoke(monkeypatch):
     fake_account.set_callback_email_errors.return_value = None
     fake_account.start_listening = Mock()
 
-    monkeypatch.setattr("remail.client.views.main.email_view.create_chatbot", lambda state: ft.Container())
-    monkeypatch.setattr("remail.client.views.main.email_view.SelectionBar", lambda state: ft.Container())
-    monkeypatch.setattr("remail.client.views.main.email_view.DashboardPage", lambda state: ft.Container())
-    monkeypatch.setattr("remail.client.views.main.email_view.ThreadList", lambda state: ft.Container())
+    monkeypatch.setattr(
+        "remail.client.views.main.email_view.create_chatbot", lambda state: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.main.email_view.SelectionBar", lambda state: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.main.email_view.DashboardPage", lambda state: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.main.email_view.ThreadList", lambda state: ft.Container()
+    )
     monkeypatch.setattr(
         "remail.client.views.main.email_view.AccountController.all_client_accounts",
         lambda: [fake_account],
@@ -255,7 +267,9 @@ def test_settings_views_and_subview_apply(monkeypatch):
     controller = Mock()
     controller.get_settings.return_value = dto
     controller.update_settings.return_value = None
-    monkeypatch.setattr("remail.client.views.settings.settings_sub_view.SettingsController", lambda: controller)
+    monkeypatch.setattr(
+        "remail.client.views.settings.settings_sub_view.SettingsController", lambda: controller
+    )
 
     class DemoSubview(SettingsSubView):
         def create_page(self, settings):
@@ -264,16 +278,33 @@ def test_settings_views_and_subview_apply(monkeypatch):
     subview = DemoSubview()
     subview.apply_settings("language", Language.GERMAN)
 
-    monkeypatch.setattr("remail.client.views.settings.email_accounts_view.AccountController.all_client_accounts", lambda: [])
-    monkeypatch.setattr("remail.client.views.settings.settings_view.AppearanceView", lambda: ft.Container())
-    monkeypatch.setattr("remail.client.views.settings.settings_view.EmailAccountsView", lambda: ft.Container())
-    monkeypatch.setattr("remail.client.views.settings.settings_view.LanguageView", lambda: ft.Container())
-    monkeypatch.setattr("remail.client.views.settings.settings_view.NotificationsView", lambda: ft.Container())
+    monkeypatch.setattr(
+        "remail.client.views.settings.email_accounts_view.AccountController.all_client_accounts",
+        lambda: [],
+    )
+    monkeypatch.setattr(
+        "remail.client.views.settings.settings_view.AppearanceView", lambda: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.settings.settings_view.EmailAccountsView", lambda: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.settings.settings_view.LanguageView", lambda: ft.Container()
+    )
+    monkeypatch.setattr(
+        "remail.client.views.settings.settings_view.NotificationsView", lambda: ft.Container()
+    )
 
-    appearance = importlib.import_module("remail.client.views.settings.appearance_view").AppearanceView()
+    appearance = importlib.import_module(
+        "remail.client.views.settings.appearance_view"
+    ).AppearanceView()
     language = importlib.import_module("remail.client.views.settings.language_view").LanguageView()
-    notifications = importlib.import_module("remail.client.views.settings.notifications_view").NotificationsView()
-    email_accounts = importlib.import_module("remail.client.views.settings.email_accounts_view").EmailAccountsView()
+    notifications = importlib.import_module(
+        "remail.client.views.settings.notifications_view"
+    ).NotificationsView()
+    email_accounts = importlib.import_module(
+        "remail.client.views.settings.email_accounts_view"
+    ).EmailAccountsView()
 
     state = MainAppState()
     state.set(MainAppStateProperties.ACTIVE_SETTINGS, SettingsSubViewEnum.APPEARANCE)
@@ -299,7 +330,9 @@ def test_dashboard_widgets_smoke(monkeypatch):
         email=user.email,
     )
     state.thread_controller.get_most_urgent_threads = Mock(
-        return_value=[(ThreadDTO(id=1, title="Todo", messages=[make_message()]), make_conversation(), user)]
+        return_value=[
+            (ThreadDTO(id=1, title="Todo", messages=[make_message()]), make_conversation(), user)
+        ]
     )
     monkeypatch.setattr(
         "remail.client.widgets.dashboard.appointments_list.DashboardService.get_recent_appointment_items_for_user",
@@ -315,9 +348,16 @@ def test_dashboard_widgets_smoke(monkeypatch):
     assert isinstance(AccountCard(user), ft.Container)
     assert isinstance(AppointmentItem(make_thread_preview(), datetime.now(), user), ft.Container)
     assert isinstance(AppointmentsList(state), ft.Container)
-    assert isinstance(create_croppable_email_address("a@example.com", 12, ft.Colors.BLACK), ft.Container)
-    assert isinstance(create_croppable_email_address("invalid-email", 12, ft.Colors.BLACK), ft.Container)
-    assert isinstance(TodoItem(state, ThreadDTO(id=1, title="Todo", messages=[make_message()]), user), ft.Container)
+    assert isinstance(
+        create_croppable_email_address("a@example.com", 12, ft.Colors.BLACK), ft.Container
+    )
+    assert isinstance(
+        create_croppable_email_address("invalid-email", 12, ft.Colors.BLACK), ft.Container
+    )
+    assert isinstance(
+        TodoItem(state, ThreadDTO(id=1, title="Todo", messages=[make_message()]), user),
+        ft.Container,
+    )
     assert TodoItem.fmt_badge(datetime.now() - timedelta(days=1)) == "yesterday"
     assert isinstance(TodoList(state), ft.Container)
     assert isinstance(page, ft.Column)
@@ -330,7 +370,6 @@ def test_mail_selection_and_thread_widgets_smoke(monkeypatch):
     state.account_controllers["user@example.com"] = Mock(search=Mock(return_value=[conversation]))
     state.set(MainAppStateProperties.ACTIVE_USER, make_user())
 
-    action = Action("Compose", "Secondary", lambda: None, ft.Colors.BLUE, ft.Icons.MAIL.value)
     fake_page = SimpleNamespace(run_task=lambda fn: asyncio.run(fn()))
     monkeypatch.setattr(ConversationSelection, "page", property(lambda self: fake_page))
 
@@ -343,7 +382,12 @@ def test_mail_selection_and_thread_widgets_smoke(monkeypatch):
     state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation)
 
     assert isinstance(ContactPreview(state, conversation), ConversationPreview)
-    assert isinstance(GroupPreview(state, make_conversation(2, [make_contact(2), make_contact(3, "b@example.com")])), ConversationPreview)
+    assert isinstance(
+        GroupPreview(
+            state, make_conversation(2, [make_contact(2), make_contact(3, "b@example.com")])
+        ),
+        ConversationPreview,
+    )
     assert isinstance(create_profile_picture(conversation), ft.CircleAvatar)
     assert isinstance(create_contact_picture(make_contact()), ft.CircleAvatar)
     assert isinstance(conversation_selection, ft.Container)
@@ -358,7 +402,9 @@ def test_message_bubble_and_new_message_dialog_smoke():
     state.thread_controller.create_thread.return_value = make_thread_preview(99, "Created")
     state.thread_controller.send_message.return_value = None
     current_user = make_contact()
-    other_sender = SenderDTO(id=2, first_name="Grace", last_name="Hopper", email="grace@example.com")
+    other_sender = SenderDTO(
+        id=2, first_name="Grace", last_name="Hopper", email="grace@example.com"
+    )
     message = MessageDTO(
         id=1,
         sender=other_sender,
@@ -372,7 +418,13 @@ def test_message_bubble_and_new_message_dialog_smoke():
     state.set(MainAppStateProperties.ACTIVE_THREAD, make_thread_preview(-1, "New Topic"))
     state.set(
         MainAppStateProperties.ACTIVE_THREAD_CONVERSATION,
-        ConversationDTO(id=-1, contacts=[make_contact()], threads=[make_thread_preview(-1, "New Topic")], is_favorite=False, custom_name=None),
+        ConversationDTO(
+            id=-1,
+            contacts=[make_contact()],
+            threads=[make_thread_preview(-1, "New Topic")],
+            is_favorite=False,
+            custom_name=None,
+        ),
     )
 
     assert isinstance(MessageBubble(message, current_user), ft.Container)
