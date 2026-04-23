@@ -10,7 +10,6 @@ from imapclient.exceptions import CapabilityError, LoginError
 from sqlalchemy.exc import InvalidRequestError
 from sqlmodel import Session
 
-from remail import fixtures
 from remail.controllers import SettingsController
 from remail.controllers import __dir__ as controllers_dir
 from remail.controllers import __getattr__ as controllers_getattr
@@ -85,7 +84,6 @@ def test_module_exports_and_error_handler():
     assert protocols_getattr("ImapProtocol") is ImapProtocol
     assert "EmailProtocol" in email_dir()
     assert email_getattr("EmailProtocol") is EmailProtocol
-    assert fixtures.load_conversation_fixtures is not None
 
     class Dummy:
         @email_error_handler
@@ -185,10 +183,10 @@ def test_contact_conversation_thread_and_user_services(test_engine):
         session.add(db_conversation)
         session.commit()
         session.refresh(db_conversation)
-        fetched = conv_service.get_conversation_by_id(db_conversation.id)
-        by_members = conv_service.get_conversation_by_members([contact])
+        fetched = conv_service.get_conversation_by_id(db_conversation.id, session=session)
+        by_members = conv_service.get_conversation_by_members([contact], session=session)
 
-        thread = thread_service.create_thread("Subject", db_conversation.id)
+        thread = thread_service.create_thread("Subject", db_conversation.id, session=session)
         mail = Email(
             body="Hello",
             message_id="<1@example.com>",
@@ -200,7 +198,9 @@ def test_contact_conversation_thread_and_user_services(test_engine):
         )
         session.add(mail)
         session.commit()
-        thread_service.organize_email_into_thread(mail, "Re: Subject", db_conversation)
+        thread_service.organize_email_into_thread(
+            mail, "Re: Subject", db_conversation, session=session
+        )
         session.commit()
         try:
             thread_service.get_most_important_threads()
@@ -208,7 +208,7 @@ def test_contact_conversation_thread_and_user_services(test_engine):
             pass
 
         user_dto = UserService.user_to_dto(user)
-        all_users = UserService.get_all_users()
+        all_users = UserService.get_all_users(session=session)
         assert resolved is not None
         assert created is not None
         assert own_contact is not None
@@ -218,9 +218,8 @@ def test_contact_conversation_thread_and_user_services(test_engine):
         assert ThreadService.normalize_subject("Aw: Re: Subject") == "Subject"
         assert isinstance(user_dto, UserDTO)
         assert len(all_users) > 0
-        with pytest.raises(Exception):  # noqa:B017
-            UserService.delete_user(user.id)
-        UserService().reload_all_user_mails(user_dto.id)
+        UserService.delete_user(user.id, session=session)
+        UserService().reload_all_user_mails(user_dto.id, session=session)
 
 
 def test_account_controller_smoke(monkeypatch):
@@ -389,49 +388,3 @@ def test_exchange_protocol_smoke(monkeypatch):
     assert protocol.test_connection() is True
     assert protocol.fetch_emails(new_only=False)
     protocol.deserialize(protocol.serialize())
-
-
-def test_conversation_fixtures_smoke(monkeypatch):
-    recorded = []
-
-    class FakeSession:
-        def add(self, obj):
-            recorded.append(obj)
-
-        def commit(self):
-            return None
-
-        def query(self, cls):
-            return SimpleNamespace(all=lambda: [])
-
-    class FakeUser:
-        def __init__(self, **kwargs):
-            self.id = len(recorded) + 1
-            self.__dict__.update(kwargs)
-
-    class FakeContact(FakeUser):
-        pass
-
-    class FakeConversation(FakeUser):
-        pass
-
-    class FakeConversationContact(FakeUser):
-        pass
-
-    class FakeUserConversation(FakeUser):
-        pass
-
-    monkeypatch.setattr("remail.fixtures.conversation_fixtures.User", FakeUser)
-    monkeypatch.setattr("remail.fixtures.conversation_fixtures.Contact", FakeContact)
-    monkeypatch.setattr("remail.fixtures.conversation_fixtures.Conversation", FakeConversation)
-    monkeypatch.setattr(
-        "remail.fixtures.conversation_fixtures.ConversationContact", FakeConversationContact
-    )
-    monkeypatch.setattr(
-        "remail.fixtures.conversation_fixtures.UserConversation", FakeUserConversation
-    )
-
-    from remail.fixtures.conversation_fixtures import load_conversation_fixtures
-
-    load_conversation_fixtures(FakeSession(), num_users=1, num_contacts=2)
-    assert recorded

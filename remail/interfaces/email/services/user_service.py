@@ -5,7 +5,6 @@ import logging
 from sqlmodel import Session, select
 
 from remail.controllers.dtos.user_dto import UserDTO
-from remail.database.db import engine
 from remail.enums import Protocol
 from remail.interfaces.email import EmailProtocol
 from remail.models.user import User
@@ -109,17 +108,17 @@ class UserService:
         # todo: handle keyring
 
     @staticmethod
-    def get_all_users() -> list[UserDTO]:
+    @session
+    def get_all_users(session: Session) -> list[UserDTO]:
         """
         Get all users from the database as DTOs.
 
         Returns:
             List of all UserDTO objects
         """
-        with Session(engine) as session:
-            statement = select(User)
-            results = session.exec(statement).all()
-            return [UserService.user_to_dto(user) for user in results]
+        statement = select(User)
+        results = session.exec(statement).all()
+        return [UserService.user_to_dto(user) for user in results]
 
     @session
     def reload_all_user_mails(self, user_id: int, session: Session) -> None:

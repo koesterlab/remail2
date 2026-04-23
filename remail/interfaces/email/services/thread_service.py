@@ -45,7 +45,8 @@ class ThreadService:
 
         return session.get(Thread, thread_id)
 
-    def create_thread(self, title: str, conversation_id: int) -> Thread:
+    @session
+    def create_thread(self, title: str, conversation_id: int, session: Session) -> Thread:
         """
         Create a new thread.
 
@@ -58,11 +59,9 @@ class ThreadService:
         """
 
         new_thread = Thread(title=title, conversation_id=conversation_id)
-
-        with Session(self.engine) as session:
-            session.add(new_thread)
-            session.commit()
-            session.refresh(new_thread)
+        session.add(new_thread)
+        session.commit()
+        session.refresh(new_thread)
 
         return new_thread
 

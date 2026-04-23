@@ -131,6 +131,6 @@ def create_chatbot(app_state: MainAppState):
             alignment=ft.MainAxisAlignment.END,
         ),
         on_hover=lambda f: change_active_state(active_hover=f.data == "true"),
-        padding=ft.padding.all(5),
+        padding=ft.Padding.all(5),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGHEST,
     )

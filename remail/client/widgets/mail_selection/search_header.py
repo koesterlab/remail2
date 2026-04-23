@@ -24,8 +24,8 @@ class SearchHeader(ft.Container):
             color=ft.Colors.ON_SECONDARY,
             border_color="transparent",  # kein Outline
             bgcolor=ft.Colors.SECONDARY,
-            border_radius=ft.border_radius.all(30),
-            content_padding=ft.padding.symmetric(vertical=6, horizontal=8),
+            border_radius=ft.BorderRadius.all(30),
+            content_padding=ft.Padding.symmetric(vertical=6, horizontal=8),
             dense=True,
         )
 

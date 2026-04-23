@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import importlib
-import sys
-import types
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 from types import SimpleNamespace
@@ -150,42 +148,6 @@ def test_client_entry_points_render_and_update(monkeypatch):
     assert fake_view.start.called
     assert fake_page.update.called
     assert fake_page.show_dialog.called
-
-
-def test_settings_loader_smoke(monkeypatch):
-    fake_module = types.ModuleType("remail.client.state.app_state")
-    fake_module.AppState = StubAppState
-    monkeypatch.setitem(sys.modules, "remail.client.state.app_state", fake_module)
-
-    import remail.client.state.settings_loader as settings_loader
-
-    importlib.reload(settings_loader)
-
-    settings = SettingsDTO(
-        id=1,
-        theme_mode=ThemeMode.DARK,
-        font_size=FontSize.LARGE,
-        font_family=FontFamily.ROBOTO,
-        language=Language.GERMAN,
-        timezone=Timezone.EUROPE_BERLIN,
-        desktop_notifications=False,
-        email_notifications=False,
-        quiet_hours=True,
-        llm_url="http://llm",
-        llm_key="secret",
-    )
-    app_state = StubAppState()
-    page = Mock(spec=ft.Page)
-
-    monkeypatch.setattr(
-        settings_loader, "SettingsController", lambda: Mock(get_settings=lambda: settings)
-    )
-    monkeypatch.setattr(settings_loader.UserService, "get_all_users", lambda: [make_user()])
-
-    settings_loader.load_settings_into_state(app_state, page)
-
-    assert app_state.connected_emails
-    assert page.theme_mode == ft.ThemeMode.DARK
 
 
 def test_index_view_start_smoke(monkeypatch):

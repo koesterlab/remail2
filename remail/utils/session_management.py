@@ -29,6 +29,7 @@ def session(func: Callable) -> Callable:
         # Fall 1: Session explizit übergeben
         if provided_session is not None:
             active_session = provided_session
+            kwargs["session"] = active_session
 
         # Fall 2: Parent-@session existiert → gleiche nehmen
         elif parent_session is not None:

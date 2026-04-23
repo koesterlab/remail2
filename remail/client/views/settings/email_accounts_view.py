@@ -222,7 +222,7 @@ class EmailAccountsView(SettingsSubView):
         add_button = ft.Container(
             ft.OutlinedButton("Add Email Account", icon=ft.Icons.ADD, on_click=add_account_click),
             alignment=ft.Alignment.CENTER,
-            margin=ft.margin.only(top=20),
+            margin=ft.Margin.only(top=20),
         )
 
         base = ft.Container()
@@ -254,7 +254,7 @@ class EmailAccountsView(SettingsSubView):
                                             ),
                                         ]
                                     ),
-                                    border=ft.border.all(1, ft.Colors.GREY_400),
+                                    border=ft.Border.all(1, ft.Colors.GREY_400),
                                     border_radius=5,
                                     padding=10,
                                 )

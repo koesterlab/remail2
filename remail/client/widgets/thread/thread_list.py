@@ -52,7 +52,7 @@ class ThreadList(ft.Container):
                             ft.TextField(
                                 value=self.thread.title,
                                 hint_text="Enter a thread name",
-                                content_padding=ft.padding.all(0),
+                                content_padding=ft.Padding.all(0),
                                 collapsed=True,
                                 text_style=ft.TextStyle(
                                     size=22, weight=ft.FontWeight.BOLD, color=ft.Colors.ON_SURFACE
@@ -74,7 +74,7 @@ class ThreadList(ft.Container):
                 alignment=ft.MainAxisAlignment.START,
                 spacing=10,
             ),
-            padding=ft.padding.only(left=10, top=5, bottom=5, right=10),
+            padding=ft.Padding.only(left=10, top=5, bottom=5, right=10),
             height=60,
             bgcolor=ft.Colors.SURFACE,
         )

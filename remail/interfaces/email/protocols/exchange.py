@@ -3,7 +3,7 @@
 import asyncio
 import json
 from collections.abc import AsyncGenerator
-from datetime import datetime
+from datetime import UTC, datetime
 from email import message_from_bytes
 from typing import Any
 
@@ -70,7 +70,7 @@ class ExchangeProtocol(EmailProtocol):
             msg = message_from_bytes(raw_bytes)
             messages[str(item.id)] = msg
 
-        self.last_fetch = datetime.utcnow()
+        self.last_fetch = datetime.now(tz=UTC)
         return messages
 
     def send_email(self, email: Email) -> None:

@@ -95,7 +95,7 @@ class ConversationPreview(ft.Container, ABC):
             on_click=lambda: state.set(MainAppStateProperties.ACTIVE_CONVERSATION, conversation),
             bgcolor=ft.Colors.TRANSPARENT,
             margin=0,
-            border=ft.border.only(bottom=ft.border.BorderSide(1, ft.Colors.GREY)),
+            border=ft.Border.only(bottom=ft.border.BorderSide(1, ft.Colors.GREY)),
             content=ft.Row(
                 [
                     profile_picture,

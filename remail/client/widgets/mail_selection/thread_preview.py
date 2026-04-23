@@ -49,5 +49,5 @@ class ThreadPreview(ft.Container):
                 ]
             ),
             on_click=lambda _: on_click(),
-            padding=ft.padding.all(12),
+            padding=ft.Padding.all(12),
         )

@@ -4,10 +4,10 @@ from unittest.mock import Mock
 
 import flet as ft
 from remail.client.state.app_state import AppState
-
 from remail.client.widgets.settings.appearance.font_family_selector import (
     create_font_family_selector,
 )
+
 from remail.enums import FontFamily
 
 

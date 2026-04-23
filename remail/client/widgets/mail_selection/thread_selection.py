@@ -31,7 +31,7 @@ class ThreadSelection(ft.Container):
                 controls=[
                     # header
                     ft.Container(
-                        padding=ft.padding.only(left=0, right=5, top=5, bottom=10),
+                        padding=ft.Padding.only(left=0, right=5, top=5, bottom=10),
                         content=ft.Row(
                             [
                                 ft.IconButton(
@@ -54,7 +54,7 @@ class ThreadSelection(ft.Container):
                             ],
                             spacing=7,
                         ),
-                        border=ft.border.only(bottom=ft.border.BorderSide(1, ft.Colors.GREY)),
+                        border=ft.Border.only(bottom=ft.border.BorderSide(1, ft.Colors.GREY)),
                     ),
                     # thread_list
                     ft.Container(
@@ -102,12 +102,12 @@ class ThreadSelection(ft.Container):
             dense=True,
             expand=True,
             text_style=ft.TextStyle(weight=ft.FontWeight.BOLD),
-            border_radius=ft.border_radius.all(20),
+            border_radius=ft.BorderRadius.all(20),
             prefix_icon=ft.Icons.ADD,
             hint_text="add Topic",
         )
 
-        self.add_thread_btn = ft.Container(self.add_thread_field, padding=ft.padding.only(top=5))
+        self.add_thread_btn = ft.Container(self.add_thread_field, padding=ft.Padding.only(top=5))
 
     def set_content(self, content: ConversationDTO):
         if not content:

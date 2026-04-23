@@ -29,7 +29,7 @@ class SettingsView(ft.Container):
                     ft.Text("Settings", size=24, weight=ft.FontWeight.BOLD),
                 ],
             ),
-            padding=ft.padding.only(left=10, top=10, bottom=10),
+            padding=ft.Padding.only(left=10, top=10, bottom=10),
         )
 
         # Create main layout

@@ -174,7 +174,7 @@ This should be the summary of the emails since the last login. It could for exam
                 bgcolor=ft.Colors.SURFACE,
                 content=ft.Container(
                     expand=True,
-                    padding=ft.padding.symmetric(horizontal=10),
+                    padding=ft.Padding.symmetric(horizontal=10),
                     content=inner_column,
                 ),
             )
