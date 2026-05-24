@@ -13,21 +13,17 @@ class ThreadController:
 
     def __init__(self):
         """Initialize thread controller."""
-
         self.service = ThreadService()
 
     @session
     def get_thread(self, thread_id: int) -> ThreadDTO | None:
         """
         Fetch a complete thread with all messages.
-
         Args:
             thread_id: Thread ID to fetch
-
         Returns:
             ThreadDTO with thread data, or None if not found
         """
-
         res = self.service.get_thread_by_id(thread_id)
         if res:
             return ThreadDTO.from_model(res)
@@ -42,22 +38,18 @@ class ThreadController:
     def create_thread(self, conversation_id: int, name: str) -> ThreadDTO:
         """
         Creates a thread in the local database. Note that it is only "synced" with other clients if a mail is sent
-
         Args:
               conversation_id: The Id of the conversation the thread belongs to
               name: Name of the new thread
-
         Returns:
               ThreadDTO with the created thread data
         """
-
         return ThreadDTO.from_model(self.service.create_thread(name, conversation_id))
 
     @session
     def send_message(self, thread_id: int, message: str, attachment: list[Any]) -> None:
         """
         Sends a message to a given thread
-
         Args:
             thread_id: The Id of the corresponding thread
             message: The message to send
@@ -72,3 +64,13 @@ class ThreadController:
             subject=("Re: " if thread.messages else "") + thread.title,
             msg=message,
         )
+
+    @session
+    def add_tag(self, email_id: int, tag: str) -> None:
+        """
+        Add a tag to an email.
+        Args:
+            email_id: ID of the email to tag
+            tag: Tag string to add
+        """
+        self.service.add_tag(email_id, tag)

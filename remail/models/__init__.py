@@ -4,6 +4,7 @@ from .conversation import Conversation
 from .conversation_contact import ConversationContact
 from .email import Email
 from .email_reception import EmailReception
+from .email_tag import EmailTag
 from .settings import Settings
 from .thread import Thread
 from .user import User
@@ -16,6 +17,7 @@ __all__ = [
     "ConversationContact",
     "Email",
     "EmailReception",
+    "EmailTag",
     "User",
     "UserConversation",
     "Thread",

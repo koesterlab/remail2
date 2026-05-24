@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from remail.models import Email
@@ -20,6 +20,8 @@ class MessageDTO:
     subject: str
     content: MessageContentDTO
     sent_at: datetime
+    tags: list[str] = field(default_factory=list)
+    due_date: datetime | None = None
 
     @staticmethod
     def from_model(mail: Email):
@@ -41,12 +43,14 @@ class MessageDTO:
                 attachments=[
                     AttachmentDTO(
                         file_name=att.filename,
-                        file_size=0,  # TODO: Add file size to Attachment model -- Later Feature
-                        file_type="application/octet-stream",  # TODO: Add file type -- Later Feature
-                        url=f"/attachments/{att.id}",  # Placeholder URL -- Later Feature
+                        file_size=0,
+                        file_type="application/octet-stream",
+                        url=f"/attachments/{att.id}",
                     )
                     for att in mail.attachments
                 ],
             ),
             sent_at=mail.sent_at,
+            tags=[t.tag for t in mail.tags],
+            due_date=mail.due_date,
         )

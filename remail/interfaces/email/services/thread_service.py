@@ -235,4 +235,27 @@ class ThreadService:
                 UserService.user_to_dto(t.conversation.user),
             )
             for t in threads
-        ]
+       ]
+
+    @session
+    def add_tag(self, email_id: int, tag: str, session: Session) -> None:
+        """
+        Add a tag to an email.
+
+        Args:
+            email_id: ID of the email to tag
+            tag: Tag string to add
+        """
+        from remail.models import EmailTag
+
+        email = session.get(Email, email_id)
+        if email is None:
+            return
+
+        existing_tags = [t.tag for t in email.tags]
+        if tag in existing_tags:
+            return
+
+        new_tag = EmailTag(email_id=email_id, tag=tag)
+        session.add(new_tag)
+        session.commit()
